@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CoreID 登录测试</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #f4efe7;
+        --panel: rgba(255, 255, 255, 0.9);
+        --text: #182028;
+        --muted: #5b6670;
+        --line: rgba(24, 32, 40, 0.1);
+        --accent: #115f56;
+        --accent-soft: rgba(17, 95, 86, 0.12);
+        --danger: #b63d2f;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: "PingFang SC", "Noto Sans SC", sans-serif;
+        background:
+          radial-gradient(circle at right top, rgba(17, 95, 86, 0.14), transparent 34%),
+          linear-gradient(180deg, #faf7f1 0%, var(--bg) 100%);
+        color: var(--text);
+      }
+
+      .shell {
+        width: min(960px, calc(100vw - 32px));
+        margin: 32px auto;
+        display: grid;
+        gap: 18px;
+      }
+
+      .panel {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 24px;
+        box-shadow: 0 18px 60px rgba(20, 25, 33, 0.08);
+        backdrop-filter: blur(16px);
+      }
+
+      .hero,
+      .left,
+      .right {
+        padding: 26px;
+      }
+
+      .hero h1 {
+        margin: 0 0 10px;
+        font-size: 34px;
+      }
+
+      .hero p {
+        margin: 0;
+        color: var(--muted);
+        line-height: 1.7;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 18px;
+      }
+
+      .stack {
+        display: grid;
+        gap: 14px;
+      }
+
+      label {
+        display: grid;
+        gap: 8px;
+        font-size: 13px;
+        color: var(--muted);
+      }
+
+      input,
+      select,
+      textarea,
+      button {
+        font: inherit;
+      }
+
+      input,
+      select,
+      textarea {
+        width: 100%;
+        border: 1px solid rgba(24, 32, 40, 0.12);
+        background: rgba(255, 255, 255, 0.92);
+        color: var(--text);
+        border-radius: 16px;
+        padding: 13px 14px;
+      }
+
+      textarea {
+        min-height: 220px;
+        resize: vertical;
+        font-family: "SFMono-Regular", "Menlo", monospace;
+        font-size: 12px;
+        line-height: 1.6;
+      }
+
+      button {
+        border: none;
+        border-radius: 999px;
+        padding: 12px 18px;
+        cursor: pointer;
+        transition: transform 160ms ease;
+      }
+
+      button:hover {
+        transform: translateY(-1px);
+      }
+
+      .primary {
+        background: var(--accent);
+        color: #fff;
+      }
+
+      .secondary {
+        background: var(--accent-soft);
+        color: var(--accent);
+      }
+
+      .actions {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+
+      .status {
+        padding: 14px 16px;
+        border-radius: 16px;
+        font-size: 13px;
+        line-height: 1.7;
+        background: rgba(17, 95, 86, 0.08);
+        color: var(--accent);
+      }
+
+      .status.error {
+        background: rgba(182, 61, 47, 0.1);
+        color: var(--danger);
+      }
+
+      .card-title {
+        margin: 0 0 8px;
+        font-size: 18px;
+      }
+
+      a {
+        color: inherit;
+      }
+
+      @media (max-width: 860px) {
+        .grid {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="shell">
+      <section class="panel hero">
+        <h1>CoreID 登录测试页</h1>
+        <p>
+          这里验证“统一身份 + 应用资格隔离”是否成立。登录底层会校验 Casdoor 密码，但最终能不能进入目标应用，还要看
+          CoreID 里的 `user_app_memberships`。页面下方也可以直接测试“短信验证码重置密码”链路。
+        </p>
+      </section>
+
+      <section class="grid">
+        <div class="panel left">
+          <div class="stack">
+            <label>
+              目标应用
+              <select id="app-id">
+                <option value="">加载中…</option>
+              </select>
+            </label>
+
+            <label>
+              手机号
+              <input id="phone" type="text" placeholder="输入已注册手机号" />
+            </label>
+
+            <label>
+              密码
+              <input id="password" type="password" placeholder="输入统一账号密码" />
+            </label>
+
+            <label>
+              设备 ID
+              <input id="device-id" type="text" placeholder="建议使用稳定设备 ID" />
+            </label>
+
+            <label>
+              设备名称
+              <input id="device-name" type="text" placeholder="例如 Xiaomi 15 Pro" />
+            </label>
+
+            <div class="actions">
+              <button class="primary" id="login-btn" type="button">密码登录</button>
+              <button class="secondary" id="me-btn" type="button">读取当前会话</button>
+              <button class="secondary" id="logout-btn" type="button">退出</button>
+              <a class="secondary" href="/auth/register-test" style="text-decoration: none; display: inline-flex; align-items: center;">
+                去注册测试页
+              </a>
+            </div>
+
+            <div class="status" style="background: rgba(17, 95, 86, 0.05); color: var(--muted);">
+              忘记密码测试：
+              <br />
+              1. 先点“发送重置验证码”
+              <br />
+              2. 如果返回 <code>mode=dev</code>，验证码会自动回填
+              <br />
+              3. 再设置新密码并点“重置密码”
+            </div>
+
+            <label>
+              重置验证码
+              <input id="reset-code" type="text" placeholder="填写收到的验证码" />
+            </label>
+
+            <label>
+              新密码
+              <input id="new-password" type="password" placeholder="输入新的统一账号密码" />
+            </label>
+
+            <div class="actions">
+              <button class="secondary" id="send-reset-code-btn" type="button">发送重置验证码</button>
+              <button class="secondary" id="reset-password-btn" type="button">重置密码</button>
+            </div>
+
+            <div id="status-box" class="status">等待操作。</div>
+          </div>
+        </div>
+
+        <div class="panel right">
+          <div class="stack">
+            <strong class="card-title">接口返回</strong>
+            <textarea id="result" readonly>{}</textarea>
+            <strong class="card-title">当前会话用户</strong>
+            <textarea id="me-result" readonly>{}</textarea>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <script>
+      const appIdInput = document.getElementById("app-id");
+      const phoneInput = document.getElementById("phone");
+      const passwordInput = document.getElementById("password");
+      const deviceIdInput = document.getElementById("device-id");
+      const deviceNameInput = document.getElementById("device-name");
+      const resetCodeInput = document.getElementById("reset-code");
+      const newPasswordInput = document.getElementById("new-password");
+      const resultEl = document.getElementById("result");
+      const meResultEl = document.getElementById("me-result");
+      const statusBox = document.getElementById("status-box");
+      let currentToken = "";
+      const DEVICE_STORAGE_KEY = "coreid-login-test-device-id";
+
+      function buildStableDeviceId() {
+        const existing = window.localStorage.getItem(DEVICE_STORAGE_KEY);
+        if (existing) {
+          return existing;
+        }
+
+        const generated = `web-${Math.random().toString(36).slice(2, 12)}`;
+        window.localStorage.setItem(DEVICE_STORAGE_KEY, generated);
+        return generated;
+      }
+
+      function buildDefaultDeviceName() {
+        const platform = navigator.platform || "Web";
+        return `${platform} Browser`;
+      }
+
+      function setStatus(message, type = "info") {
+        statusBox.textContent = message;
+        statusBox.className = `status${type === "error" ? " error" : ""}`;
+      }
+
+      function setResult(target, payload) {
+        target.value = JSON.stringify(payload, null, 2);
+      }
+
+      async function loadApplications() {
+        const payload = await requestJson("/api/identity/applications");
+        appIdInput.innerHTML = payload.items.length
+          ? payload.items
+              .map(
+                (item) =>
+                  `<option value="${item.id}">${item.name || item.id} · ${item.id}</option>`
+              )
+              .join("")
+          : '<option value="">暂无可用应用</option>';
+      }
+
+      async function requestJson(url, options = {}) {
+        const response = await fetch(url, {
+          method: options.method || "GET",
+          headers: {
+            ...(options.body ? { "Content-Type": "application/json" } : {}),
+            ...(currentToken ? { Authorization: `Bearer ${currentToken}` } : {}),
+            ...(options.headers || {}),
+          },
+          body: options.body ? JSON.stringify(options.body) : undefined,
+          credentials: "same-origin",
+        });
+
+        const text = await response.text();
+        let payload = {};
+
+        try {
+          payload = text ? JSON.parse(text) : {};
+        } catch (error) {
+          payload = { raw: text };
+        }
+
+        if (!response.ok) {
+          const message = payload.error || payload.msg || `请求失败 (${response.status})`;
+          throw new Error(message);
+        }
+
+        return payload;
+      }
+
+      async function loadCurrentSession() {
+        const payload = await requestJson(`/api/identity/me?app_id=${encodeURIComponent(appIdInput.value)}`);
+        setResult(meResultEl, payload);
+        return payload;
+      }
+
+      document.getElementById("login-btn").addEventListener("click", async () => {
+        try {
+          setStatus("登录中...");
+          const payload = await requestJson("/api/identity/login/password", {
+            method: "POST",
+            body: {
+              app_id: appIdInput.value,
+              phone: phoneInput.value,
+              password: passwordInput.value,
+              device_id: deviceIdInput.value,
+              device_name: deviceNameInput.value,
+            },
+          });
+
+          currentToken = payload.token || "";
+          setResult(resultEl, payload);
+          await loadCurrentSession();
+          setStatus(`登录成功，当前应用：${payload.membership?.app_id || appIdInput.value}`);
+        } catch (error) {
+          setStatus(error.message, "error");
+        }
+      });
+
+      document.getElementById("me-btn").addEventListener("click", async () => {
+        try {
+          setStatus("读取当前会话中...");
+          const payload = await loadCurrentSession();
+          if (payload.authenticated) {
+            setStatus("当前会话有效。");
+          } else {
+            setStatus("当前没有有效会话。", "error");
+          }
+        } catch (error) {
+          setStatus(error.message, "error");
+        }
+      });
+
+      document.getElementById("logout-btn").addEventListener("click", async () => {
+        try {
+          await requestJson("/api/identity/logout", {
+            method: "POST",
+          });
+          currentToken = "";
+          setResult(resultEl, { success: true });
+          setResult(meResultEl, {});
+          setStatus("当前身份会话已经退出。");
+        } catch (error) {
+          setStatus(error.message, "error");
+        }
+      });
+
+      document.getElementById("send-reset-code-btn").addEventListener("click", async () => {
+        try {
+          setStatus("发送重置验证码中...");
+          const payload = await requestJson("/api/identity/send-code", {
+            method: "POST",
+            body: {
+              app_id: appIdInput.value,
+              phone: phoneInput.value,
+              purpose: "reset_password",
+            },
+          });
+          setResult(resultEl, payload);
+          if (payload.mode === "dev") {
+            resetCodeInput.value = payload.debug_code || "";
+            setStatus(`开发模式验证码已生成：${payload.debug_code || ""}`);
+          } else {
+            resetCodeInput.value = "";
+            setStatus("重置验证码已发送到手机，请输入短信里的验证码。");
+          }
+        } catch (error) {
+          setStatus(error.message, "error");
+        }
+      });
+
+      document.getElementById("reset-password-btn").addEventListener("click", async () => {
+        try {
+          setStatus("重置密码中...");
+          const payload = await requestJson("/api/identity/reset-password", {
+            method: "POST",
+            body: {
+              app_id: appIdInput.value,
+              phone: phoneInput.value,
+              code: resetCodeInput.value,
+              new_password: newPasswordInput.value,
+            },
+          });
+          setResult(resultEl, payload);
+          passwordInput.value = newPasswordInput.value;
+          setStatus("密码已重置成功，可以直接用新密码登录。");
+        } catch (error) {
+          setStatus(error.message, "error");
+        }
+      });
+
+      deviceIdInput.value = buildStableDeviceId();
+      deviceNameInput.value = buildDefaultDeviceName();
+
+      loadApplications().catch((error) => {
+        setStatus(error.message, "error");
+      });
+    </script>
+  </body>
+</html>

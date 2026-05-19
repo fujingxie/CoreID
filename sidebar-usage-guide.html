@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CoreID 后台侧边栏使用说明</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #f4f6fb;
+        --panel: rgba(255, 255, 255, 0.95);
+        --text: #152033;
+        --muted: #627087;
+        --line: rgba(21, 32, 51, 0.12);
+        --accent: #165dff;
+        --accent-soft: rgba(22, 93, 255, 0.1);
+        --ok: #0f8c5c;
+        --warn: #b86a00;
+        --todo: #8d5cf6;
+        --shadow: 0 18px 54px rgba(16, 30, 54, 0.08);
+      }
+
+      * { box-sizing: border-box; }
+
+      body {
+        margin: 0;
+        font-family: "PingFang SC", "Noto Sans SC", "Helvetica Neue", sans-serif;
+        color: var(--text);
+        line-height: 1.7;
+        background:
+          radial-gradient(circle at top left, rgba(22, 93, 255, 0.08), transparent 30%),
+          radial-gradient(circle at top right, rgba(15, 140, 92, 0.06), transparent 24%),
+          var(--bg);
+      }
+
+      .page {
+        width: min(1280px, calc(100% - 40px));
+        margin: 0 auto;
+        padding: 34px 0 72px;
+      }
+
+      .hero, .toc, .panel {
+        border: 1px solid var(--line);
+        border-radius: 28px;
+        background: var(--panel);
+        box-shadow: var(--shadow);
+      }
+
+      .hero { padding: 38px 40px; }
+      .eyebrow {
+        display: inline-flex;
+        padding: 8px 14px;
+        border-radius: 999px;
+        background: var(--accent-soft);
+        color: var(--accent);
+        font-size: 13px;
+        font-weight: 700;
+      }
+
+      h1 {
+        margin: 16px 0 12px;
+        font-size: clamp(34px, 5vw, 50px);
+        line-height: 1.08;
+      }
+
+      .lead {
+        margin: 0;
+        max-width: 920px;
+        color: var(--muted);
+        font-size: 17px;
+      }
+
+      .meta {
+        margin-top: 20px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+
+      .meta span {
+        padding: 10px 13px;
+        border-radius: 14px;
+        background: rgba(21, 32, 51, 0.05);
+        color: var(--muted);
+        font-size: 14px;
+      }
+
+      .layout {
+        display: grid;
+        grid-template-columns: 290px minmax(0, 1fr);
+        gap: 22px;
+        margin-top: 24px;
+      }
+
+      .toc {
+        position: sticky;
+        top: 20px;
+        align-self: start;
+        padding: 22px 20px;
+      }
+
+      .toc h2 {
+        margin: 0 0 12px;
+        font-size: 16px;
+      }
+
+      .toc a {
+        display: block;
+        margin: 10px 0;
+        color: var(--muted);
+        text-decoration: none;
+        font-size: 14px;
+      }
+
+      .toc a:hover { color: var(--accent); }
+      .content { display: grid; gap: 22px; }
+      .panel { padding: 26px 28px; }
+      .panel h2 { margin: 0 0 14px; font-size: 22px; }
+      .panel h3 { margin: 22px 0 10px; font-size: 17px; }
+      .muted { color: var(--muted); }
+
+      .cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 14px;
+        margin-top: 14px;
+      }
+
+      .card {
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        padding: 18px;
+        background: rgba(255, 255, 255, 0.82);
+      }
+
+      .card h3 { margin: 0 0 8px; font-size: 16px; }
+      .card p { margin: 0; color: var(--muted); font-size: 14px; }
+
+      .tag {
+        display: inline-flex;
+        margin-top: 12px;
+        padding: 6px 10px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 700;
+      }
+
+      .tag.ok { background: rgba(15, 140, 92, 0.12); color: var(--ok); }
+      .tag.warn { background: rgba(184, 106, 0, 0.12); color: var(--warn); }
+      .tag.todo { background: rgba(141, 92, 246, 0.12); color: var(--todo); }
+
+      .steps {
+        display: grid;
+        gap: 12px;
+        margin-top: 12px;
+      }
+
+      .step {
+        display: grid;
+        grid-template-columns: 44px minmax(0, 1fr);
+        gap: 14px;
+        padding: 16px 18px;
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        background: rgba(255, 255, 255, 0.84);
+      }
+
+      .index {
+        width: 44px;
+        height: 44px;
+        border-radius: 14px;
+        display: grid;
+        place-items: center;
+        background: var(--accent-soft);
+        color: var(--accent);
+        font-weight: 800;
+      }
+
+      .step h4 { margin: 0 0 6px; font-size: 15px; }
+      .step p { margin: 0; color: var(--muted); font-size: 14px; }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 14px;
+      }
+
+      th, td {
+        text-align: left;
+        padding: 12px 10px;
+        border-bottom: 1px solid var(--line);
+        vertical-align: top;
+      }
+
+      th { color: var(--muted); font-size: 13px; }
+
+      ul { margin: 10px 0 0; padding-left: 20px; }
+      li + li { margin-top: 6px; }
+
+      code {
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+        font-size: 0.95em;
+        padding: 2px 6px;
+        border-radius: 6px;
+        background: rgba(21, 32, 51, 0.06);
+      }
+
+      .footer { margin-top: 12px; color: var(--muted); font-size: 13px; }
+
+      @media (max-width: 980px) {
+        .layout { grid-template-columns: 1fr; }
+        .toc { position: static; }
+        .page { width: min(100% - 24px, 1280px); padding-top: 18px; }
+        .hero, .panel, .toc { padding-left: 20px; padding-right: 20px; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <section class="hero">
+        <div class="eyebrow">CoreID · 后台侧边栏说明</div>
+        <h1>CoreID 后台侧边栏使用说明</h1>
+        <p class="lead">
+          这份文档专门对应后台左侧栏。每一项都说明“点进去是什么页面、能做什么、具体怎么操作、哪些能力已经可用、哪些还只是占位”。
+          如果你要培训运营或交接后台，这份文档会比通用说明更直接。
+        </p>
+        <div class="meta">
+          <span>后台入口：<code>http://localhost:3000/admin</code></span>
+          <span>说明对象：左侧栏所有菜单</span>
+          <span>状态说明：已可用 / 部分可用 / 占位</span>
+        </div>
+      </section>
+
+      <div class="layout">
+        <aside class="toc">
+          <h2>菜单目录</h2>
+          <a href="#how">1. 怎么看这份文档</a>
+          <a href="#dashboard">2. 概览 Dashboard</a>
+          <a href="#users">3. 用户管理</a>
+          <a href="#orders">4. 购买记录</a>
+          <a href="#apps">5. 应用管理</a>
+          <a href="#landing">6. 落地页管理</a>
+          <a href="#builds">7. 安装包管理</a>
+          <a href="#growth">8. 增长分析</a>
+          <a href="#messages">9. 消息推送</a>
+          <a href="#plans">10. 套餐配置</a>
+          <a href="#permissions">11. 权限管理</a>
+          <a href="#logs">12. 审计日志</a>
+        </aside>
+
+        <main class="content">
+          <section class="panel" id="how">
+            <h2>1. 怎么看这份文档</h2>
+            <table>
+              <thead>
+                <tr>
+                  <th>状态</th>
+                  <th>说明</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><span class="tag ok">已可用</span></td>
+                  <td>这项功能已经能在后台直接操作，并且主闭环已走通。</td>
+                </tr>
+                <tr>
+                  <td><span class="tag warn">部分可用</span></td>
+                  <td>能看、能做一部分操作，但还有增强项或边缘能力没完全补齐。</td>
+                </tr>
+                <tr>
+                  <td><span class="tag todo">占位</span></td>
+                  <td>侧边栏里有入口，但当前还没有真正页面逻辑，或只是预留模块。</td>
+                </tr>
+              </tbody>
+            </table>
+            <p class="footer">建议你在后台对照左侧栏一项项点，这样最容易把文档和实际界面对应起来。</p>
+          </section>
+
+          <section class="panel" id="dashboard">
+            <h2>2. 概览 Dashboard</h2>
+            <span class="tag ok">已可用</span>
+            <p class="muted">这是后台首页，主要是看平台整体运行情况，不负责具体编辑操作。</p>
+            <h3>点进去能看到什么</h3>
+            <ul>
+              <li>总用户数、今日新增、总收入、活跃设备数</li>
+              <li>用户增长趋势图</li>
+              <li>产品用户分布</li>
+              <li>收入构成</li>
+              <li>最近动态</li>
+            </ul>
+            <h3>怎么用</h3>
+            <div class="steps">
+              <div class="step"><div class="index">1</div><div><h4>先看平台健康度</h4><p>每天先看总用户、收入、活跃设备有没有异常波动。</p></div></div>
+              <div class="step"><div class="index">2</div><div><h4>看应用分布</h4><p>确认 VidGet、助教云等应用的用户占比有没有变化。</p></div></div>
+              <div class="step"><div class="index">3</div><div><h4>看最近动态</h4><p>快速了解注册、购买、发布等最近发生的关键事件。</p></div></div>
+            </div>
+          </section>
+
+          <section class="panel" id="users">
+            <h2>3. 用户管理</h2>
+            <span class="tag ok">已可用</span>
+            <p class="muted">这是最核心的运营页之一，用来查用户、看资格、看设备、看购买、改账号状态。</p>
+            <h3>点进去能做什么</h3>
+            <ul>
+              <li>搜索手机号、用户名、邮箱</li>
+              <li>按购买状态筛选：已购买、已过期、免费用户</li>
+              <li>按应用筛选：只看某个应用的用户</li>
+              <li>按注册时间筛选：今天 / 近 7 天 / 近 30 天</li>
+              <li>导出用户 CSV</li>
+              <li>添加用户并补开某个应用资格</li>
+              <li>打开用户详情抽屉，查看概况 / 购买记录 / 登录设备 / 操作日志</li>
+            </ul>
+            <h3>用户详情里怎么用</h3>
+            <div class="steps">
+              <div class="step"><div class="index">1</div><div><h4>看应用资格</h4><p>确认用户拥有哪些应用的注册资格，能不能登录某个应用。</p></div></div>
+              <div class="step"><div class="index">2</div><div><h4>看设备状态</h4><p>区分当前有效设备和历史失效设备，排查顶号或单设备限制问题。</p></div></div>
+              <div class="step"><div class="index">3</div><div><h4>做账号操作</h4><p>可以保存资料、重置密码、停用账号、恢复账号。</p></div></div>
+              <div class="step"><div class="index">4</div><div><h4>看真实事件流</h4><p>注册、登录、资格变更、购买行为都会进入用户事件流。</p></div></div>
+            </div>
+          </section>
+
+          <section class="panel" id="orders">
+            <h2>4. 购买记录</h2>
+            <span class="tag ok">已可用</span>
+            <p class="muted">这个页面主要管订单和支付状态，不是套餐配置页。</p>
+            <h3>点进去能做什么</h3>
+            <ul>
+              <li>查看订单列表、今日收入、客单价、退款金额</li>
+              <li>按关键词搜索订单号或手机号</li>
+              <li>导出订单数据</li>
+              <li>打开订单详情弹层</li>
+              <li>在订单详情里做状态流转：标记支付成功 / 失败 / 退款 / 过期</li>
+              <li>查看订单事件流和支付回调结果</li>
+            </ul>
+            <h3>推荐操作</h3>
+            <div class="steps">
+              <div class="step"><div class="index">1</div><div><h4>先查订单状态</h4><p>搜索订单号，确认是 <code>pending</code>、<code>paid</code> 还是其他状态。</p></div></div>
+              <div class="step"><div class="index">2</div><div><h4>打开订单详情</h4><p>看订单事件流和支付确认时间，判断是不是支付回调没到或状态流转错误。</p></div></div>
+              <div class="step"><div class="index">3</div><div><h4>必要时手动修正状态</h4><p>后台可手动改订单状态，但会写入审计日志和订单事件流。</p></div></div>
+            </div>
+          </section>
+
+          <section class="panel" id="apps">
+            <h2>5. 应用管理</h2>
+            <span class="tag ok">已可用</span>
+            <p class="muted">这是平台级应用清单，不是某个应用的业务后台。</p>
+            <h3>点进去能做什么</h3>
+            <ul>
+              <li>查看应用卡片和基础统计</li>
+              <li>接入新应用</li>
+              <li>编辑应用名称、描述、类型、状态</li>
+              <li>查看 SDK 文档</li>
+              <li>导出 SDK 文档 Markdown</li>
+              <li>从应用卡片跳转到该应用的用户、落地页、安装包上下文</li>
+            </ul>
+            <h3>怎么接入一个新应用</h3>
+            <div class="steps">
+              <div class="step"><div class="index">1</div><div><h4>点“+ 接入新应用”</h4><p>填写 App ID、应用名称、应用类型、状态和描述。</p></div></div>
+              <div class="step"><div class="index">2</div><div><h4>保存后继续配套</h4><p>应用创建后，再去套餐配置、落地页管理、安装包管理补齐能力。</p></div></div>
+              <div class="step"><div class="index">3</div><div><h4>导出 SDK 文档</h4><p>接入方需要 Android 或 Web 文档时，从这里打开并导出 Markdown。</p></div></div>
+            </div>
+          </section>
+
+          <section class="panel" id="landing">
+            <h2>6. 落地页管理</h2>
+            <span class="tag ok">已可用</span>
+            <p class="muted">这个页面是做下载页、投放页和活动落地页管理的，不是内容 CMS。</p>
+            <h3>点进去能做什么</h3>
+            <ul>
+              <li>新建落地页草稿</li>
+              <li>上传 HTML 草稿</li>
+              <li>预览草稿</li>
+              <li>正式发布</li>
+              <li>下线</li>
+              <li>查看历史版本并回滚</li>
+            </ul>
+            <h3>正确操作顺序</h3>
+            <div class="steps">
+              <div class="step"><div class="index">1</div><div><h4>先新建草稿</h4><p>通过“+ 新建落地页”为应用生成默认草稿模板。</p></div></div>
+              <div class="step"><div class="index">2</div><div><h4>上传或编辑 HTML</h4><p>当前上传的是草稿，不会直接改线上页。</p></div></div>
+              <div class="step"><div class="index">3</div><div><h4>先预览草稿</h4><p>确认下载按钮、二维码和视觉样式没问题。</p></div></div>
+              <div class="step"><div class="index">4</div><div><h4>再发布</h4><p>发布后线上公开页才会切换到新版本。</p></div></div>
+            </div>
+          </section>
+
+          <section class="panel" id="builds">
+            <h2>7. 安装包管理</h2>
+            <span class="tag ok">已可用</span>
+            <p class="muted">这里负责应用分发，不只是上传文件，还包括版本历史、统计和二维码。</p>
+            <h3>点进去能做什么</h3>
+            <ul>
+              <li>上传 APK / EXE / DMG 文件</li>
+              <li>配置 Web / App Store 下载链接</li>
+              <li>查看当前版本和历史版本</li>
+              <li>回滚历史版本</li>
+              <li>删除当前版本</li>
+              <li>删除整个版本历史</li>
+              <li>查看下载统计</li>
+              <li>生成下载二维码</li>
+            </ul>
+            <h3>推荐操作顺序</h3>
+            <div class="steps">
+              <div class="step"><div class="index">1</div><div><h4>点“+ 上传安装包”</h4><p>选择应用、平台、版本号，然后上传文件或填写 URL。</p></div></div>
+              <div class="step"><div class="index">2</div><div><h4>检查当前版本</h4><p>上传后列表会显示当前版本、大小、平台、更新时间。</p></div></div>
+              <div class="step"><div class="index">3</div><div><h4>看历史和回滚</h4><p>如果线上版本有问题，直接回滚到上一个版本。</p></div></div>
+              <div class="step"><div class="index">4</div><div><h4>看二维码和统计</h4><p>用二维码给外部用户扫码下载，用下载统计看版本分发效果。</p></div></div>
+            </div>
+          </section>
+
+          <section class="panel" id="growth">
+            <h2>8. 增长分析</h2>
+            <span class="tag todo">占位</span>
+            <p class="muted">
+              当前侧边栏里有这个入口，但还没有真正的页面和操作逻辑。它更像未来要补的运营分析模块。
+            </p>
+            <h3>未来大概率会承担什么</h3>
+            <ul>
+              <li>渠道新增分析</li>
+              <li>注册转化率</li>
+              <li>购买转化漏斗</li>
+              <li>不同应用的增长趋势拆解</li>
+            </ul>
+          </section>
+
+          <section class="panel" id="messages">
+            <h2>9. 消息推送</h2>
+            <span class="tag todo">占位</span>
+            <p class="muted">
+              当前也是预留入口，还没有正式页面。以后会更像“通知中心”，而不是聊天功能。
+            </p>
+            <h3>未来可能做什么</h3>
+            <ul>
+              <li>套餐到期提醒</li>
+              <li>支付成功通知</li>
+              <li>新设备登录提醒</li>
+              <li>按应用群发运营消息</li>
+            </ul>
+          </section>
+
+          <section class="panel" id="plans">
+            <h2>10. 套餐配置</h2>
+            <span class="tag ok">已可用</span>
+            <p class="muted">这里是“卖什么、卖多少钱、卖多久”的配置页，不是订单页。</p>
+            <h3>点进去能做什么</h3>
+            <ul>
+              <li>按应用筛选套餐</li>
+              <li>创建新套餐</li>
+              <li>编辑套餐名称、编码、价格、时长</li>
+              <li>设置试用套餐 / 支持续费</li>
+              <li>查看购买次数</li>
+            </ul>
+            <h3>怎么新建套餐</h3>
+            <div class="steps">
+              <div class="step"><div class="index">1</div><div><h4>先选应用</h4><p>套餐一定是属于某个应用的，不是全平台通用。</p></div></div>
+              <div class="step"><div class="index">2</div><div><h4>选套餐编码和名称</h4><p>后台已有预设值，适合月付、季度、年度、试用等常见类型。</p></div></div>
+              <div class="step"><div class="index">3</div><div><h4>填价格和有效期</h4><p>比如月付 30 天、年付 365 天、终身版可留空有效期。</p></div></div>
+              <div class="step"><div class="index">4</div><div><h4>决定是否试用 / 可续费</h4><p>试用套餐和可续费会影响购买预校验和订单逻辑。</p></div></div>
+            </div>
+          </section>
+
+          <section class="panel" id="permissions">
+            <h2>11. 权限管理</h2>
+            <span class="tag todo">占位</span>
+            <p class="muted">
+              目前没有正式页面逻辑。现在后台管理员权限主要还是通过 Casdoor 管理员身份 + 本地后台会话控制。
+            </p>
+            <h3>未来可能承担的内容</h3>
+            <ul>
+              <li>平台管理员角色拆分</li>
+              <li>运营 / 客服 / 财务权限隔离</li>
+              <li>只读权限和操作权限区分</li>
+            </ul>
+          </section>
+
+          <section class="panel" id="logs">
+            <h2>12. 审计日志</h2>
+            <span class="tag ok">已可用</span>
+            <p class="muted">这是后台操作留痕页，用来查管理员做过什么，不是用户行为页。</p>
+            <h3>点进去能做什么</h3>
+            <ul>
+              <li>看操作时间、操作类型、操作者、对象、详情</li>
+              <li>按对象类型筛选：安装包、落地页等</li>
+              <li>按操作者搜索</li>
+              <li>刷新查看最新日志</li>
+            </ul>
+            <h3>适合什么场景</h3>
+            <ul>
+              <li>查是谁上传了某个安装包</li>
+              <li>查是谁回滚了落地页</li>
+              <li>查谁手动改了订单状态</li>
+            </ul>
+          </section>
+        </main>
+      </div>
+    </div>
+  </body>
+</html>

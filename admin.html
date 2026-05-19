@@ -1,0 +1,2507 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=1440" />
+<title>统一用户中心 · 管理后台</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,500;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --color-midnight-ink:#000000;
+  --color-obsidian-surface:#030304;
+  --color-charcoal-canvas:#08080a;
+  --color-pewter-accent:#121317;
+  --color-slate-gray:#1c1d22;
+  --color-ash-text:#5e616e;
+  --color-stone-text:#777a88;
+  --color-silver-text:#acafb9;
+  --color-porcelain-text:#cdcdcd;
+  --color-white-frost:#e2e3e9;
+  --color-pure-white:#ffffff;
+  --color-golden:#cc9166;
+  --gradient-golden:linear-gradient(103deg, rgb(174,147,87), rgb(255,240,204) 40%, rgb(174,147,87) 70%, rgba(189,157,79,0));
+  --font-inter:'Inter', ui-sans-serif, system-ui, sans-serif;
+  --font-display:'Playfair Display', Georgia, serif;
+  --font-mono:'JetBrains Mono', ui-monospace, Menlo, monospace;
+  --radius-md:10px;
+  --radius-pill:9999px;
+  --hairline: 1px solid rgba(226,227,233,0.06);
+  --hairline-strong: 1px solid rgba(226,227,233,0.10);
+}
+* { box-sizing: border-box; }
+html, body {
+  margin: 0; padding: 0;
+  background: var(--color-midnight-ink);
+  color: var(--color-white-frost);
+  font-family: var(--font-inter);
+  font-size: 14px;
+  letter-spacing: -0.013px;
+  font-feature-settings: "ss01","cv11";
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+  min-width: 1280px;
+}
+button { font-family: inherit; cursor: pointer; }
+input, select, textarea { font-family: inherit; }
+a { color: inherit; text-decoration: none; }
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-thumb { background: #1c1d22; border-radius: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+
+/* === Layout === */
+.app {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  min-height: 100vh;
+}
+
+/* === Sidebar === */
+.sidebar {
+  background: var(--color-obsidian-surface);
+  border-right: var(--hairline);
+  padding: 24px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+}
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 10px;
+}
+.brand-mark {
+  width: 28px; height: 28px;
+  border-radius: 8px;
+  background: var(--gradient-golden);
+  display: grid; place-items: center;
+  color: #1a1206;
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: 16px;
+  font-style: italic;
+}
+.brand-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-pure-white);
+  letter-spacing: -0.013px;
+  line-height: 1.2;
+}
+.brand-name span {
+  display: block;
+  color: var(--color-stone-text);
+  font-size: 11px;
+  font-weight: 400;
+  margin-top: 2px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.nav-group { display: flex; flex-direction: column; gap: 2px; }
+.nav-label {
+  font-size: 11px;
+  color: var(--color-ash-text);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 8px 10px 6px;
+  font-weight: 500;
+}
+.nav-item {
+  display: flex; align-items: center;
+  gap: 10px;
+  padding: 9px 10px;
+  border-radius: 8px;
+  color: var(--color-silver-text);
+  font-size: 13.5px;
+  cursor: pointer;
+  transition: background .15s, color .15s;
+  position: relative;
+}
+.nav-item:hover { background: var(--color-pewter-accent); color: var(--color-white-frost); }
+.nav-item.active {
+  background: var(--color-pewter-accent);
+  color: var(--color-pure-white);
+}
+.nav-item.active::before {
+  content: ''; position: absolute; left: -16px; top: 8px; bottom: 8px;
+  width: 2px; background: var(--color-golden);
+  border-radius: 2px;
+}
+.nav-item svg { width: 16px; height: 16px; flex-shrink: 0; }
+.nav-count {
+  margin-left: auto;
+  font-size: 11px;
+  color: var(--color-stone-text);
+  font-variant-numeric: tabular-nums;
+}
+
+.sidebar-foot {
+  margin-top: auto;
+  border-top: var(--hairline);
+  padding: 14px 10px 4px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.avatar {
+  width: 30px; height: 30px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #2a2317, #4a3a20);
+  border: 1px solid rgba(204,145,102,0.3);
+  display: grid; place-items: center;
+  font-size: 12px;
+  color: var(--color-golden);
+  font-weight: 600;
+  flex-shrink: 0;
+}
+.foot-meta { line-height: 1.3; }
+.foot-meta b { color: var(--color-pure-white); font-weight: 500; font-size: 13px; }
+.foot-meta span { color: var(--color-stone-text); font-size: 11px; display: block; }
+
+/* === Topbar === */
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 18px 32px;
+  border-bottom: var(--hairline);
+  background: var(--color-midnight-ink);
+  position: sticky; top: 0; z-index: 5;
+  backdrop-filter: blur(8px);
+}
+.crumb {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 12px;
+  color: var(--color-stone-text);
+}
+.crumb b { color: var(--color-pure-white); font-weight: 500; font-size: 13px; }
+.crumb .sep { opacity: .4; }
+.topbar-spacer { flex: 1; }
+.topbar-search {
+  display: flex; align-items: center; gap: 8px;
+  padding: 7px 14px;
+  border: 1px solid rgba(226,227,233,0.12);
+  border-radius: 9999px;
+  background: rgba(18,19,23,0.5);
+  color: var(--color-silver-text);
+  font-size: 12.5px;
+  width: 240px;
+}
+.topbar-search input {
+  background: transparent; border: 0; outline: 0;
+  color: var(--color-white-frost);
+  flex: 1; font-size: 12.5px;
+}
+.topbar-search input::placeholder { color: var(--color-ash-text); }
+.kbd {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--color-stone-text);
+  border: 1px solid rgba(226,227,233,0.10);
+  padding: 1px 5px;
+  border-radius: 3px;
+}
+.icon-btn {
+  width: 32px; height: 32px;
+  display: grid; place-items: center;
+  border-radius: 8px;
+  border: 1px solid rgba(226,227,233,0.08);
+  background: rgba(18,19,23,0.4);
+  color: var(--color-silver-text);
+}
+.icon-btn:hover { background: var(--color-pewter-accent); color: var(--color-pure-white); }
+.btn-pill {
+  border-radius: 9999px;
+  padding: 7px 16px;
+  font-size: 13px;
+  font-weight: 500;
+  border: 1px solid rgba(226,227,233,0.2);
+  background: transparent;
+  color: var(--color-pure-white);
+}
+.btn-pill.primary {
+  background: var(--color-pure-white);
+  color: var(--color-charcoal-canvas);
+  border-color: var(--color-pure-white);
+}
+.btn-pill.primary:hover { background: var(--color-white-frost); }
+
+/* === Main === */
+.main {
+  min-width: 0;
+  background: var(--color-midnight-ink);
+}
+.page {
+  padding: 32px;
+  max-width: 1440px;
+  margin: 0 auto;
+}
+
+/* page header */
+.page-head { display: flex; align-items: flex-end; gap: 24px; margin-bottom: 28px; }
+.page-head h1 {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 38px;
+  color: var(--color-pure-white);
+  margin: 0;
+  letter-spacing: -0.01em;
+  line-height: 1.05;
+}
+.page-head h1 em {
+  font-style: italic;
+  background: var(--gradient-golden);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.page-head .sub {
+  color: var(--color-stone-text);
+  font-size: 13px;
+  margin-bottom: 6px;
+}
+.page-head-actions { margin-left: auto; display: flex; gap: 8px; }
+
+/* === Cards === */
+.kpi-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin-bottom: 20px;
+}
+.kpi {
+  background: var(--color-charcoal-canvas);
+  border: var(--hairline);
+  border-radius: 10px;
+  padding: 22px 22px 20px;
+  position: relative;
+  overflow: hidden;
+}
+.kpi-label {
+  font-size: 12px;
+  color: var(--color-stone-text);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  display: flex; align-items: center; gap: 8px;
+  margin-bottom: 14px;
+}
+.kpi-label .dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--color-golden);
+  box-shadow: 0 0 8px rgba(204,145,102,0.5);
+}
+.kpi-value {
+  font-family: var(--font-display);
+  font-size: 44px;
+  font-weight: 400;
+  color: var(--color-pure-white);
+  letter-spacing: -0.02em;
+  line-height: 1;
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+.kpi-value .unit {
+  font-family: var(--font-inter);
+  font-size: 14px;
+  color: var(--color-silver-text);
+  font-weight: 400;
+}
+.kpi-foot {
+  margin-top: 14px;
+  display: flex; align-items: center; justify-content: space-between;
+  font-size: 12px;
+  color: var(--color-silver-text);
+}
+.delta { display: inline-flex; align-items: center; gap: 4px; font-variant-numeric: tabular-nums; }
+.delta.up { color: #84d1a8; }
+.delta.down { color: #d68a85; }
+.spark {
+  position: absolute;
+  right: -8px;
+  bottom: -8px;
+  width: 96px; height: 38px;
+  opacity: .55;
+}
+
+/* charts section */
+.charts {
+  display: grid;
+  grid-template-columns: 1.6fr 1fr;
+  gap: 14px;
+  margin-bottom: 20px;
+}
+.card {
+  background: var(--color-charcoal-canvas);
+  border: var(--hairline);
+  border-radius: 10px;
+  padding: 22px 24px;
+}
+.card-head {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+.card-title {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--color-pure-white);
+  letter-spacing: -0.013px;
+  margin: 0;
+}
+.card-sub {
+  font-size: 12px;
+  color: var(--color-stone-text);
+  margin-top: 3px;
+}
+.card-tabs { display: flex; gap: 2px; padding: 2px; background: var(--color-pewter-accent); border-radius: 9999px; }
+.card-tab {
+  font-size: 11.5px;
+  padding: 5px 12px;
+  border-radius: 9999px;
+  color: var(--color-stone-text);
+  cursor: pointer;
+}
+.card-tab.active { background: var(--color-slate-gray); color: var(--color-pure-white); }
+
+.legend { display: flex; gap: 16px; font-size: 12px; color: var(--color-silver-text); }
+.legend-item { display: inline-flex; align-items: center; gap: 6px; }
+.legend-swatch { width: 8px; height: 8px; border-radius: 2px; }
+
+/* === Activity / right-side card === */
+.activity-list { display: flex; flex-direction: column; gap: 0; }
+.activity {
+  display: grid;
+  grid-template-columns: 28px 1fr auto;
+  gap: 12px;
+  padding: 12px 0;
+  border-top: var(--hairline);
+  align-items: center;
+}
+.activity:first-child { border-top: 0; }
+.activity-icon {
+  width: 28px; height: 28px;
+  border-radius: 8px;
+  background: var(--color-pewter-accent);
+  display: grid; place-items: center;
+  color: var(--color-silver-text);
+}
+.activity-text { font-size: 13px; color: var(--color-white-frost); line-height: 1.4; }
+.activity-text span { color: var(--color-stone-text); }
+.activity-time { font-size: 11px; color: var(--color-stone-text); font-variant-numeric: tabular-nums; }
+
+/* === Tables === */
+.table-card {
+  background: var(--color-charcoal-canvas);
+  border: var(--hairline);
+  border-radius: 10px;
+  overflow: hidden;
+}
+.table-toolbar {
+  display: flex; align-items: center; gap: 10px;
+  padding: 16px 20px;
+  border-bottom: var(--hairline);
+}
+.search-pill {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 16px;
+  border: 1px solid rgba(226,227,233,0.18);
+  border-radius: 9999px;
+  background: transparent;
+  color: var(--color-silver-text);
+  font-size: 13px;
+  flex: 1;
+  max-width: 360px;
+}
+.search-pill input {
+  flex: 1; background: transparent; border: 0; outline: 0;
+  color: var(--color-pure-white); font-size: 13px;
+}
+.search-pill input::placeholder { color: var(--color-ash-text); }
+.filter-chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 7px 14px;
+  border-radius: 9999px;
+  border: 1px solid rgba(226,227,233,0.10);
+  background: transparent;
+  color: var(--color-silver-text);
+  font-size: 12.5px;
+}
+.filter-chip:hover { color: var(--color-pure-white); border-color: rgba(226,227,233,0.25); }
+.filter-chip.active { background: var(--color-pewter-accent); color: var(--color-pure-white); border-color: rgba(226,227,233,0.18); }
+.filter-chip svg { width: 12px; height: 12px; }
+.toolbar-spacer { flex: 1; }
+
+table.tbl { width: 100%; border-collapse: collapse; }
+table.tbl th {
+  text-align: left;
+  font-weight: 500;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-ash-text);
+  padding: 10px 20px;
+  background: rgba(255,255,255,0.01);
+  border-bottom: var(--hairline);
+}
+table.tbl td {
+  padding: 14px 20px;
+  border-bottom: var(--hairline);
+  font-size: 13px;
+  color: var(--color-white-frost);
+  vertical-align: middle;
+}
+table.tbl tr:last-child td { border-bottom: 0; }
+table.tbl tr.row-clickable { cursor: pointer; }
+table.tbl tr.row-clickable:hover td { background: rgba(28,29,34,0.4); }
+.cell-mono { font-family: var(--font-mono); font-size: 12px; color: var(--color-porcelain-text); }
+.user-cell { display: flex; align-items: center; gap: 10px; }
+.user-avatar {
+  width: 30px; height: 30px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  display: grid; place-items: center;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-pure-white);
+}
+.user-cell-meta b { display: block; font-weight: 500; color: var(--color-pure-white); font-size: 13px; }
+.user-cell-meta span { color: var(--color-stone-text); font-size: 11.5px; font-family: var(--font-mono); }
+
+.badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 3px 10px;
+  border-radius: 9999px;
+  font-size: 11.5px;
+  font-weight: 500;
+  letter-spacing: -0.007px;
+}
+.badge .pip { width: 6px; height: 6px; border-radius: 50%; }
+.badge.paid { background: rgba(132,209,168,0.10); color: #84d1a8; }
+.badge.paid .pip { background: #84d1a8; }
+.badge.trial { background: rgba(204,145,102,0.10); color: var(--color-golden); }
+.badge.trial .pip { background: var(--color-golden); }
+.badge.free { background: rgba(95,97,110,0.18); color: var(--color-silver-text); }
+.badge.free .pip { background: var(--color-stone-text); }
+.badge.expired { background: rgba(214,138,133,0.10); color: #d68a85; }
+.badge.expired .pip { background: #d68a85; }
+
+.product-tag {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 3px 9px;
+  border-radius: 4px;
+  font-size: 11.5px;
+  font-weight: 500;
+  border: 1px solid;
+}
+.product-tag.vidget { color: #c8b27a; border-color: rgba(204,145,102,0.35); background: rgba(204,145,102,0.05); }
+.product-tag.zhujiao { color: #a4b8d4; border-color: rgba(125,148,184,0.35); background: rgba(125,148,184,0.05); }
+
+.amount { font-family: var(--font-mono); font-variant-numeric: tabular-nums; color: var(--color-pure-white); font-weight: 500; }
+.amount .ccy { color: var(--color-stone-text); margin-right: 2px; font-size: 11px; }
+
+.pagination {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 14px 20px;
+  border-top: var(--hairline);
+  font-size: 12px;
+  color: var(--color-stone-text);
+}
+.pager-btns { display: flex; gap: 4px; }
+.pager-btns button {
+  width: 28px; height: 28px;
+  border-radius: 6px;
+  border: 1px solid rgba(226,227,233,0.10);
+  background: transparent;
+  color: var(--color-silver-text);
+  font-size: 12px;
+}
+.pager-btns button.active { background: var(--color-pewter-accent); color: var(--color-pure-white); border-color: rgba(226,227,233,0.18); }
+.pager-btns button:hover:not(.active) { background: var(--color-pewter-accent); color: var(--color-pure-white); }
+
+/* === Drawer === */
+.drawer-scrim {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.55);
+  backdrop-filter: blur(2px);
+  z-index: 50;
+  opacity: 0; pointer-events: none;
+  transition: opacity .2s;
+}
+.drawer-scrim.open { opacity: 1; pointer-events: auto; }
+.drawer {
+  position: fixed; right: 0; top: 0; bottom: 0;
+  width: 560px;
+  background: var(--color-charcoal-canvas);
+  border-left: var(--hairline-strong);
+  z-index: 51;
+  transform: translateX(100%);
+  transition: transform .25s ease;
+  display: flex; flex-direction: column;
+  overflow: hidden;
+}
+.drawer.open { transform: translateX(0); }
+.drawer-head {
+  padding: 24px 28px 20px;
+  display: flex; align-items: center; gap: 16px;
+  border-bottom: var(--hairline);
+  position: relative;
+}
+.drawer-head .user-avatar { width: 48px; height: 48px; font-size: 18px; }
+.drawer-name {
+  font-family: var(--font-display);
+  font-size: 26px;
+  color: var(--color-pure-white);
+  font-weight: 400;
+  line-height: 1.1;
+  margin: 0;
+  letter-spacing: -0.015em;
+}
+.drawer-meta { font-size: 12px; color: var(--color-stone-text); margin-top: 4px; font-family: var(--font-mono); }
+.drawer-close {
+  position: absolute; top: 18px; right: 20px;
+  width: 28px; height: 28px;
+  border-radius: 6px;
+  border: 1px solid rgba(226,227,233,0.10);
+  background: transparent;
+  color: var(--color-silver-text);
+  display: grid; place-items: center;
+}
+.drawer-tabs {
+  display: flex; gap: 4px;
+  padding: 14px 28px 0;
+  border-bottom: var(--hairline);
+}
+.drawer-tab {
+  padding: 8px 14px 11px;
+  font-size: 13px;
+  color: var(--color-stone-text);
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  cursor: pointer;
+}
+.drawer-tab.active { color: var(--color-pure-white); border-bottom-color: var(--color-golden); }
+.drawer-body {
+  flex: 1; overflow-y: auto;
+  padding: 24px 28px 32px;
+}
+.drawer-stat-row {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: 0;
+  border: var(--hairline);
+  border-radius: 10px;
+  margin-bottom: 22px;
+}
+.drawer-stat {
+  padding: 14px 18px;
+  border-right: var(--hairline);
+}
+.drawer-stat:last-child { border-right: 0; }
+.drawer-stat .lbl { font-size: 11px; color: var(--color-stone-text); text-transform: uppercase; letter-spacing: 0.05em; }
+.drawer-stat .val { font-family: var(--font-display); font-size: 22px; color: var(--color-pure-white); margin-top: 4px; }
+.drawer-stat .val .unit { font-family: var(--font-inter); font-size: 11px; color: var(--color-silver-text); margin-left: 3px; }
+
+.section-title {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-ash-text);
+  font-weight: 500;
+  margin: 26px 0 10px;
+  display: flex; align-items: center; gap: 8px;
+}
+.section-title::after { content: ''; flex: 1; height: 1px; background: rgba(226,227,233,0.06); }
+
+.purchase-row {
+  display: grid;
+  grid-template-columns: auto 1fr auto auto;
+  gap: 14px;
+  padding: 12px 0;
+  border-bottom: var(--hairline);
+  align-items: center;
+}
+.purchase-row:last-child { border-bottom: 0; }
+.purchase-row .order-no { font-family: var(--font-mono); font-size: 11px; color: var(--color-stone-text); }
+.purchase-row b { font-weight: 500; font-size: 13px; color: var(--color-pure-white); }
+.purchase-row .when { font-size: 11.5px; color: var(--color-stone-text); }
+
+.device-row {
+  display: grid; grid-template-columns: 32px 1fr auto; gap: 12px;
+  padding: 12px 0;
+  border-bottom: var(--hairline);
+  align-items: center;
+}
+.device-row:last-child { border-bottom: 0; }
+.device-icon { width: 32px; height: 32px; border-radius: 8px; background: var(--color-pewter-accent); display: grid; place-items: center; color: var(--color-silver-text); }
+.device-name { font-size: 13px; color: var(--color-pure-white); font-weight: 500; }
+.device-meta { font-size: 11.5px; color: var(--color-stone-text); margin-top: 2px; }
+.device-status { font-size: 11px; color: #84d1a8; }
+.device-status.idle { color: var(--color-stone-text); }
+
+.log-row {
+  display: grid; grid-template-columns: 8px 1fr auto; gap: 12px;
+  padding: 10px 0;
+  align-items: flex-start;
+  font-size: 12.5px;
+}
+.log-row .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--color-stone-text); margin-top: 5px; }
+.log-row .dot.gold { background: var(--color-golden); }
+.log-row .what { color: var(--color-white-frost); }
+.log-row .what span { color: var(--color-stone-text); }
+.log-row .when { color: var(--color-ash-text); font-family: var(--font-mono); font-size: 11px; }
+
+/* === Apps page === */
+.apps-row {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+.app-card {
+  background: var(--color-charcoal-canvas);
+  border: var(--hairline);
+  border-radius: 10px;
+  padding: 28px;
+  position: relative;
+  overflow: hidden;
+}
+.app-card::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0;
+  height: 1px;
+  background: var(--gradient-golden);
+  opacity: .45;
+}
+.app-card.zhujiao::before {
+  background: linear-gradient(103deg, #5a6f95, #b6cce8 40%, #5a6f95 70%, transparent);
+  opacity: .35;
+}
+.app-head { display: flex; align-items: flex-start; gap: 16px; margin-bottom: 22px; }
+.app-logo {
+  width: 56px; height: 56px;
+  border-radius: 14px;
+  background: var(--color-pewter-accent);
+  border: var(--hairline-strong);
+  display: grid; place-items: center;
+  font-family: var(--font-display);
+  font-size: 24px;
+  font-weight: 500;
+  color: var(--color-pure-white);
+  flex-shrink: 0;
+}
+.app-logo.vidget { background: linear-gradient(135deg, #2a2317 0%, #1a140a 100%); color: var(--color-golden); }
+.app-logo.zhujiao { background: linear-gradient(135deg, #1a2030 0%, #0e131e 100%); color: #a4b8d4; }
+.app-meta h3 {
+  margin: 0 0 4px;
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: 26px;
+  color: var(--color-pure-white);
+  letter-spacing: -0.01em;
+}
+.app-meta p { margin: 0; font-size: 13px; color: var(--color-silver-text); line-height: 1.5; max-width: 360px; }
+
+.app-status {
+  position: absolute; top: 22px; right: 22px;
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 4px 11px;
+  border-radius: 9999px;
+  border: 1px solid rgba(132,209,168,0.30);
+  background: rgba(132,209,168,0.06);
+  color: #84d1a8;
+  font-size: 11.5px;
+  font-weight: 500;
+}
+.app-status .pip { width: 6px; height: 6px; border-radius: 50%; background: #84d1a8; box-shadow: 0 0 6px #84d1a8; }
+
+.app-stats {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  border: var(--hairline);
+  border-radius: 10px;
+  margin-bottom: 22px;
+}
+.app-stat { padding: 16px 18px; border-right: var(--hairline); }
+.app-stat:last-child { border-right: 0; }
+.app-stat .lbl { font-size: 11px; color: var(--color-stone-text); text-transform: uppercase; letter-spacing: 0.05em; }
+.app-stat .val { font-family: var(--font-display); font-size: 30px; color: var(--color-pure-white); margin-top: 6px; line-height: 1; letter-spacing: -0.01em; }
+.app-stat .val .unit { font-family: var(--font-inter); font-size: 12px; color: var(--color-silver-text); margin-left: 3px; }
+.app-stat .delta { font-size: 11px; margin-top: 4px; }
+
+.app-meta-row {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 0;
+  border-top: var(--hairline);
+  padding-top: 18px;
+}
+.app-meta-row .item { display: flex; flex-direction: column; gap: 4px; }
+.app-meta-row .lbl { font-size: 11px; color: var(--color-ash-text); text-transform: uppercase; letter-spacing: 0.05em; }
+.app-meta-row .val { font-size: 13px; color: var(--color-white-frost); }
+.app-meta-row .val.mono { font-family: var(--font-mono); font-size: 12px; color: var(--color-porcelain-text); }
+
+.app-actions {
+  display: flex; gap: 8px; margin-top: 18px;
+}
+
+/* === Hidden by default === */
+.view { display: none; }
+.view.active { display: block; }
+
+/* === Landing page === */
+.landing-card {
+  background: var(--color-charcoal-canvas);
+  border: var(--hairline);
+  border-radius: 10px;
+  padding: 26px 28px;
+  margin-bottom: 16px;
+  position: relative;
+  overflow: hidden;
+}
+.landing-card::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+  background: var(--gradient-golden); opacity: .4;
+}
+.landing-card.zhujiao::before {
+  background: linear-gradient(103deg, #5a6f95, #b6cce8 40%, #5a6f95 70%, transparent); opacity: .35;
+}
+.landing-head {
+  display: flex; align-items: center; gap: 14px; margin-bottom: 22px;
+}
+.landing-logo { width: 44px; height: 44px; border-radius: 10px; display: grid; place-items: center; font-family: var(--font-display); font-weight: 500; font-size: 20px; flex-shrink: 0; border: var(--hairline-strong); }
+.landing-logo.vidget { background: linear-gradient(135deg, #2a2317 0%, #1a140a 100%); color: var(--color-golden); }
+.landing-logo.zhujiao { background: linear-gradient(135deg, #1a2030 0%, #0e131e 100%); color: #a4b8d4; }
+.landing-title { font-family: var(--font-display); font-size: 22px; font-weight: 500; color: var(--color-pure-white); margin: 0; line-height: 1.1; letter-spacing: -0.01em; }
+.landing-desc { font-size: 12px; color: var(--color-stone-text); margin-top: 3px; }
+
+.url-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 14px;
+  border: var(--hairline-strong);
+  border-radius: 9999px;
+  background: rgba(0,0,0,0.3);
+  margin-bottom: 18px;
+}
+.url-row .lbl { font-size: 11px; color: var(--color-ash-text); text-transform: uppercase; letter-spacing: 0.05em; padding-left: 4px; }
+.url-row .url { flex: 1; font-family: var(--font-mono); font-size: 12.5px; color: var(--color-white-frost); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.url-row .copy-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 4px 12px;
+  border-radius: 9999px;
+  border: 1px solid rgba(226,227,233,0.18);
+  background: transparent;
+  color: var(--color-silver-text);
+  font-size: 11.5px;
+}
+.url-row .copy-btn:hover { color: var(--color-pure-white); background: var(--color-pewter-accent); }
+.url-row .copy-btn.copied { color: #84d1a8; border-color: rgba(132,209,168,0.4); }
+
+.landing-grid {
+  display: grid; grid-template-columns: 1.4fr 1fr; gap: 18px;
+}
+.landing-stats {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  border: var(--hairline);
+  border-radius: 10px;
+}
+.landing-stats .app-stat:last-child { border-right: 0; }
+.landing-actions {
+  display: flex; flex-direction: column; gap: 8px;
+  padding: 16px;
+  border: var(--hairline);
+  border-radius: 10px;
+  background: rgba(255,255,255,0.005);
+}
+.landing-actions .row { display: flex; gap: 8px; }
+.action-btn {
+  flex: 1;
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  padding: 9px 14px;
+  border-radius: 9999px;
+  font-size: 12.5px; font-weight: 500;
+  background: transparent;
+  color: var(--color-pure-white);
+  border: 1px solid rgba(226,227,233,0.18);
+  font-family: var(--font-inter);
+  cursor: pointer;
+}
+.action-btn:hover { background: var(--color-pewter-accent); }
+.action-btn.primary { background: var(--color-pure-white); color: var(--color-charcoal-canvas); border-color: var(--color-pure-white); }
+.action-btn.primary:hover { background: var(--color-white-frost); }
+.action-btn.danger { color: #d68a85; border-color: rgba(214,138,133,0.3); }
+.action-btn.danger:hover { background: rgba(214,138,133,0.08); }
+.action-btn svg { width: 13px; height: 13px; }
+
+.status-pill {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 4px 12px; border-radius: 9999px;
+  font-size: 11.5px; font-weight: 500;
+  margin-left: auto;
+}
+.status-pill .pip { width: 6px; height: 6px; border-radius: 50%; }
+.status-pill.published { background: rgba(132,209,168,0.10); color: #84d1a8; border: 1px solid rgba(132,209,168,0.28); }
+.status-pill.published .pip { background: #84d1a8; box-shadow: 0 0 6px #84d1a8; }
+.status-pill.draft { background: rgba(95,97,110,0.15); color: var(--color-silver-text); border: 1px solid rgba(226,227,233,0.10); }
+.status-pill.draft .pip { background: var(--color-stone-text); }
+
+/* === Builds / installer page === */
+.build-card {
+  background: var(--color-charcoal-canvas);
+  border: var(--hairline);
+  border-radius: 10px;
+  margin-bottom: 16px;
+  overflow: hidden;
+  position: relative;
+}
+.build-card::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+  background: var(--gradient-golden); opacity: .4;
+}
+.build-card.zhujiao::before {
+  background: linear-gradient(103deg, #5a6f95, #b6cce8 40%, #5a6f95 70%, transparent); opacity: .35;
+}
+.build-head {
+  display: flex; align-items: center; gap: 14px;
+  padding: 22px 26px;
+  border-bottom: var(--hairline);
+}
+.build-meta-inline { font-size: 12px; color: var(--color-stone-text); margin-left: auto; display: flex; gap: 22px; }
+.build-meta-inline span b { color: var(--color-pure-white); font-family: var(--font-display); font-weight: 500; font-size: 16px; margin-right: 4px; }
+
+.build-row {
+  display: grid;
+  grid-template-columns: 44px 2fr 0.8fr 0.7fr 0.9fr auto;
+  gap: 18px;
+  padding: 18px 26px;
+  border-bottom: var(--hairline);
+  align-items: center;
+}
+.build-row:last-child { border-bottom: 0; }
+.build-row:hover { background: rgba(28,29,34,0.3); }
+.platform-icon {
+  width: 40px; height: 40px;
+  border-radius: 10px;
+  background: var(--color-pewter-accent);
+  border: var(--hairline-strong);
+  display: grid; place-items: center;
+  color: var(--color-silver-text);
+}
+.platform-icon.android { color: #84d1a8; }
+.platform-icon.windows { color: #7eb6e0; }
+.platform-icon.macos { color: var(--color-porcelain-text); }
+.build-name { font-size: 13.5px; color: var(--color-pure-white); font-weight: 500; font-family: var(--font-mono); }
+.build-platform { font-size: 11px; color: var(--color-stone-text); margin-top: 3px; text-transform: uppercase; letter-spacing: 0.05em; }
+.build-cell { font-size: 12.5px; color: var(--color-white-frost); font-variant-numeric: tabular-nums; }
+.build-cell .lbl { font-size: 10px; color: var(--color-ash-text); text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 3px; }
+.build-cell.mono { font-family: var(--font-mono); }
+.build-actions { display: flex; gap: 6px; }
+.build-action {
+  width: 32px; height: 32px;
+  border-radius: 8px;
+  border: 1px solid rgba(226,227,233,0.10);
+  background: transparent;
+  color: var(--color-silver-text);
+  display: grid; place-items: center;
+}
+.build-action:hover { background: var(--color-pewter-accent); color: var(--color-pure-white); }
+.build-action.danger:hover { color: #d68a85; border-color: rgba(214,138,133,0.3); }
+
+/* === Modal === */
+.modal-scrim {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.65);
+  backdrop-filter: blur(4px);
+  z-index: 60;
+  display: none;
+  align-items: center; justify-content: center;
+}
+.modal-scrim.open { display: flex; }
+.modal {
+  width: 540px;
+  background: var(--color-charcoal-canvas);
+  border: var(--hairline-strong);
+  border-radius: 14px;
+  overflow: hidden;
+  position: relative;
+}
+.modal::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+  background: var(--gradient-golden); opacity: .5;
+}
+.modal-head { padding: 22px 26px 16px; border-bottom: var(--hairline); display: flex; align-items: center; }
+.modal-head h3 { margin: 0; font-family: var(--font-display); font-size: 22px; font-weight: 500; color: var(--color-pure-white); letter-spacing: -0.01em; }
+.modal-head .sub { font-size: 12px; color: var(--color-stone-text); margin-top: 4px; }
+.modal-close {
+  margin-left: auto; width: 28px; height: 28px;
+  border-radius: 6px;
+  border: 1px solid rgba(226,227,233,0.10);
+  background: transparent;
+  color: var(--color-silver-text);
+  display: grid; place-items: center;
+}
+.modal-body { padding: 22px 26px; }
+.field { margin-bottom: 16px; }
+.field label {
+  display: block;
+  font-size: 11px;
+  color: var(--color-stone-text);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 8px;
+}
+.field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.seg {
+  display: flex; gap: 4px;
+  padding: 4px;
+  background: var(--color-pewter-accent);
+  border-radius: 9999px;
+}
+.seg-item {
+  flex: 1;
+  text-align: center;
+  padding: 7px 12px;
+  border-radius: 9999px;
+  font-size: 12.5px;
+  color: var(--color-stone-text);
+  cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+}
+.seg-item.active { background: var(--color-slate-gray); color: var(--color-pure-white); }
+.seg-item svg { width: 13px; height: 13px; }
+
+.text-input {
+  width: 100%;
+  padding: 10px 16px;
+  border: 1px solid rgba(226,227,233,0.18);
+  border-radius: 9999px;
+  background: transparent;
+  color: var(--color-pure-white);
+  font-size: 13px;
+  outline: none;
+  font-family: var(--font-inter);
+}
+.text-input:focus { border-color: var(--color-pure-white); }
+.text-input::placeholder { color: var(--color-ash-text); }
+
+.dropzone {
+  border: 1px dashed rgba(226,227,233,0.18);
+  border-radius: 12px;
+  padding: 28px 20px;
+  text-align: center;
+  background: rgba(0,0,0,0.2);
+  cursor: pointer;
+  transition: border-color .15s, background .15s;
+}
+.dropzone:hover { border-color: rgba(204,145,102,0.5); background: rgba(204,145,102,0.03); }
+.dropzone .icon {
+  width: 44px; height: 44px;
+  margin: 0 auto 10px;
+  border-radius: 12px;
+  background: var(--color-pewter-accent);
+  display: grid; place-items: center;
+  color: var(--color-golden);
+}
+.dropzone .title { font-size: 13.5px; color: var(--color-pure-white); font-weight: 500; }
+.dropzone .hint { font-size: 11.5px; color: var(--color-stone-text); margin-top: 5px; }
+.dropzone .types { font-family: var(--font-mono); font-size: 11px; color: var(--color-ash-text); margin-top: 8px; }
+
+.modal-foot {
+  display: flex; gap: 10px; justify-content: flex-end;
+  padding: 16px 26px;
+  border-top: var(--hairline);
+  background: rgba(0,0,0,0.2);
+}
+
+/* === Toast === */
+.toast {
+  position: fixed;
+  bottom: 32px; left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: var(--color-slate-gray);
+  border: var(--hairline-strong);
+  padding: 10px 18px;
+  border-radius: 9999px;
+  font-size: 12.5px;
+  color: var(--color-pure-white);
+  z-index: 100;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .2s, transform .2s;
+  display: flex; align-items: center; gap: 8px;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+.toast .pip { width: 6px; height: 6px; border-radius: 50%; background: #84d1a8; box-shadow: 0 0 6px #84d1a8; }
+
+/* misc */
+.split { display: grid; grid-template-columns: 1.6fr 1fr; gap: 14px; }
+.flex-row { display: flex; align-items: center; gap: 8px; }
+.muted { color: var(--color-stone-text); }
+.text-display { font-family: var(--font-display); }
+
+/* tooltip / hover line */
+.chart-tip {
+  position: absolute;
+  background: var(--color-slate-gray);
+  border: var(--hairline-strong);
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 11.5px;
+  color: var(--color-white-frost);
+  pointer-events: none;
+  display: none;
+  white-space: nowrap;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+}
+.chart-tip b { display: block; color: var(--color-pure-white); font-family: var(--font-display); font-weight: 500; font-size: 16px; margin-bottom: 2px; }
+
+/* Today's revenue card on orders page */
+.revenue-banner {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr 1fr 1fr;
+  gap: 0;
+  background: var(--color-charcoal-canvas);
+  border: var(--hairline);
+  border-radius: 10px;
+  margin-bottom: 16px;
+  overflow: hidden;
+  position: relative;
+}
+.revenue-banner::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 1px;
+  background: var(--gradient-golden); opacity: .5;
+}
+.rev-cell { padding: 22px 28px; border-right: var(--hairline); }
+.rev-cell:last-child { border-right: 0; }
+.rev-cell .lbl {
+  font-size: 11px; color: var(--color-stone-text);
+  text-transform: uppercase; letter-spacing: 0.05em;
+  margin-bottom: 12px;
+}
+.rev-cell .lbl .pip { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--color-golden); margin-right: 6px; box-shadow: 0 0 6px rgba(204,145,102,0.6); }
+.rev-cell .val { font-family: var(--font-display); font-size: 40px; color: var(--color-pure-white); line-height: 1; letter-spacing: -0.015em; }
+.rev-cell .val .ccy { font-family: var(--font-inter); font-size: 13px; color: var(--color-silver-text); margin-right: 4px; }
+.rev-cell.minor .val { font-size: 26px; }
+.rev-cell .foot { margin-top: 10px; font-size: 12px; color: var(--color-stone-text); display: flex; align-items: center; gap: 8px; }
+
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- ============ SIDEBAR ============ -->
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-mark">U</div>
+      <div class="brand-name">
+        统一用户中心
+        <span>Admin · v3.2</span>
+      </div>
+    </div>
+
+    <div class="nav-group">
+      <div class="nav-label">主导航</div>
+      <div class="nav-item active" data-route="dashboard">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="2" y="2" width="5" height="5" rx="1"/><rect x="9" y="2" width="5" height="5" rx="1"/><rect x="2" y="9" width="5" height="5" rx="1"/><rect x="9" y="9" width="5" height="5" rx="1"/></svg>
+        概览 Dashboard
+      </div>
+      <div class="nav-item" data-route="users">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="8" cy="6" r="2.5"/><path d="M3 13.5c0-2.5 2.2-4 5-4s5 1.5 5 4"/></svg>
+        用户管理
+        <span class="nav-count">128,402</span>
+      </div>
+      <div class="nav-item" data-route="orders">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M2.5 4h11l-1 8.5a1.5 1.5 0 0 1-1.5 1.3H5a1.5 1.5 0 0 1-1.5-1.3L2.5 4z"/><path d="M5.5 4V3a2.5 2.5 0 0 1 5 0v1"/></svg>
+        购买记录
+        <span class="nav-count">7,418</span>
+      </div>
+      <div class="nav-item" data-route="apps">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="2" y="2" width="5" height="5" rx="1"/><rect x="9" y="2" width="5" height="5" rx="1"/><rect x="2" y="9" width="5" height="5" rx="1"/><circle cx="11.5" cy="11.5" r="2.5"/></svg>
+        应用管理
+        <span class="nav-count">2</span>
+      </div>
+      <div class="nav-item" data-route="landing">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="2" y="3" width="12" height="10" rx="1"/><path d="M2 6h12M5 9h4M5 11h6"/></svg>
+        落地页管理
+      </div>
+      <div class="nav-item" data-route="builds">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M3 9l5 5 5-5"/><path d="M8 14V2"/><path d="M2 14h12"/></svg>
+        安装包管理
+      </div>
+    </div>
+
+    <div class="nav-group">
+      <div class="nav-label">运营</div>
+      <div class="nav-item">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M2 13l3-3 3 2 6-6"/><path d="M11 4h3v3"/></svg>
+        增长分析
+      </div>
+      <div class="nav-item">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="8" cy="8" r="6"/><path d="M8 4v4l2.5 2.5"/></svg>
+        消息推送
+      </div>
+      <div class="nav-item">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M2 4h12v9H2z"/><path d="M5 7h6M5 10h4"/></svg>
+        套餐配置
+      </div>
+    </div>
+
+    <div class="nav-group">
+      <div class="nav-label">系统</div>
+      <div class="nav-item">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="8" cy="8" r="2"/><path d="M13 8a5 5 0 0 0-.1-.9l1.3-1-1-1.7-1.5.5a5 5 0 0 0-1.6-.9L9.8 2H6.2L6 3.9a5 5 0 0 0-1.6.9l-1.5-.5-1 1.7 1.3 1A5 5 0 0 0 3 8c0 .3 0 .6.1.9l-1.3 1 1 1.7 1.5-.5c.5.4 1 .7 1.6.9L6 14h3.6l.2-1.9a5 5 0 0 0 1.6-.9l1.5.5 1-1.7-1.3-1c.1-.3.1-.6.1-.9z"/></svg>
+        权限管理
+      </div>
+      <div class="nav-item">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M2 4l6-2 6 2v5c0 3-3 5-6 5S2 12 2 9V4z"/></svg>
+        审计日志
+      </div>
+    </div>
+
+    <div class="sidebar-foot">
+      <div class="avatar">陈</div>
+      <div class="foot-meta">
+        <b>陈一鸣</b>
+        <span>超级管理员</span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ============ MAIN ============ -->
+  <main class="main">
+    <div class="topbar">
+      <div class="crumb">
+        <span>Workspace</span>
+        <span class="sep">/</span>
+        <span>统一用户中心</span>
+        <span class="sep">/</span>
+        <b id="crumb-leaf">概览</b>
+      </div>
+      <div class="topbar-spacer"></div>
+      <div class="topbar-search">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="7" cy="7" r="5"/><path d="M11 11l3 3"/></svg>
+        <input placeholder="搜索用户、订单、应用…" />
+        <span class="kbd">⌘K</span>
+      </div>
+      <button class="icon-btn" title="通知">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M3 12V8a5 5 0 0 1 10 0v4l1 1H2l1-1z"/><path d="M6 13a2 2 0 0 0 4 0"/></svg>
+      </button>
+      <button class="icon-btn" title="帮助">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="8" cy="8" r="6"/><path d="M6.3 6a1.7 1.7 0 1 1 3.4 0c0 1.2-1.7 1.4-1.7 2.5"/><circle cx="8" cy="11.5" r="0.5" fill="currentColor" stroke="none"/></svg>
+      </button>
+      <button class="btn-pill primary">+ 新建工单</button>
+    </div>
+
+    <!-- ===== Dashboard ===== -->
+    <section class="view active page" id="view-dashboard">
+      <div class="page-head">
+        <div>
+          <h1>晚上好，陈一鸣 <em>—</em></h1>
+          <div class="sub" style="margin-top:8px;">2026 年 5 月 9 日 · 周六 · 实时数据</div>
+        </div>
+        <div class="page-head-actions">
+          <button class="btn-pill"><span style="opacity:.7;">本周</span></button>
+          <button class="btn-pill primary">导出报表</button>
+        </div>
+      </div>
+
+      <!-- KPI -->
+      <div class="kpi-row">
+        <div class="kpi">
+          <div class="kpi-label"><span class="dot"></span>总用户数</div>
+          <div class="kpi-value">128,402</div>
+          <div class="kpi-foot">
+            <span class="delta up">↑ 4.2%</span>
+            <span class="muted">较上周</span>
+          </div>
+          <svg class="spark" viewBox="0 0 100 40" preserveAspectRatio="none">
+            <defs><linearGradient id="sg1" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#cc9166" stop-opacity=".4"/><stop offset="100%" stop-color="#cc9166" stop-opacity="0"/></linearGradient></defs>
+            <path d="M0,30 L10,28 L20,25 L30,26 L40,20 L50,18 L60,15 L70,16 L80,10 L90,8 L100,5 L100,40 L0,40 Z" fill="url(#sg1)"/>
+            <path d="M0,30 L10,28 L20,25 L30,26 L40,20 L50,18 L60,15 L70,16 L80,10 L90,8 L100,5" fill="none" stroke="#cc9166" stroke-width="1.2"/>
+          </svg>
+        </div>
+        <div class="kpi">
+          <div class="kpi-label"><span class="dot"></span>今日新增</div>
+          <div class="kpi-value">1,284</div>
+          <div class="kpi-foot">
+            <span class="delta up">↑ 12.6%</span>
+            <span class="muted">环比昨日</span>
+          </div>
+          <svg class="spark" viewBox="0 0 100 40" preserveAspectRatio="none">
+            <path d="M0,30 L12,32 L24,22 L36,28 L48,18 L60,22 L72,12 L84,16 L100,6" fill="none" stroke="#84d1a8" stroke-width="1.2"/>
+          </svg>
+        </div>
+        <div class="kpi">
+          <div class="kpi-label"><span class="dot"></span>总收入</div>
+          <div class="kpi-value"><span class="unit">¥</span>3,847,210</div>
+          <div class="kpi-foot">
+            <span class="delta up">↑ 8.9%</span>
+            <span class="muted">较上月</span>
+          </div>
+          <svg class="spark" viewBox="0 0 100 40" preserveAspectRatio="none">
+            <defs><linearGradient id="sg3" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#cc9166" stop-opacity=".5"/><stop offset="100%" stop-color="#cc9166" stop-opacity="0"/></linearGradient></defs>
+            <path d="M0,32 L10,28 L20,30 L30,22 L40,24 L50,16 L60,18 L70,12 L80,14 L90,8 L100,4 L100,40 L0,40 Z" fill="url(#sg3)"/>
+            <path d="M0,32 L10,28 L20,30 L30,22 L40,24 L50,16 L60,18 L70,12 L80,14 L90,8 L100,4" fill="none" stroke="#cc9166" stroke-width="1.2"/>
+          </svg>
+        </div>
+        <div class="kpi">
+          <div class="kpi-label"><span class="dot"></span>活跃设备数</div>
+          <div class="kpi-value">42,196</div>
+          <div class="kpi-foot">
+            <span class="delta down">↓ 2.1%</span>
+            <span class="muted">7 日活跃</span>
+          </div>
+          <svg class="spark" viewBox="0 0 100 40" preserveAspectRatio="none">
+            <path d="M0,12 L10,16 L20,14 L30,20 L40,18 L50,24 L60,22 L70,26 L80,24 L90,28 L100,26" fill="none" stroke="#acafb9" stroke-width="1.2"/>
+          </svg>
+        </div>
+      </div>
+
+      <!-- Charts -->
+      <div class="charts">
+        <div class="card" style="position:relative;">
+          <div class="card-head">
+            <div>
+              <h3 class="card-title">用户增长趋势</h3>
+              <div class="card-sub">近 30 天 · 累计 +38,402 新用户</div>
+            </div>
+            <div class="card-tabs">
+              <span class="card-tab">7D</span>
+              <span class="card-tab active">30D</span>
+              <span class="card-tab">90D</span>
+              <span class="card-tab">1Y</span>
+            </div>
+          </div>
+          <div class="legend" style="margin-bottom:6px;">
+            <span class="legend-item"><span class="legend-swatch" style="background:#cc9166;"></span>VidGet</span>
+            <span class="legend-item"><span class="legend-swatch" style="background:#7d94b8;"></span>助教云</span>
+            <span class="legend-item"><span class="legend-swatch" style="background:#5e616e;"></span>合计</span>
+          </div>
+          <svg id="line-chart" viewBox="0 0 760 280" width="100%" preserveAspectRatio="none" style="display:block;"></svg>
+          <div class="chart-tip" id="line-tip"></div>
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <div>
+              <h3 class="card-title">产品用户分布</h3>
+              <div class="card-sub">总计 128,402 名用户</div>
+            </div>
+          </div>
+          <div style="display:flex; align-items:center; gap:24px; padding: 6px 0 14px;">
+            <svg id="donut" width="160" height="160" viewBox="0 0 160 160"></svg>
+            <div style="flex:1; display:flex; flex-direction:column; gap:14px;">
+              <div>
+                <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:4px;">
+                  <span class="legend-item"><span class="legend-swatch" style="background:#cc9166;"></span>VidGet</span>
+                  <span class="cell-mono" style="color:var(--color-pure-white); font-size:13px;">62.8%</span>
+                </div>
+                <div style="font-family:var(--font-display); font-size:24px; color:var(--color-pure-white); line-height:1;">80,617</div>
+                <div style="font-size:11px; color:var(--color-stone-text); margin-top:4px;">视频创作工具</div>
+              </div>
+              <div>
+                <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:4px;">
+                  <span class="legend-item"><span class="legend-swatch" style="background:#7d94b8;"></span>助教云</span>
+                  <span class="cell-mono" style="color:var(--color-pure-white); font-size:13px;">37.2%</span>
+                </div>
+                <div style="font-family:var(--font-display); font-size:24px; color:var(--color-pure-white); line-height:1;">47,785</div>
+                <div style="font-size:11px; color:var(--color-stone-text); margin-top:4px;">教学辅导平台</div>
+              </div>
+            </div>
+          </div>
+          <div style="border-top:var(--hairline); padding-top:14px; display:flex; justify-content:space-between; font-size:12px;">
+            <span class="muted">交叉用户</span>
+            <span style="color:var(--color-pure-white); font-variant-numeric:tabular-nums;">8,042 <span class="muted">(6.3%)</span></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- bottom row -->
+      <div class="split">
+        <div class="card">
+          <div class="card-head">
+            <div>
+              <h3 class="card-title">收入构成</h3>
+              <div class="card-sub">本月 · ¥384,720 / 目标 ¥500,000</div>
+            </div>
+            <span class="muted" style="font-family:var(--font-mono); font-size:11px;">76.9%</span>
+          </div>
+          <!-- stacked horizontal bar -->
+          <div style="display:flex; height:14px; border-radius:7px; overflow:hidden; background:var(--color-pewter-accent);">
+            <div style="width:48%; background:linear-gradient(90deg,#a07a48,#cc9166);"></div>
+            <div style="width:22%; background:#7d94b8;"></div>
+            <div style="width:8%; background:#4a5364;"></div>
+            <div style="flex:1; background:transparent;"></div>
+          </div>
+          <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-top:18px;">
+            <div>
+              <div class="legend-item" style="font-size:11.5px;"><span class="legend-swatch" style="background:#cc9166;"></span>VidGet 订阅</div>
+              <div style="font-family:var(--font-display); font-size:22px; color:var(--color-pure-white); margin-top:6px; line-height:1;">¥184,560</div>
+              <div style="font-size:11px; color:var(--color-stone-text); margin-top:3px;">48% · 1,840 单</div>
+            </div>
+            <div>
+              <div class="legend-item" style="font-size:11.5px;"><span class="legend-swatch" style="background:#7d94b8;"></span>助教云 SaaS</div>
+              <div style="font-family:var(--font-display); font-size:22px; color:var(--color-pure-white); margin-top:6px; line-height:1;">¥84,640</div>
+              <div style="font-size:11px; color:var(--color-stone-text); margin-top:3px;">22% · 312 单</div>
+            </div>
+            <div>
+              <div class="legend-item" style="font-size:11.5px;"><span class="legend-swatch" style="background:#4a5364;"></span>增值服务</div>
+              <div style="font-family:var(--font-display); font-size:22px; color:var(--color-pure-white); margin-top:6px; line-height:1;">¥30,720</div>
+              <div style="font-size:11px; color:var(--color-stone-text); margin-top:3px;">8% · 普通包</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <div>
+              <h3 class="card-title">最近动态</h3>
+              <div class="card-sub">用户、订单、系统事件</div>
+            </div>
+            <a class="muted" style="font-size:12px;">查看全部 →</a>
+          </div>
+          <div class="activity-list">
+            <div class="activity">
+              <div class="activity-icon">
+                <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="8" cy="6" r="2.5"/><path d="M3 13c0-2 2.2-3.5 5-3.5s5 1.5 5 3.5"/></svg>
+              </div>
+              <div class="activity-text">王梓涵 注册并购买 <b>VidGet 年度套餐</b><span> · 138****8821</span></div>
+              <div class="activity-time">2 分钟前</div>
+            </div>
+            <div class="activity">
+              <div class="activity-icon" style="color:var(--color-golden);">
+                <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M2.5 4h11l-1 8.5a1.5 1.5 0 0 1-1.5 1.3H5a1.5 1.5 0 0 1-1.5-1.3L2.5 4z"/></svg>
+              </div>
+              <div class="activity-text">订单 <b class="cell-mono">#A8F4-2810</b> 支付成功 <span>· ¥298.00</span></div>
+              <div class="activity-time">8 分钟前</div>
+            </div>
+            <div class="activity">
+              <div class="activity-icon">
+                <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="2" y="3" width="12" height="9" rx="1"/><path d="M6 12v2M10 12v2M5 14h6"/></svg>
+              </div>
+              <div class="activity-text">发现新设备登录：<b>助教云 桌面端 · MacBook Pro</b></div>
+              <div class="activity-time">14 分钟前</div>
+            </div>
+            <div class="activity">
+              <div class="activity-icon">
+                <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M3 8l3 3 7-7"/></svg>
+              </div>
+              <div class="activity-text">VidGet v2.4 已发布，<b>1,284 名用户</b> 已升级</div>
+              <div class="activity-time">1 小时前</div>
+            </div>
+            <div class="activity">
+              <div class="activity-icon">
+                <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="8" cy="8" r="6"/><path d="M8 5v3l2 2"/></svg>
+              </div>
+              <div class="activity-text">每日用户报表已生成 <span>· 自动归档至 oss/reports/</span></div>
+              <div class="activity-time">3 小时前</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== Users ===== -->
+    <section class="view page" id="view-users">
+      <div class="page-head">
+        <div>
+          <h1>用户 <em>管理</em></h1>
+          <div class="sub" style="margin-top:8px;">128,402 名用户 · 今日新增 1,284</div>
+        </div>
+        <div class="page-head-actions">
+          <button class="btn-pill">导出 CSV</button>
+          <button class="btn-pill primary">+ 添加用户</button>
+        </div>
+      </div>
+
+      <div class="table-card">
+        <div class="table-toolbar">
+          <div class="search-pill">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="7" cy="7" r="5"/><path d="M11 11l3 3"/></svg>
+            <input placeholder="搜索手机号、用户名或邮箱…" />
+          </div>
+          <button class="filter-chip active">全部 · 128,402</button>
+          <button class="filter-chip">已购买</button>
+          <button class="filter-chip">试用中</button>
+          <button class="filter-chip">免费用户</button>
+          <div class="toolbar-spacer"></div>
+          <button class="filter-chip">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M2 4h12M4 8h8M6 12h4"/></svg>
+            筛选
+          </button>
+          <button class="filter-chip">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M3 7l5 5 5-5"/></svg>
+            注册时间
+          </button>
+        </div>
+        <table class="tbl">
+          <thead>
+            <tr>
+              <th style="width:30%;">用户</th>
+              <th>注册时间</th>
+              <th>购买状态</th>
+              <th>所属产品</th>
+              <th>登录设备</th>
+              <th>累计消费</th>
+              <th style="width:60px;"></th>
+            </tr>
+          </thead>
+          <tbody id="users-tbody"><!-- generated --></tbody>
+        </table>
+        <div class="pagination">
+          <span>显示 1 – 10，共 128,402 条</span>
+          <div class="pager-btns">
+            <button>‹</button>
+            <button class="active">1</button>
+            <button>2</button>
+            <button>3</button>
+            <button>…</button>
+            <button>12,840</button>
+            <button>›</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== Orders ===== -->
+    <section class="view page" id="view-orders">
+      <div class="page-head">
+        <div>
+          <h1>购买 <em>记录</em></h1>
+          <div class="sub" style="margin-top:8px;">7,418 单 · 累计金额 ¥3,847,210</div>
+        </div>
+        <div class="page-head-actions">
+          <button class="btn-pill">导出</button>
+          <button class="btn-pill primary">对账</button>
+        </div>
+      </div>
+
+      <!-- Today's revenue banner -->
+      <div class="revenue-banner">
+        <div class="rev-cell">
+          <div class="lbl"><span class="pip"></span>今日收入</div>
+          <div class="val"><span class="ccy">¥</span>284,720</div>
+          <div class="foot"><span class="delta up">↑ 18.4%</span><span>较昨日</span></div>
+        </div>
+        <div class="rev-cell minor">
+          <div class="lbl">今日订单数</div>
+          <div class="val">1,284</div>
+          <div class="foot"><span class="delta up">↑ 12.1%</span></div>
+        </div>
+        <div class="rev-cell minor">
+          <div class="lbl">客单价</div>
+          <div class="val"><span class="ccy">¥</span>221.7</div>
+          <div class="foot"><span class="muted">本月平均 ¥208.5</span></div>
+        </div>
+        <div class="rev-cell minor">
+          <div class="lbl">退款</div>
+          <div class="val"><span class="ccy">¥</span>2,180</div>
+          <div class="foot"><span class="muted">退款率 0.76%</span></div>
+        </div>
+      </div>
+
+      <div class="table-card">
+        <div class="table-toolbar">
+          <button class="filter-chip active">全部产品</button>
+          <button class="filter-chip"><span style="display:inline-block;width:8px;height:8px;background:#cc9166;border-radius:2px;"></span>VidGet</button>
+          <button class="filter-chip"><span style="display:inline-block;width:8px;height:8px;background:#7d94b8;border-radius:2px;"></span>助教云</button>
+          <span style="width:1px; align-self:stretch; background:rgba(226,227,233,0.06); margin:0 4px;"></span>
+          <button class="filter-chip">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="2" y="3" width="12" height="11" rx="1"/><path d="M2 6h12M5 1v3M11 1v3"/></svg>
+            2026.05.01 – 2026.05.09
+          </button>
+          <button class="filter-chip">套餐类型 · 全部</button>
+          <button class="filter-chip">支付状态 · 全部</button>
+          <div class="toolbar-spacer"></div>
+          <div class="search-pill" style="max-width:240px;">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="7" cy="7" r="5"/><path d="M11 11l3 3"/></svg>
+            <input placeholder="订单号 / 手机号" />
+          </div>
+        </div>
+        <table class="tbl">
+          <thead>
+            <tr>
+              <th style="width:140px;">订单号</th>
+              <th>用户</th>
+              <th>产品</th>
+              <th>套餐</th>
+              <th style="text-align:right;">金额</th>
+              <th>购买时间</th>
+              <th>支付方式</th>
+              <th>状态</th>
+            </tr>
+          </thead>
+          <tbody id="orders-tbody"></tbody>
+        </table>
+        <div class="pagination">
+          <span>显示 1 – 12，共 7,418 条</span>
+          <div class="pager-btns">
+            <button>‹</button>
+            <button class="active">1</button>
+            <button>2</button>
+            <button>3</button>
+            <button>…</button>
+            <button>619</button>
+            <button>›</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== Apps ===== -->
+    <section class="view page" id="view-apps">
+      <div class="page-head">
+        <div>
+          <h1>应用 <em>管理</em></h1>
+          <div class="sub" style="margin-top:8px;">2 个已接入应用 · 共 128,402 名用户</div>
+        </div>
+        <div class="page-head-actions">
+          <button class="btn-pill">查看 SDK 文档</button>
+          <button class="btn-pill primary">+ 接入新应用</button>
+        </div>
+      </div>
+
+      <div class="apps-row">
+        <!-- VidGet -->
+        <div class="app-card">
+          <span class="app-status"><span class="pip"></span>运行中</span>
+          <div class="app-head">
+            <div class="app-logo vidget">V</div>
+            <div class="app-meta">
+              <h3>VidGet</h3>
+              <p>面向独立创作者的 AI 视频剪辑工具，支持自动字幕、片段提取与多平台一键发布。</p>
+            </div>
+          </div>
+          <div class="app-stats">
+            <div class="app-stat">
+              <div class="lbl">用户数</div>
+              <div class="val">80,617</div>
+              <div class="delta up">↑ 5.4% / 周</div>
+            </div>
+            <div class="app-stat">
+              <div class="lbl">本月收入</div>
+              <div class="val"><span class="unit">¥</span>184,560</div>
+              <div class="delta up">↑ 9.1% / 月</div>
+            </div>
+            <div class="app-stat">
+              <div class="lbl">付费率</div>
+              <div class="val">12.4<span class="unit">%</span></div>
+              <div class="delta up">↑ 0.6pp</div>
+            </div>
+          </div>
+          <div class="app-meta-row">
+            <div class="item">
+              <div class="lbl">App ID</div>
+              <div class="val mono">app_vidget_pro_2024</div>
+            </div>
+            <div class="item">
+              <div class="lbl">SDK 版本</div>
+              <div class="val">2.4.1 · 最新</div>
+            </div>
+            <div class="item" style="margin-top:14px;">
+              <div class="lbl">接入时间</div>
+              <div class="val">2024-03-18</div>
+            </div>
+            <div class="item" style="margin-top:14px;">
+              <div class="lbl">最近活跃</div>
+              <div class="val">12 秒前</div>
+            </div>
+          </div>
+          <div class="app-actions">
+            <button class="btn-pill">配置</button>
+            <button class="btn-pill">查看用户</button>
+            <button class="btn-pill" style="margin-left:auto;">···</button>
+          </div>
+        </div>
+
+        <!-- 助教云 -->
+        <div class="app-card zhujiao">
+          <span class="app-status"><span class="pip"></span>运行中</span>
+          <div class="app-head">
+            <div class="app-logo zhujiao">助</div>
+            <div class="app-meta">
+              <h3>助教云</h3>
+              <p>面向 K12 与培训机构的教学辅导 SaaS 平台，包含课程编排、作业批改与家校沟通模块。</p>
+            </div>
+          </div>
+          <div class="app-stats">
+            <div class="app-stat">
+              <div class="lbl">用户数</div>
+              <div class="val">47,785</div>
+              <div class="delta up">↑ 3.1% / 周</div>
+            </div>
+            <div class="app-stat">
+              <div class="lbl">本月收入</div>
+              <div class="val"><span class="unit">¥</span>84,640</div>
+              <div class="delta up">↑ 6.4% / 月</div>
+            </div>
+            <div class="app-stat">
+              <div class="lbl">付费率</div>
+              <div class="val">8.2<span class="unit">%</span></div>
+              <div class="delta down">↓ 0.2pp</div>
+            </div>
+          </div>
+          <div class="app-meta-row">
+            <div class="item">
+              <div class="lbl">App ID</div>
+              <div class="val mono">app_zhujiao_edu</div>
+            </div>
+            <div class="item">
+              <div class="lbl">SDK 版本</div>
+              <div class="val">1.9.3 · <span class="muted">可升级 →</span></div>
+            </div>
+            <div class="item" style="margin-top:14px;">
+              <div class="lbl">接入时间</div>
+              <div class="val">2024-09-02</div>
+            </div>
+            <div class="item" style="margin-top:14px;">
+              <div class="lbl">最近活跃</div>
+              <div class="val">38 秒前</div>
+            </div>
+          </div>
+          <div class="app-actions">
+            <button class="btn-pill">配置</button>
+            <button class="btn-pill">查看用户</button>
+            <button class="btn-pill" style="margin-left:auto;">···</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- placeholder for new app -->
+      <div style="margin-top:16px; padding:32px; border:1px dashed rgba(226,227,233,0.10); border-radius:10px; text-align:center; color:var(--color-stone-text);">
+        <div style="font-family:var(--font-display); font-size:22px; color:var(--color-silver-text); font-style:italic; margin-bottom:6px;">接入下一个应用</div>
+        <div style="font-size:13px;">通过 SDK 或 OAuth 2.0 协议，将新应用接入统一用户中心 — 数据自动同步</div>
+        <button class="btn-pill" style="margin-top:18px;">查看接入指南 →</button>
+      </div>
+    </section>
+
+    <!-- ===== Landing pages ===== -->
+    <section class="view page" id="view-landing">
+      <div class="page-head">
+        <div>
+          <h1>落地页 <em>管理</em></h1>
+          <div class="sub" style="margin-top:8px;">为每个产品管理独立落地页 · 支持上传 HTML、预览与发布</div>
+        </div>
+        <div class="page-head-actions">
+          <button class="btn-pill">CDN 配置</button>
+          <button class="btn-pill primary">+ 新建落地页</button>
+        </div>
+      </div>
+
+      <!-- VidGet 落地页 -->
+      <div class="landing-card">
+        <div class="landing-head">
+          <div class="landing-logo vidget">V</div>
+          <div>
+            <h3 class="landing-title">VidGet · 主落地页</h3>
+            <div class="landing-desc">面向独立创作者的 AI 视频剪辑工具</div>
+          </div>
+          <span class="status-pill published"><span class="pip"></span>已发布</span>
+        </div>
+        <div class="url-row">
+          <span class="lbl">URL</span>
+          <span class="url" id="url-vidget">https://vidget.app/?utm_source=ucenter&amp;ref=landing-v3</span>
+          <button class="copy-btn" data-copy="url-vidget">
+            <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="5" y="5" width="9" height="9" rx="1.2"/><path d="M3 11V3a1 1 0 0 1 1-1h7"/></svg>
+            复制
+          </button>
+        </div>
+        <div class="landing-grid">
+          <div class="landing-stats">
+            <div class="app-stat">
+              <div class="lbl">最近更新</div>
+              <div class="val" style="font-size:18px;">2 小时前</div>
+              <div style="font-size:11px; color:var(--color-stone-text); margin-top:4px;">2026-05-10 09:18 · 陈一鸣</div>
+            </div>
+            <div class="app-stat">
+              <div class="lbl">访问次数</div>
+              <div class="val">284,720</div>
+              <div class="delta up" style="font-size:11px; margin-top:4px;">↑ 12.4% / 周</div>
+            </div>
+            <div class="app-stat">
+              <div class="lbl">扫码下载</div>
+              <div class="val">42,196</div>
+              <div style="font-size:11px; color:var(--color-stone-text); margin-top:4px;">转化率 14.8%</div>
+            </div>
+          </div>
+          <div class="landing-actions">
+            <div class="row">
+              <button class="action-btn">
+                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M8 11V2M5 5l3-3 3 3"/><path d="M2 12v1a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1v-1"/></svg>
+                上传 HTML
+              </button>
+              <button class="action-btn">
+                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M1 8s2.5-5 7-5 7 5 7 5-2.5 5-7 5-7-5-7-5z"/><circle cx="8" cy="8" r="2"/></svg>
+                预览
+              </button>
+            </div>
+            <div class="row">
+              <button class="action-btn danger">
+                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="8" cy="8" r="6"/><path d="M5 5l6 6"/></svg>
+                下线
+              </button>
+              <button class="action-btn">
+                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="3" y="3" width="10" height="10" rx="1.5"/><path d="M6 6h4v4H6z" fill="currentColor"/></svg>
+                查看二维码
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 助教云 落地页 -->
+      <div class="landing-card zhujiao">
+        <div class="landing-head">
+          <div class="landing-logo zhujiao">助</div>
+          <div>
+            <h3 class="landing-title">助教云 · 主落地页</h3>
+            <div class="landing-desc">面向 K12 与培训机构的教学辅导 SaaS 平台</div>
+          </div>
+          <span class="status-pill draft"><span class="pip"></span>未发布</span>
+        </div>
+        <div class="url-row">
+          <span class="lbl">URL</span>
+          <span class="url" id="url-zhujiao">https://zhujiao.cloud/?utm_source=ucenter&amp;ref=landing-v2-staging</span>
+          <button class="copy-btn" data-copy="url-zhujiao">
+            <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="5" y="5" width="9" height="9" rx="1.2"/><path d="M3 11V3a1 1 0 0 1 1-1h7"/></svg>
+            复制
+          </button>
+        </div>
+        <div class="landing-grid">
+          <div class="landing-stats">
+            <div class="app-stat">
+              <div class="lbl">最近更新</div>
+              <div class="val" style="font-size:18px;">昨天</div>
+              <div style="font-size:11px; color:var(--color-stone-text); margin-top:4px;">2026-05-09 18:42 · 王梓涵</div>
+            </div>
+            <div class="app-stat">
+              <div class="lbl">访问次数</div>
+              <div class="val">128</div>
+              <div style="font-size:11px; color:var(--color-stone-text); margin-top:4px;">仅内部测试</div>
+            </div>
+            <div class="app-stat">
+              <div class="lbl">扫码下载</div>
+              <div class="val">—</div>
+              <div style="font-size:11px; color:var(--color-stone-text); margin-top:4px;">未启用</div>
+            </div>
+          </div>
+          <div class="landing-actions">
+            <div class="row">
+              <button class="action-btn">
+                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M8 11V2M5 5l3-3 3 3"/><path d="M2 12v1a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1v-1"/></svg>
+                上传 HTML
+              </button>
+              <button class="action-btn">
+                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M1 8s2.5-5 7-5 7 5 7 5-2.5 5-7 5-7-5-7-5z"/><circle cx="8" cy="8" r="2"/></svg>
+                预览
+              </button>
+            </div>
+            <div class="row">
+              <button class="action-btn primary">
+                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M2 8l3 3 9-9"/></svg>
+                立即发布
+              </button>
+              <button class="action-btn">
+                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="8" cy="8" r="6"/><path d="M8 5v3l2 2"/></svg>
+                历史版本
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== Builds / installer page ===== -->
+    <section class="view page" id="view-builds">
+      <div class="page-head">
+        <div>
+          <h1>安装包 <em>管理</em></h1>
+          <div class="sub" style="margin-top:8px;">按产品 + 平台管理桌面与移动端安装包 · CDN 自动分发</div>
+        </div>
+        <div class="page-head-actions">
+          <button class="btn-pill">查看下载统计</button>
+          <button class="btn-pill primary" id="open-upload">+ 上传安装包</button>
+        </div>
+      </div>
+
+      <!-- VidGet builds -->
+      <div class="build-card">
+        <div class="build-head">
+          <div class="landing-logo vidget" style="width:40px;height:40px;font-size:18px;">V</div>
+          <div>
+            <h3 class="landing-title" style="font-size:20px;">VidGet</h3>
+            <div class="landing-desc">3 个平台 · 当前主版本 v2.4.1</div>
+          </div>
+          <div class="build-meta-inline">
+            <span><b>168.4k</b>本月下载</span>
+            <span><b>3</b>活跃版本</span>
+          </div>
+        </div>
+
+        <div class="build-row">
+          <div class="platform-icon android">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="6" y="9" width="12" height="11" rx="2"/><path d="M7 9V7a5 5 0 0 1 10 0v2"/><path d="M3 12v4M21 12v4M9 20v2M15 20v2"/><circle cx="9" cy="6" r="0.5" fill="currentColor"/><circle cx="15" cy="6" r="0.5" fill="currentColor"/></svg>
+          </div>
+          <div>
+            <div class="build-name">VidGet-2.4.1-arm64.apk</div>
+            <div class="build-platform">Android · ARM64 + ARMv7</div>
+          </div>
+          <div class="build-cell mono"><span class="lbl">大小</span>48.2 MB</div>
+          <div class="build-cell mono"><span class="lbl">版本</span>v2.4.1</div>
+          <div class="build-cell mono"><span class="lbl">上传时间</span>2026-05-08 14:22</div>
+          <div class="build-actions">
+            <button class="build-action" data-copy-link="vidget-android" title="复制下载链接">
+              <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M6 9a3 3 0 0 0 4.2 0l2.6-2.6a3 3 0 0 0-4.2-4.2L8 3.4"/><path d="M10 7a3 3 0 0 0-4.2 0L3.2 9.6a3 3 0 0 0 4.2 4.2L8 12.6"/></svg>
+            </button>
+            <button class="build-action danger" title="删除">
+              <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M3 4h10M5 4V3a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v1M6 7v5M10 7v5M4 4l1 9a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1l1-9"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="build-row">
+          <div class="platform-icon windows">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M3 5l8-1v8H3zM3 13h8v8L3 20zM12 4l9-1v10h-9zM12 13h9v8l-9-1z" fill="currentColor" fill-opacity="0.18" stroke="currentColor"/></svg>
+          </div>
+          <div>
+            <div class="build-name">VidGet-Setup-2.4.1.exe</div>
+            <div class="build-platform">Windows · x64 · 安装版</div>
+          </div>
+          <div class="build-cell mono"><span class="lbl">大小</span>92.6 MB</div>
+          <div class="build-cell mono"><span class="lbl">版本</span>v2.4.1</div>
+          <div class="build-cell mono"><span class="lbl">上传时间</span>2026-05-08 14:18</div>
+          <div class="build-actions">
+            <button class="build-action" data-copy-link="vidget-win" title="复制下载链接">
+              <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M6 9a3 3 0 0 0 4.2 0l2.6-2.6a3 3 0 0 0-4.2-4.2L8 3.4"/><path d="M10 7a3 3 0 0 0-4.2 0L3.2 9.6a3 3 0 0 0 4.2 4.2L8 12.6"/></svg>
+            </button>
+            <button class="build-action danger" title="删除">
+              <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M3 4h10M5 4V3a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v1M6 7v5M10 7v5M4 4l1 9a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1l1-9"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="build-row">
+          <div class="platform-icon macos">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M16.5 2.5c.1 1.4-.5 2.7-1.4 3.7-1 1-2.4 1.7-3.7 1.6-.2-1.4.5-2.8 1.4-3.7 1-1 2.4-1.7 3.7-1.6zM20 17.6c-.6 1.3-.9 1.9-1.6 3-1 1.6-2.5 3.6-4.3 3.6-1.6 0-2-1.1-4.2-1.1-2.2 0-2.7 1.1-4.2 1.1-1.8 0-3.2-1.8-4.3-3.4C.5 16.7 0 11.4 2.6 8.7c1.4-1.4 3-2.2 4.5-2.2 1.6 0 2.6 1 4 1 1.3 0 2.1-1 4-1 1.4 0 3 .8 4 2-3.5 2-3 7 .9 9.1z"/></svg>
+          </div>
+          <div>
+            <div class="build-name">VidGet-2.4.1-universal.dmg</div>
+            <div class="build-platform">macOS · Apple Silicon + Intel</div>
+          </div>
+          <div class="build-cell mono"><span class="lbl">大小</span>76.4 MB</div>
+          <div class="build-cell mono"><span class="lbl">版本</span>v2.4.1</div>
+          <div class="build-cell mono"><span class="lbl">上传时间</span>2026-05-08 14:15</div>
+          <div class="build-actions">
+            <button class="build-action" data-copy-link="vidget-mac" title="复制下载链接">
+              <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M6 9a3 3 0 0 0 4.2 0l2.6-2.6a3 3 0 0 0-4.2-4.2L8 3.4"/><path d="M10 7a3 3 0 0 0-4.2 0L3.2 9.6a3 3 0 0 0 4.2 4.2L8 12.6"/></svg>
+            </button>
+            <button class="build-action danger" title="删除">
+              <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M3 4h10M5 4V3a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v1M6 7v5M10 7v5M4 4l1 9a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1l1-9"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 助教云 builds -->
+      <div class="build-card zhujiao">
+        <div class="build-head">
+          <div class="landing-logo zhujiao" style="width:40px;height:40px;font-size:18px;">助</div>
+          <div>
+            <h3 class="landing-title" style="font-size:20px;">助教云</h3>
+            <div class="landing-desc">3 个平台 · 当前主版本 v1.9.3</div>
+          </div>
+          <div class="build-meta-inline">
+            <span><b>42.8k</b>本月下载</span>
+            <span><b>3</b>活跃版本</span>
+          </div>
+        </div>
+
+        <div class="build-row">
+          <div class="platform-icon android">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="6" y="9" width="12" height="11" rx="2"/><path d="M7 9V7a5 5 0 0 1 10 0v2"/><path d="M3 12v4M21 12v4M9 20v2M15 20v2"/></svg>
+          </div>
+          <div>
+            <div class="build-name">ZhuJiao-1.9.3.apk</div>
+            <div class="build-platform">Android · ARM64</div>
+          </div>
+          <div class="build-cell mono"><span class="lbl">大小</span>32.1 MB</div>
+          <div class="build-cell mono"><span class="lbl">版本</span>v1.9.3</div>
+          <div class="build-cell mono"><span class="lbl">上传时间</span>2026-04-22 11:08</div>
+          <div class="build-actions">
+            <button class="build-action" data-copy-link="zhujiao-android" title="复制下载链接">
+              <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M6 9a3 3 0 0 0 4.2 0l2.6-2.6a3 3 0 0 0-4.2-4.2L8 3.4"/><path d="M10 7a3 3 0 0 0-4.2 0L3.2 9.6a3 3 0 0 0 4.2 4.2L8 12.6"/></svg>
+            </button>
+            <button class="build-action danger" title="删除">
+              <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M3 4h10M5 4V3a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v1M6 7v5M10 7v5M4 4l1 9a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1l1-9"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="build-row">
+          <div class="platform-icon windows">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M3 5l8-1v8H3zM3 13h8v8L3 20zM12 4l9-1v10h-9zM12 13h9v8l-9-1z" fill="currentColor" fill-opacity="0.18" stroke="currentColor"/></svg>
+          </div>
+          <div>
+            <div class="build-name">ZhuJiao-Setup-1.9.3.exe</div>
+            <div class="build-platform">Windows · x64</div>
+          </div>
+          <div class="build-cell mono"><span class="lbl">大小</span>68.9 MB</div>
+          <div class="build-cell mono"><span class="lbl">版本</span>v1.9.3</div>
+          <div class="build-cell mono"><span class="lbl">上传时间</span>2026-04-22 11:02</div>
+          <div class="build-actions">
+            <button class="build-action" data-copy-link="zhujiao-win" title="复制下载链接">
+              <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M6 9a3 3 0 0 0 4.2 0l2.6-2.6a3 3 0 0 0-4.2-4.2L8 3.4"/><path d="M10 7a3 3 0 0 0-4.2 0L3.2 9.6a3 3 0 0 0 4.2 4.2L8 12.6"/></svg>
+            </button>
+            <button class="build-action danger" title="删除">
+              <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M3 4h10M5 4V3a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v1M6 7v5M10 7v5M4 4l1 9a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1l1-9"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="build-row">
+          <div class="platform-icon macos">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M16.5 2.5c.1 1.4-.5 2.7-1.4 3.7-1 1-2.4 1.7-3.7 1.6-.2-1.4.5-2.8 1.4-3.7 1-1 2.4-1.7 3.7-1.6zM20 17.6c-.6 1.3-.9 1.9-1.6 3-1 1.6-2.5 3.6-4.3 3.6-1.6 0-2-1.1-4.2-1.1-2.2 0-2.7 1.1-4.2 1.1-1.8 0-3.2-1.8-4.3-3.4C.5 16.7 0 11.4 2.6 8.7c1.4-1.4 3-2.2 4.5-2.2 1.6 0 2.6 1 4 1 1.3 0 2.1-1 4-1 1.4 0 3 .8 4 2-3.5 2-3 7 .9 9.1z"/></svg>
+          </div>
+          <div>
+            <div class="build-name">ZhuJiao-1.9.3.dmg</div>
+            <div class="build-platform">macOS · Apple Silicon</div>
+          </div>
+          <div class="build-cell mono"><span class="lbl">大小</span>54.2 MB</div>
+          <div class="build-cell mono"><span class="lbl">版本</span>v1.9.3</div>
+          <div class="build-cell mono"><span class="lbl">上传时间</span>2026-04-22 10:58</div>
+          <div class="build-actions">
+            <button class="build-action" data-copy-link="zhujiao-mac" title="复制下载链接">
+              <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M6 9a3 3 0 0 0 4.2 0l2.6-2.6a3 3 0 0 0-4.2-4.2L8 3.4"/><path d="M10 7a3 3 0 0 0-4.2 0L3.2 9.6a3 3 0 0 0 4.2 4.2L8 12.6"/></svg>
+            </button>
+            <button class="build-action danger" title="删除">
+              <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M3 4h10M5 4V3a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v1M6 7v5M10 7v5M4 4l1 9a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1l1-9"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- ============ UPLOAD MODAL ============ -->
+<div class="modal-scrim" id="upload-modal">
+  <div class="modal">
+    <div class="modal-head">
+      <div>
+        <h3>上传安装包</h3>
+        <div class="sub">选择目标产品与平台后上传</div>
+      </div>
+      <button class="modal-close" id="modal-close">
+        <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 3l10 10M13 3L3 13"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="field-row">
+        <div class="field">
+          <label>产品</label>
+          <div class="seg">
+            <div class="seg-item active" data-group="product" data-val="vidget">VidGet</div>
+            <div class="seg-item" data-group="product" data-val="zhujiao">助教云</div>
+          </div>
+        </div>
+        <div class="field">
+          <label>版本号</label>
+          <input class="text-input" placeholder="例如 2.4.2" value="2.4.2"/>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>平台</label>
+        <div class="seg">
+          <div class="seg-item active" data-group="platform" data-val="android">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="3" y="6" width="10" height="8" rx="1"/><path d="M5 6V5a3 3 0 0 1 6 0v1"/></svg>
+            Android · APK
+          </div>
+          <div class="seg-item" data-group="platform" data-val="windows">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M2 3l5-1v6H2zM2 9h5v5L2 13zM8 2l6-1v7H8zM8 9h6v5l-6-1z"/></svg>
+            Windows · EXE
+          </div>
+          <div class="seg-item" data-group="platform" data-val="macos">
+            <svg viewBox="0 0 16 16" fill="currentColor"><path d="M11 1.5c0 1-.5 2-1 2.5-.7.6-1.5 1.1-2.4 1-.1-1 .5-2 1-2.5.7-.6 1.6-1.1 2.4-1zM13 11.7c-.4.9-.6 1.3-1.1 2-.7 1.1-1.6 2.4-2.8 2.4-1 0-1.3-.7-2.7-.7s-1.7.7-2.7.7c-1.2 0-2.1-1.2-2.8-2.3-1.7-2.4-2-5.8-.4-7.5C1.3 5.3 2.4 4.8 3.4 4.8c1 0 1.6.6 2.5.6.9 0 1.4-.6 2.6-.6.9 0 1.9.5 2.6 1.4-2.3 1.3-2 4.6.6 5.9z"/></svg>
+            macOS · DMG
+          </div>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>安装包文件</label>
+        <div class="dropzone">
+          <div class="icon">
+            <svg width="22" height="22" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M8 11V2M5 5l3-3 3 3"/><path d="M2 12v1a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1v-1"/></svg>
+          </div>
+          <div class="title">将安装包拖拽到此处，或 <u>点击选择文件</u></div>
+          <div class="hint">单文件最大 500 MB · 上传后将自动校验签名与版本</div>
+          <div class="types">.apk · .exe · .dmg</div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-pill" id="modal-cancel">取消</button>
+      <button class="btn-pill primary">开始上传</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ TOAST ============ -->
+<div class="toast" id="toast"><span class="pip"></span><span id="toast-msg">已复制</span></div>
+
+<!-- ============ DRAWER ============ -->
+<div class="drawer-scrim" id="scrim"></div>
+<aside class="drawer" id="drawer">
+  <div class="drawer-head">
+    <div class="user-avatar" id="drw-avatar" style="background: linear-gradient(135deg, #2a2317, #4a3a20); color:#cc9166;">王</div>
+    <div>
+      <h2 class="drawer-name" id="drw-name">王梓涵</h2>
+      <div class="drawer-meta" id="drw-meta">UID 8429103 · 138****8821</div>
+    </div>
+    <button class="drawer-close" id="drw-close">
+      <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 3l10 10M13 3L3 13"/></svg>
+    </button>
+  </div>
+  <div class="drawer-tabs">
+    <div class="drawer-tab active">概况</div>
+    <div class="drawer-tab">购买记录 <span class="muted">· 4</span></div>
+    <div class="drawer-tab">登录设备 <span class="muted">· 3</span></div>
+    <div class="drawer-tab">操作日志</div>
+  </div>
+  <div class="drawer-body">
+    <div class="drawer-stat-row">
+      <div class="drawer-stat">
+        <div class="lbl">累计消费</div>
+        <div class="val"><span class="unit">¥</span>1,896</div>
+      </div>
+      <div class="drawer-stat">
+        <div class="lbl">订单数</div>
+        <div class="val">4</div>
+      </div>
+      <div class="drawer-stat">
+        <div class="lbl">活跃天数</div>
+        <div class="val">128</div>
+      </div>
+    </div>
+
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px; font-size:13px;">
+      <div>
+        <div class="lbl" style="font-size:11px; color:var(--color-stone-text); text-transform:uppercase; letter-spacing:0.05em; margin-bottom:6px;">注册时间</div>
+        <div>2025-09-14 · 来自 VidGet</div>
+      </div>
+      <div>
+        <div class="lbl" style="font-size:11px; color:var(--color-stone-text); text-transform:uppercase; letter-spacing:0.05em; margin-bottom:6px;">最后登录</div>
+        <div>2 分钟前 · iPhone 16 Pro</div>
+      </div>
+      <div>
+        <div class="lbl" style="font-size:11px; color:var(--color-stone-text); text-transform:uppercase; letter-spacing:0.05em; margin-bottom:6px;">购买状态</div>
+        <div><span class="badge paid"><span class="pip"></span>已付费 · 年度</span></div>
+      </div>
+      <div>
+        <div class="lbl" style="font-size:11px; color:var(--color-stone-text); text-transform:uppercase; letter-spacing:0.05em; margin-bottom:6px;">所属产品</div>
+        <div class="flex-row">
+          <span class="product-tag vidget">VidGet</span>
+          <span class="product-tag zhujiao">助教云</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-title">购买记录</div>
+    <div>
+      <div class="purchase-row">
+        <span class="order-no">#A8F4-2810</span>
+        <div><b>VidGet 年度套餐</b><div class="when">套餐编号 PRO-Y1 · 2025-09-14</div></div>
+        <span class="amount"><span class="ccy">¥</span>588.00</span>
+        <span class="badge paid"><span class="pip"></span>已支付</span>
+      </div>
+      <div class="purchase-row">
+        <span class="order-no">#A8F4-3024</span>
+        <div><b>VidGet 高级模板包</b><div class="when">附加 · 2025-11-08</div></div>
+        <span class="amount"><span class="ccy">¥</span>98.00</span>
+        <span class="badge paid"><span class="pip"></span>已支付</span>
+      </div>
+      <div class="purchase-row">
+        <span class="order-no">#A8F4-7811</span>
+        <div><b>助教云 月度套餐</b><div class="when">2026-02-12</div></div>
+        <span class="amount"><span class="ccy">¥</span>68.00</span>
+        <span class="badge paid"><span class="pip"></span>已支付</span>
+      </div>
+      <div class="purchase-row">
+        <span class="order-no">#A8F4-9920</span>
+        <div><b>VidGet 续费 · 年度</b><div class="when">即将到期 · 2026-09-14</div></div>
+        <span class="amount"><span class="ccy">¥</span>588.00</span>
+        <span class="badge paid"><span class="pip"></span>已支付</span>
+      </div>
+    </div>
+
+    <div class="section-title">登录设备</div>
+    <div>
+      <div class="device-row">
+        <div class="device-icon"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="4" y="2" width="8" height="12" rx="1.5"/><circle cx="8" cy="12" r="0.5" fill="currentColor"/></svg></div>
+        <div>
+          <div class="device-name">iPhone 16 Pro · iOS 18.1</div>
+          <div class="device-meta">VidGet App · 杭州 · 中国移动 · 当前设备</div>
+        </div>
+        <div class="device-status">● 在线</div>
+      </div>
+      <div class="device-row">
+        <div class="device-icon"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="2" y="3" width="12" height="9" rx="1"/><path d="M5 14h6M8 12v2"/></svg></div>
+        <div>
+          <div class="device-name">MacBook Pro 14" · macOS 15</div>
+          <div class="device-meta">助教云 桌面端 · 杭州 · 公司网络</div>
+        </div>
+        <div class="device-status idle">2 小时前</div>
+      </div>
+      <div class="device-row">
+        <div class="device-icon"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="2" y="3" width="12" height="9" rx="1"/><path d="M2 6h12"/></svg></div>
+        <div>
+          <div class="device-name">Chrome · Windows 11</div>
+          <div class="device-meta">VidGet 网页版 · 上海 · 中国电信</div>
+        </div>
+        <div class="device-status idle">3 天前</div>
+      </div>
+    </div>
+
+    <div class="section-title">操作日志</div>
+    <div>
+      <div class="log-row"><div class="dot gold"></div><div class="what">购买 <span>VidGet 年度续费</span></div><div class="when">2 分钟前</div></div>
+      <div class="log-row"><div class="dot"></div><div class="what">修改了 <span>头像与昵称</span></div><div class="when">14 分钟前</div></div>
+      <div class="log-row"><div class="dot"></div><div class="what">导出 <span>剪辑项目 "夏夜散步.vidproj"</span></div><div class="when">今天 09:24</div></div>
+      <div class="log-row"><div class="dot gold"></div><div class="what">绑定第三方 <span>抖音账号 @hanhan_</span></div><div class="when">昨天 22:11</div></div>
+      <div class="log-row"><div class="dot"></div><div class="what">登录 <span>从 iPhone 16 Pro</span></div><div class="when">昨天 21:58</div></div>
+      <div class="log-row"><div class="dot"></div><div class="what">重置密码 <span>通过手机验证码</span></div><div class="when">2026-04-30</div></div>
+      <div class="log-row"><div class="dot"></div><div class="what">开通 <span>助教云 试用</span></div><div class="when">2026-02-12</div></div>
+    </div>
+  </div>
+</aside>
+
+<script>
+// ============ Routing ============
+const routes = ['dashboard','users','orders','apps','landing','builds'];
+const labels = { dashboard:'概览', users:'用户管理', orders:'购买记录', apps:'应用管理', landing:'落地页管理', builds:'安装包管理' };
+function go(r){
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.toggle('active', n.dataset.route===r));
+  document.querySelectorAll('.view').forEach(v => v.classList.toggle('active', v.id==='view-'+r));
+  document.getElementById('crumb-leaf').textContent = labels[r];
+  window.scrollTo({top:0});
+}
+document.querySelectorAll('.nav-item[data-route]').forEach(n => {
+  n.addEventListener('click', () => go(n.dataset.route));
+});
+
+// ============ Drawer ============
+const scrim = document.getElementById('scrim');
+const drawer = document.getElementById('drawer');
+function openDrawer(u){
+  if (u){
+    document.getElementById('drw-name').textContent = u.name;
+    document.getElementById('drw-meta').textContent = `UID ${u.uid} · ${u.phone}`;
+    const av = document.getElementById('drw-avatar');
+    av.textContent = u.name[0];
+    av.style.background = u.bg;
+    av.style.color = u.fg;
+  }
+  scrim.classList.add('open');
+  drawer.classList.add('open');
+}
+function closeDrawer(){ scrim.classList.remove('open'); drawer.classList.remove('open'); }
+scrim.addEventListener('click', closeDrawer);
+document.getElementById('drw-close').addEventListener('click', closeDrawer);
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDrawer(); });
+
+// ============ Users data ============
+const userPalette = [
+  ['#2a2317','#cc9166'],
+  ['#1a2030','#a4b8d4'],
+  ['#1f1f24','#e2e3e9'],
+  ['#2a2014','#d6a87a'],
+  ['#171f1c','#88b9a4'],
+  ['#1f1722','#c9a8d8'],
+];
+const users = [
+  { uid:8429103, name:'王梓涵', phone:'138****8821', regAt:'2025-09-14', status:'paid', statusLabel:'已付费', plan:'年度', products:['vidget','zhujiao'], devices:3, spend:'1,896' },
+  { uid:8429104, name:'李思源', phone:'139****4412', regAt:'2026-04-22', status:'trial', statusLabel:'试用中', plan:'7 天试用', products:['vidget'], devices:1, spend:'0' },
+  { uid:8429105, name:'张逸辰', phone:'186****0098', regAt:'2024-12-03', status:'paid', statusLabel:'已付费', plan:'季度', products:['zhujiao'], devices:2, spend:'408' },
+  { uid:8429106, name:'刘思琪', phone:'150****7723', regAt:'2026-01-08', status:'paid', statusLabel:'已付费', plan:'年度', products:['vidget'], devices:4, spend:'788' },
+  { uid:8429107, name:'陈宇航', phone:'137****6611', regAt:'2025-06-20', status:'expired', statusLabel:'已过期', plan:'—', products:['vidget'], devices:2, spend:'288' },
+  { uid:8429108, name:'赵欣怡', phone:'159****2210', regAt:'2026-05-08', status:'free', statusLabel:'免费', plan:'—', products:['zhujiao'], devices:1, spend:'0' },
+  { uid:8429109, name:'孙浩然', phone:'180****9904', regAt:'2025-11-29', status:'paid', statusLabel:'已付费', plan:'年度', products:['vidget','zhujiao'], devices:5, spend:'2,476' },
+  { uid:8429110, name:'周可欣', phone:'135****3382', regAt:'2026-03-15', status:'trial', statusLabel:'试用中', plan:'14 天试用', products:['zhujiao'], devices:2, spend:'0' },
+  { uid:8429111, name:'吴梓墨', phone:'176****1145', regAt:'2024-08-11', status:'paid', statusLabel:'已付费', plan:'终身', products:['vidget'], devices:3, spend:'1,288' },
+  { uid:8429112, name:'郑一帆', phone:'182****7708', regAt:'2025-12-25', status:'paid', statusLabel:'已付费', plan:'月度', products:['zhujiao'], devices:1, spend:'68' },
+];
+const userTbody = document.getElementById('users-tbody');
+users.forEach((u, i) => {
+  const [bg, fg] = userPalette[i % userPalette.length];
+  const tr = document.createElement('tr');
+  tr.className = 'row-clickable';
+  tr.innerHTML = `
+    <td>
+      <div class="user-cell">
+        <div class="user-avatar" style="background:linear-gradient(135deg, ${bg}, ${shade(bg,18)}); color:${fg};">${u.name[0]}</div>
+        <div class="user-cell-meta">
+          <b>${u.name}</b>
+          <span>${u.phone}</span>
+        </div>
+      </div>
+    </td>
+    <td class="cell-mono">${u.regAt}</td>
+    <td><span class="badge ${u.status}"><span class="pip"></span>${u.statusLabel}${u.plan!=='—' ? ' · '+u.plan : ''}</span></td>
+    <td>${u.products.map(p => `<span class="product-tag ${p}">${p==='vidget'?'VidGet':'助教云'}</span>`).join(' ')}</td>
+    <td class="cell-mono">${u.devices} 台</td>
+    <td class="amount"><span class="ccy">¥</span>${u.spend}</td>
+    <td style="text-align:right; color:var(--color-stone-text);">›</td>
+  `;
+  tr.addEventListener('click', () => openDrawer({...u, bg:`linear-gradient(135deg, ${bg}, ${shade(bg,18)})`, fg }));
+  userTbody.appendChild(tr);
+});
+
+function shade(hex, amt){
+  const m = hex.replace('#','').match(/.{2}/g).map(x => parseInt(x,16));
+  return '#' + m.map(c => Math.min(255, c+amt).toString(16).padStart(2,'0')).join('');
+}
+
+// ============ Orders data ============
+const orders = [
+  { no:'#A8F4-9920', user:'王梓涵', uphone:'138****8821', product:'vidget', plan:'年度套餐', amount:'588.00', when:'2026-05-09 14:28:11', pay:'微信支付', status:'paid', statusLbl:'已支付'},
+  { no:'#A8F4-9919', user:'刘思琪', uphone:'150****7723', product:'vidget', plan:'高级模板包', amount:'98.00', when:'2026-05-09 14:24:02', pay:'支付宝', status:'paid', statusLbl:'已支付'},
+  { no:'#A8F4-9918', user:'孙浩然', uphone:'180****9904', product:'zhujiao', plan:'机构版 · 年度', amount:'2,388.00', when:'2026-05-09 13:52:43', pay:'对公转账', status:'paid', statusLbl:'已支付'},
+  { no:'#A8F4-9917', user:'周可欣', uphone:'135****3382', product:'zhujiao', plan:'月度套餐', amount:'68.00', when:'2026-05-09 12:18:09', pay:'微信支付', status:'paid', statusLbl:'已支付'},
+  { no:'#A8F4-9916', user:'李思源', uphone:'139****4412', product:'vidget', plan:'季度套餐', amount:'168.00', when:'2026-05-09 11:42:35', pay:'Apple Pay', status:'paid', statusLbl:'已支付'},
+  { no:'#A8F4-9915', user:'郑一帆', uphone:'182****7708', product:'zhujiao', plan:'月度套餐', amount:'68.00', when:'2026-05-09 11:08:51', pay:'微信支付', status:'pending', statusLbl:'待支付'},
+  { no:'#A8F4-9914', user:'吴梓墨', uphone:'176****1145', product:'vidget', plan:'终身授权', amount:'1,288.00', when:'2026-05-09 10:55:03', pay:'支付宝', status:'paid', statusLbl:'已支付'},
+  { no:'#A8F4-9913', user:'赵欣怡', uphone:'159****2210', product:'zhujiao', plan:'家庭套餐', amount:'128.00', when:'2026-05-09 10:28:17', pay:'微信支付', status:'paid', statusLbl:'已支付'},
+  { no:'#A8F4-9912', user:'陈宇航', uphone:'137****6611', product:'vidget', plan:'年度续费', amount:'588.00', when:'2026-05-09 09:14:06', pay:'支付宝', status:'refund', statusLbl:'已退款'},
+  { no:'#A8F4-9911', user:'张逸辰', uphone:'186****0098', product:'zhujiao', plan:'季度套餐', amount:'408.00', when:'2026-05-09 08:42:38', pay:'微信支付', status:'paid', statusLbl:'已支付'},
+  { no:'#A8F4-9910', user:'王梓涵', uphone:'138****8821', product:'vidget', plan:'高级模板包', amount:'98.00', when:'2026-05-09 08:18:24', pay:'微信支付', status:'paid', statusLbl:'已支付'},
+  { no:'#A8F4-9909', user:'李思源', uphone:'139****4412', product:'vidget', plan:'年度套餐', amount:'588.00', when:'2026-05-09 07:55:11', pay:'Apple Pay', status:'paid', statusLbl:'已支付'},
+];
+const orderStatusCls = {paid:'paid', pending:'trial', refund:'expired'};
+const ordersTbody = document.getElementById('orders-tbody');
+orders.forEach(o => {
+  const tr = document.createElement('tr');
+  tr.className = 'row-clickable';
+  tr.innerHTML = `
+    <td class="cell-mono">${o.no}</td>
+    <td>
+      <div class="user-cell-meta">
+        <b>${o.user}</b>
+        <span>${o.uphone}</span>
+      </div>
+    </td>
+    <td><span class="product-tag ${o.product}">${o.product==='vidget'?'VidGet':'助教云'}</span></td>
+    <td>${o.plan}</td>
+    <td class="amount" style="text-align:right;"><span class="ccy">¥</span>${o.amount}</td>
+    <td class="cell-mono" style="font-size:11.5px;">${o.when}</td>
+    <td style="font-size:12.5px; color:var(--color-silver-text);">${o.pay}</td>
+    <td><span class="badge ${orderStatusCls[o.status]}"><span class="pip"></span>${o.statusLbl}</span></td>
+  `;
+  ordersTbody.appendChild(tr);
+});
+
+// ============ Line chart ============
+(function(){
+  const svg = document.getElementById('line-chart');
+  const W = 760, H = 280, PAD_L = 36, PAD_R = 16, PAD_T = 14, PAD_B = 30;
+  const days = 30;
+  // generate nice synthetic data
+  const seed1 = [], seed2 = [];
+  let v1 = 1100, v2 = 700;
+  for (let i = 0; i < days; i++){
+    v1 += (Math.sin(i*0.6)*60 + Math.random()*200 - 60) + 18;
+    v2 += (Math.cos(i*0.4)*30 + Math.random()*100 - 30) + 8;
+    seed1.push(Math.max(700, v1));
+    seed2.push(Math.max(400, v2));
+  }
+  const total = seed1.map((a,i) => a + seed2[i]);
+  const max = Math.max(...total) * 1.1;
+  const min = 0;
+
+  const xAt = i => PAD_L + (W - PAD_L - PAD_R) * (i / (days - 1));
+  const yAt = v => PAD_T + (H - PAD_T - PAD_B) * (1 - (v - min)/(max - min));
+
+  // y grid lines
+  const ticks = 5;
+  let g = '';
+  for (let t = 0; t <= ticks; t++){
+    const v = min + (max - min) * t/ticks;
+    const y = yAt(v);
+    g += `<line x1="${PAD_L}" x2="${W-PAD_R}" y1="${y}" y2="${y}" stroke="rgba(226,227,233,0.05)" stroke-dasharray="2 4"/>`;
+    g += `<text x="${PAD_L-8}" y="${y+3}" text-anchor="end" font-size="10" fill="#5e616e" font-family="JetBrains Mono">${Math.round(v).toLocaleString()}</text>`;
+  }
+  // x labels (every 5 days)
+  const today = new Date('2026-05-09');
+  for (let i = 0; i < days; i+=5){
+    const d = new Date(today); d.setDate(today.getDate() - (days-1-i));
+    const lbl = `${d.getMonth()+1}/${d.getDate()}`;
+    g += `<text x="${xAt(i)}" y="${H-PAD_B+18}" text-anchor="middle" font-size="10" fill="#5e616e" font-family="JetBrains Mono">${lbl}</text>`;
+  }
+
+  // build path with smoothing
+  function pathFor(arr, smooth=true){
+    let d = '';
+    arr.forEach((v,i) => {
+      const x = xAt(i), y = yAt(v);
+      if (i === 0) d += `M${x},${y}`;
+      else {
+        const px = xAt(i-1), py = yAt(arr[i-1]);
+        const cx1 = px + (x-px)*0.5, cy1 = py;
+        const cx2 = px + (x-px)*0.5, cy2 = y;
+        d += ` C${cx1},${cy1} ${cx2},${cy2} ${x},${y}`;
+      }
+    });
+    return d;
+  }
+
+  const dTotal = pathFor(total);
+  const dV1 = pathFor(seed1);
+  const dV2 = pathFor(seed2);
+  const dArea = dTotal + ` L${xAt(days-1)},${H-PAD_B} L${xAt(0)},${H-PAD_B} Z`;
+
+  const defs = `
+    <defs>
+      <linearGradient id="lineFill" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#cc9166" stop-opacity="0.22"/>
+        <stop offset="100%" stop-color="#cc9166" stop-opacity="0"/>
+      </linearGradient>
+      <linearGradient id="lineStroke" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0%" stop-color="#a07a48"/>
+        <stop offset="50%" stop-color="#cc9166"/>
+        <stop offset="100%" stop-color="#fff0cc"/>
+      </linearGradient>
+    </defs>
+  `;
+
+  svg.innerHTML = defs + g
+    + `<path d="${dArea}" fill="url(#lineFill)"/>`
+    + `<path d="${dV1}" fill="none" stroke="#cc9166" stroke-width="1.6" stroke-linecap="round"/>`
+    + `<path d="${dV2}" fill="none" stroke="#7d94b8" stroke-width="1.4" stroke-linecap="round"/>`
+    + `<path d="${dTotal}" fill="none" stroke="url(#lineStroke)" stroke-width="2.2" stroke-linecap="round"/>`
+    // dot markers
+    + `<circle cx="${xAt(days-1)}" cy="${yAt(total[days-1])}" r="4" fill="#fff0cc" stroke="#000" stroke-width="2"/>`
+    + `<circle cx="${xAt(days-1)}" cy="${yAt(total[days-1])}" r="9" fill="#cc9166" fill-opacity="0.18"/>`
+    // hover overlay
+    + `<rect id="hoverArea" x="${PAD_L}" y="${PAD_T}" width="${W-PAD_L-PAD_R}" height="${H-PAD_T-PAD_B}" fill="transparent"/>`;
+
+  const tip = document.getElementById('line-tip');
+  const card = svg.parentElement;
+  const hover = svg.querySelector('#hoverArea');
+  hover.addEventListener('mousemove', e => {
+    const rect = svg.getBoundingClientRect();
+    const xViewBox = (e.clientX - rect.left) / rect.width * W;
+    const idx = Math.round( (xViewBox - PAD_L) / ((W-PAD_L-PAD_R)/(days-1)) );
+    if (idx < 0 || idx >= days) return;
+    const x = xAt(idx) / W * rect.width;
+    const y = yAt(total[idx]) / H * rect.height;
+    tip.style.display = 'block';
+    tip.style.left = (x + 16) + 'px';
+    tip.style.top = (y - 6) + 'px';
+    const d = new Date(today); d.setDate(today.getDate() - (days-1-idx));
+    tip.innerHTML = `<b>${Math.round(total[idx]).toLocaleString()} 用户</b>
+      <div style="display:flex; gap:10px; font-size:11px;"><span style="color:#cc9166;">●</span>VidGet ${Math.round(seed1[idx]).toLocaleString()}
+      <span style="color:#7d94b8;">●</span>助教云 ${Math.round(seed2[idx]).toLocaleString()}</div>
+      <div style="color:#5e616e; margin-top:2px;">${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,'0')}.${String(d.getDate()).padStart(2,'0')}</div>`;
+  });
+  hover.addEventListener('mouseleave', () => tip.style.display = 'none');
+})();
+
+// ============ Donut chart ============
+(function(){
+  const svg = document.getElementById('donut');
+  const cx = 80, cy = 80, R = 64, r = 44;
+  const slices = [
+    { v: 62.8, color: '#cc9166', label: 'VidGet' },
+    { v: 37.2, color: '#7d94b8', label: '助教云' },
+  ];
+  let start = -90;
+  let html = `
+    <defs>
+      <linearGradient id="dgrad1" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0%" stop-color="#a07a48"/>
+        <stop offset="50%" stop-color="#cc9166"/>
+        <stop offset="100%" stop-color="#fff0cc"/>
+      </linearGradient>
+      <linearGradient id="dgrad2" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0%" stop-color="#5a6f95"/>
+        <stop offset="100%" stop-color="#a4b8d4"/>
+      </linearGradient>
+    </defs>
+  `;
+  slices.forEach((s, i) => {
+    const angle = s.v / 100 * 360;
+    const end = start + angle - 1.5; // gap
+    const a1 = start * Math.PI / 180, a2 = end * Math.PI / 180;
+    const large = (end - start) > 180 ? 1 : 0;
+    const x1 = cx + R*Math.cos(a1), y1 = cy + R*Math.sin(a1);
+    const x2 = cx + R*Math.cos(a2), y2 = cy + R*Math.sin(a2);
+    const x3 = cx + r*Math.cos(a2), y3 = cy + r*Math.sin(a2);
+    const x4 = cx + r*Math.cos(a1), y4 = cy + r*Math.sin(a1);
+    const fill = i === 0 ? 'url(#dgrad1)' : 'url(#dgrad2)';
+    html += `<path d="M${x1},${y1} A${R},${R} 0 ${large} 1 ${x2},${y2} L${x3},${y3} A${r},${r} 0 ${large} 0 ${x4},${y4} Z" fill="${fill}"/>`;
+    start += angle;
+  });
+  // center label
+  html += `<text x="${cx}" y="${cy-2}" text-anchor="middle" font-family="Playfair Display" font-size="22" font-weight="500" fill="#ffffff">128k</text>`;
+  html += `<text x="${cx}" y="${cy+16}" text-anchor="middle" font-size="10" fill="#777a88" letter-spacing="1">总用户</text>`;
+  svg.innerHTML = html;
+})();
+
+// ============ Toast ============
+const toast = document.getElementById('toast');
+const toastMsg = document.getElementById('toast-msg');
+let toastTimer;
+function showToast(msg){
+  toastMsg.textContent = msg;
+  toast.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toast.classList.remove('show'), 2200);
+}
+
+// ============ Copy buttons ============
+document.querySelectorAll('.copy-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const id = btn.dataset.copy;
+    const txt = document.getElementById(id).textContent.trim();
+    navigator.clipboard?.writeText(txt);
+    btn.classList.add('copied');
+    btn.innerHTML = `<svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 8l3 3 7-7"/></svg> 已复制`;
+    showToast('链接已复制到剪贴板');
+    setTimeout(() => {
+      btn.classList.remove('copied');
+      btn.innerHTML = `<svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="5" y="5" width="9" height="9" rx="1.2"/><path d="M3 11V3a1 1 0 0 1 1-1h7"/></svg> 复制`;
+    }, 1800);
+  });
+});
+document.querySelectorAll('[data-copy-link]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const key = btn.dataset.copyLink;
+    const url = `https://cdn.ucenter.com/builds/${key}/latest.${key.includes('android')?'apk':key.includes('win')?'exe':'dmg'}`;
+    navigator.clipboard?.writeText(url);
+    showToast('下载链接已复制：' + url.slice(0,42) + '…');
+  });
+});
+
+// ============ Upload modal ============
+const uploadModal = document.getElementById('upload-modal');
+document.getElementById('open-upload')?.addEventListener('click', () => uploadModal.classList.add('open'));
+document.getElementById('modal-close')?.addEventListener('click', () => uploadModal.classList.remove('open'));
+document.getElementById('modal-cancel')?.addEventListener('click', () => uploadModal.classList.remove('open'));
+uploadModal.addEventListener('click', e => { if (e.target === uploadModal) uploadModal.classList.remove('open'); });
+
+// segmented controls
+document.querySelectorAll('.seg-item').forEach(item => {
+  item.addEventListener('click', () => {
+    const group = item.dataset.group;
+    document.querySelectorAll(`.seg-item[data-group="${group}"]`).forEach(s => s.classList.remove('active'));
+    item.classList.add('active');
+  });
+});
+
+</script>
+</body>
+</html>

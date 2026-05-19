@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CoreID 使用说明文档</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #f5f7fb;
+        --panel: rgba(255, 255, 255, 0.94);
+        --text: #172235;
+        --muted: #607087;
+        --line: rgba(23, 34, 53, 0.12);
+        --accent: #165dff;
+        --accent-soft: rgba(22, 93, 255, 0.1);
+        --ok: #0f8c5c;
+        --warn: #b86a00;
+        --shadow: 0 18px 50px rgba(16, 30, 54, 0.08);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: "PingFang SC", "Noto Sans SC", "Helvetica Neue", sans-serif;
+        background:
+          radial-gradient(circle at top left, rgba(22, 93, 255, 0.08), transparent 30%),
+          radial-gradient(circle at top right, rgba(15, 140, 92, 0.06), transparent 26%),
+          var(--bg);
+        color: var(--text);
+        line-height: 1.7;
+      }
+
+      .page {
+        width: min(1240px, calc(100% - 40px));
+        margin: 0 auto;
+        padding: 34px 0 72px;
+      }
+
+      .hero,
+      .toc,
+      .panel {
+        border: 1px solid var(--line);
+        border-radius: 28px;
+        background: var(--panel);
+        box-shadow: var(--shadow);
+      }
+
+      .hero {
+        padding: 38px 40px;
+      }
+
+      .eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 14px;
+        border-radius: 999px;
+        background: var(--accent-soft);
+        color: var(--accent);
+        font-size: 13px;
+        font-weight: 700;
+      }
+
+      h1 {
+        margin: 16px 0 12px;
+        font-size: clamp(34px, 5vw, 50px);
+        line-height: 1.08;
+      }
+
+      .lead {
+        margin: 0;
+        color: var(--muted);
+        max-width: 940px;
+        font-size: 17px;
+      }
+
+      .meta {
+        margin-top: 22px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+
+      .meta span {
+        padding: 10px 13px;
+        border-radius: 14px;
+        background: rgba(23, 34, 53, 0.05);
+        color: var(--muted);
+        font-size: 14px;
+      }
+
+      .layout {
+        display: grid;
+        grid-template-columns: 300px minmax(0, 1fr);
+        gap: 22px;
+        margin-top: 24px;
+      }
+
+      .toc {
+        position: sticky;
+        top: 20px;
+        align-self: start;
+        padding: 22px 20px;
+      }
+
+      .toc h2 {
+        margin: 0 0 12px;
+        font-size: 16px;
+      }
+
+      .toc a {
+        display: block;
+        color: var(--muted);
+        text-decoration: none;
+        font-size: 14px;
+        margin: 10px 0;
+      }
+
+      .toc a:hover {
+        color: var(--accent);
+      }
+
+      .content {
+        display: grid;
+        gap: 22px;
+      }
+
+      .panel {
+        padding: 26px 28px;
+      }
+
+      .panel h2 {
+        margin: 0 0 14px;
+        font-size: 22px;
+      }
+
+      .panel h3 {
+        margin: 22px 0 10px;
+        font-size: 17px;
+      }
+
+      .muted {
+        color: var(--muted);
+      }
+
+      .cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 14px;
+        margin-top: 14px;
+      }
+
+      .card {
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        padding: 18px;
+        background: rgba(255, 255, 255, 0.84);
+      }
+
+      .card h3 {
+        margin: 0 0 8px;
+        font-size: 16px;
+      }
+
+      .card p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 14px;
+      }
+
+      .steps {
+        display: grid;
+        gap: 12px;
+        margin-top: 12px;
+      }
+
+      .step {
+        display: grid;
+        grid-template-columns: 44px minmax(0, 1fr);
+        gap: 14px;
+        padding: 16px 18px;
+        border-radius: 18px;
+        border: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.86);
+      }
+
+      .index {
+        width: 44px;
+        height: 44px;
+        border-radius: 14px;
+        display: grid;
+        place-items: center;
+        background: var(--accent-soft);
+        color: var(--accent);
+        font-weight: 800;
+      }
+
+      .step h4 {
+        margin: 0 0 6px;
+        font-size: 15px;
+      }
+
+      .step p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 14px;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 14px;
+      }
+
+      th,
+      td {
+        text-align: left;
+        padding: 12px 10px;
+        border-bottom: 1px solid var(--line);
+        vertical-align: top;
+      }
+
+      th {
+        font-size: 13px;
+        color: var(--muted);
+      }
+
+      ul {
+        margin: 10px 0 0;
+        padding-left: 20px;
+      }
+
+      li + li {
+        margin-top: 6px;
+      }
+
+      code {
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+        font-size: 0.95em;
+        padding: 2px 6px;
+        border-radius: 6px;
+        background: rgba(23, 34, 53, 0.06);
+      }
+
+      .tag-ok,
+      .tag-warn {
+        display: inline-flex;
+        margin-top: 10px;
+        padding: 6px 10px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 700;
+      }
+
+      .tag-ok {
+        background: rgba(15, 140, 92, 0.12);
+        color: var(--ok);
+      }
+
+      .tag-warn {
+        background: rgba(184, 106, 0, 0.12);
+        color: var(--warn);
+      }
+
+      .footer {
+        margin-top: 14px;
+        font-size: 13px;
+        color: var(--muted);
+      }
+
+      @media (max-width: 980px) {
+        .layout {
+          grid-template-columns: 1fr;
+        }
+
+        .toc {
+          position: static;
+        }
+
+        .page {
+          width: min(100% - 24px, 1240px);
+          padding-top: 18px;
+        }
+
+        .hero,
+        .panel,
+        .toc {
+          padding-left: 20px;
+          padding-right: 20px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <section class="hero">
+        <div class="eyebrow">CoreID · 使用说明</div>
+        <h1>CoreID 平台使用说明文档</h1>
+        <p class="lead">
+          这份文档面向运营、管理员、项目维护者和接入方，重点说明 CoreID 这个系统“怎么用”。内容按后台模块、业务流程和测试方式拆开，
+          不讲源码结构，专门讲功能用途、操作步骤和使用边界。
+        </p>
+        <div class="meta">
+          <span>后台入口：<code>/admin</code></span>
+          <span>注册测试页：<code>/auth/register-test</code></span>
+          <span>登录测试页：<code>/auth/login-test</code></span>
+          <span>文档生成时间：2026-05-18</span>
+        </div>
+      </section>
+
+      <div class="layout">
+        <aside class="toc">
+          <h2>目录</h2>
+          <a href="#role">1. 系统是做什么的</a>
+          <a href="#start">2. 本地怎么进入系统</a>
+          <a href="#admin">3. 后台模块怎么用</a>
+          <a href="#identity">4. 统一身份怎么用</a>
+          <a href="#plan">5. 套餐与购买怎么用</a>
+          <a href="#release">6. 安装包管理怎么用</a>
+          <a href="#landing">7. 落地页管理怎么用</a>
+          <a href="#app">8. 应用管理怎么用</a>
+          <a href="#test">9. 接入测试怎么做</a>
+          <a href="#common">10. 常见问题</a>
+        </aside>
+
+        <main class="content">
+          <section class="panel" id="role">
+            <h2>1. 系统是做什么的</h2>
+            <p class="muted">
+              CoreID 不是单一登录页，而是一个统一用户中心平台。它把多个应用的身份、套餐、订单、安装包、落地页和后台运营能力收在一起。
+            </p>
+            <div class="cards">
+              <div class="card">
+                <h3>统一身份</h3>
+                <p>用户注册、登录、改密码、设备控制都走统一体系，底层身份由 Casdoor 管理。</p>
+              </div>
+              <div class="card">
+                <h3>应用资格</h3>
+                <p>同一个用户可以只拥有某个应用的资格，不自动拥有全部应用登录权限。</p>
+              </div>
+              <div class="card">
+                <h3>套餐与订单</h3>
+                <p>平台统一配置套餐，应用读取套餐并在购买成功后由 CoreID 更新权益。</p>
+              </div>
+              <div class="card">
+                <h3>内容分发</h3>
+                <p>负责安装包上传、版本管理、下载统计、二维码下载，以及落地页发布。</p>
+              </div>
+            </div>
+          </section>
+
+          <section class="panel" id="start">
+            <h2>2. 本地怎么进入系统</h2>
+            <div class="steps">
+              <div class="step">
+                <div class="index">1</div>
+                <div>
+                  <h4>启动 CoreID 服务</h4>
+                  <p>当前本地开发推荐直接运行 Node 服务。通常启动后访问 <code>http://localhost:3000</code>。</p>
+                </div>
+              </div>
+              <div class="step">
+                <div class="index">2</div>
+                <div>
+                  <h4>确保 Casdoor 已运行</h4>
+                  <p>管理员后台登录、用户注册登录都会依赖本地 Casdoor，例如 <code>http://localhost:8000</code>。</p>
+                </div>
+              </div>
+              <div class="step">
+                <div class="index">3</div>
+                <div>
+                  <h4>打开后台入口</h4>
+                  <p>浏览器访问 <code>http://localhost:3000/admin</code>，使用 Casdoor 管理员身份登录后台。</p>
+                </div>
+              </div>
+              <div class="step">
+                <div class="index">4</div>
+                <div>
+                  <h4>打开测试页面</h4>
+                  <p>如果要测试应用侧注册/登录，不进后台，直接访问 <code>/auth/register-test</code> 和 <code>/auth/login-test</code>。</p>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="panel" id="admin">
+            <h2>3. 后台模块怎么用</h2>
+            <table>
+              <thead>
+                <tr>
+                  <th>模块</th>
+                  <th>用途</th>
+                  <th>适合谁用</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>数据看板</td>
+                  <td>查看总用户数、收入、应用分布、设备活跃情况等平台概览。</td>
+                  <td>负责人、运营、管理员</td>
+                </tr>
+                <tr>
+                  <td>用户管理</td>
+                  <td>查看用户、应用资格、购买记录、登录设备、操作日志，可添加用户和修改账号状态。</td>
+                  <td>运营、客服、管理员</td>
+                </tr>
+                <tr>
+                  <td>订单管理</td>
+                  <td>查看订单状态、订单详情、支付确认结果和订单事件流。</td>
+                  <td>运营、财务、管理员</td>
+                </tr>
+                <tr>
+                  <td>应用管理</td>
+                  <td>维护应用清单、应用详情、SDK 文档、应用跳转上下文。</td>
+                  <td>平台管理员、接入负责人</td>
+                </tr>
+                <tr>
+                  <td>套餐配置</td>
+                  <td>配置月度/年度/试用等套餐，供各应用读取和购买。</td>
+                  <td>运营、产品、管理员</td>
+                </tr>
+                <tr>
+                  <td>安装包管理</td>
+                  <td>上传安装包、回滚历史版本、看下载统计、生成下载二维码。</td>
+                  <td>运营、发布负责人</td>
+                </tr>
+                <tr>
+                  <td>落地页管理</td>
+                  <td>维护下载落地页草稿、预览、发布、历史版本和回滚。</td>
+                  <td>运营、投放负责人</td>
+                </tr>
+                <tr>
+                  <td>审计日志</td>
+                  <td>查看后台管理员做过哪些操作。</td>
+                  <td>管理员、审计人员</td>
+                </tr>
+              </tbody>
+            </table>
+          </section>
+
+          <section class="panel" id="identity">
+            <h2>4. 统一身份怎么用</h2>
+            <h3>4.1 用户注册</h3>
+            <div class="steps">
+              <div class="step">
+                <div class="index">1</div>
+                <div>
+                  <h4>选择目标应用</h4>
+                  <p>注册时必须带 <code>app_id</code>，因为注册的不只是账号，还包含“开通哪个应用资格”。</p>
+                </div>
+              </div>
+              <div class="step">
+                <div class="index">2</div>
+                <div>
+                  <h4>发送验证码</h4>
+                  <p>调用 <code>POST /api/identity/send-code</code>。开发环境默认验证码是 <code>123456</code>。</p>
+                </div>
+              </div>
+              <div class="step">
+                <div class="index">3</div>
+                <div>
+                  <h4>完成注册</h4>
+                  <p>调用 <code>POST /api/identity/register</code>，CoreID 会创建统一身份并写入该应用的注册资格。</p>
+                </div>
+              </div>
+            </div>
+
+            <h3>4.2 用户登录</h3>
+            <ul>
+              <li>当前主链路是 <code>手机号 + 密码</code> 登录。</li>
+              <li>登录时必须带 <code>app_id</code>、<code>device_id</code>、<code>device_name</code>。</li>
+              <li>如果用户没有该应用资格，会被拦截，不能登录别的应用。</li>
+              <li>当前启用了“同一应用只允许 1 台有效设备”的规则，新设备登录会顶掉旧设备。</li>
+            </ul>
+
+            <h3>4.3 改密码</h3>
+            <ul>
+              <li>用户自助改密码接口：<code>POST /api/identity/change-password</code></li>
+              <li>需要当前登录会话 + 原密码 + 新密码</li>
+              <li>底层会调用 Casdoor 官方改密接口</li>
+            </ul>
+          </section>
+
+          <section class="panel" id="plan">
+            <h2>5. 套餐与购买怎么用</h2>
+            <h3>5.1 平台管理员怎么配套餐</h3>
+            <ul>
+              <li>进入后台 <strong>套餐配置</strong> 模块。</li>
+              <li>选择应用，点击 <strong>+ 新建套餐</strong>。</li>
+              <li>填写套餐编码、名称、价格、时长、是否试用、是否可续费。</li>
+              <li>保存后，应用就能通过接口读取到这个套餐。</li>
+            </ul>
+
+            <h3>5.2 应用怎么读套餐</h3>
+            <ul>
+              <li>调用 <code>GET /api/purchase/plans?app_id=...</code> 获取当前应用可售套餐。</li>
+              <li>应用侧只负责展示套餐，不负责定义套餐规则。</li>
+            </ul>
+
+            <h3>5.3 用户购买流程</h3>
+            <div class="steps">
+              <div class="step">
+                <div class="index">1</div>
+                <div>
+                  <h4>先预校验</h4>
+                  <p>调用 <code>POST /api/purchase/preview</code>，判断当前是新购、续费，还是不允许购买。</p>
+                </div>
+              </div>
+              <div class="step">
+                <div class="index">2</div>
+                <div>
+                  <h4>创建订单</h4>
+                  <p>调用 <code>POST /api/purchase/create</code>，CoreID 会写入本地订单记录。</p>
+                </div>
+              </div>
+              <div class="step">
+                <div class="index">3</div>
+                <div>
+                  <h4>支付成功后确认</h4>
+                  <p>调用 <code>POST /api/purchase/confirm</code>，CoreID 更新订单状态和当前权益。</p>
+                </div>
+              </div>
+              <div class="step">
+                <div class="index">4</div>
+                <div>
+                  <h4>查询当前权益</h4>
+                  <p>调用 <code>GET /api/purchase/current-plan</code>，同步用户当前套餐和到期时间。</p>
+                </div>
+              </div>
+            </div>
+            <span class="tag-warn">说明：当前已有本地业务闭环，但真实支付渠道仍需接入方继续对接。</span>
+          </section>
+
+          <section class="panel" id="release">
+            <h2>6. 安装包管理怎么用</h2>
+            <h3>你可以做什么</h3>
+            <ul>
+              <li>上传 APK / EXE / DMG 文件</li>
+              <li>配置 Web / App Store 外链版本</li>
+              <li>查看当前版本和历史版本</li>
+              <li>回滚到旧版本</li>
+              <li>只删当前版本，或删除整个历史</li>
+              <li>查看下载统计</li>
+              <li>生成下载二维码，扫码直接触发下载</li>
+            </ul>
+
+            <h3>典型操作</h3>
+            <div class="steps">
+              <div class="step">
+                <div class="index">1</div>
+                <div>
+                  <h4>上传版本</h4>
+                  <p>在安装包管理页选择应用与平台，填写版本号后上传文件或链接。</p>
+                </div>
+              </div>
+              <div class="step">
+                <div class="index">2</div>
+                <div>
+                  <h4>查看历史版本</h4>
+                  <p>每个平台都可以打开历史面板，查看回滚或删除历史版本。</p>
+                </div>
+              </div>
+              <div class="step">
+                <div class="index">3</div>
+                <div>
+                  <h4>查看二维码</h4>
+                  <p>当前版本和历史版本都能生成二维码，扫码直接访问下载地址。</p>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="panel" id="landing">
+            <h2>7. 落地页管理怎么用</h2>
+            <h3>核心特点</h3>
+            <ul>
+              <li>草稿和线上页隔离，上传草稿不会直接覆盖线上内容。</li>
+              <li>可以先预览草稿，再正式发布。</li>
+              <li>发布会生成版本快照，支持回滚。</li>
+              <li>支持默认模板生成、上传自定义 HTML、公开访问 <code>/get/:slug</code>。</li>
+            </ul>
+
+            <h3>推荐操作顺序</h3>
+            <div class="steps">
+              <div class="step">
+                <div class="index">1</div>
+                <div>
+                  <h4>新建落地页</h4>
+                  <p>通过 <strong>+ 新建落地页</strong> 为某个应用生成默认草稿。</p>
+                </div>
+              </div>
+              <div class="step">
+                <div class="index">2</div>
+                <div>
+                  <h4>上传或修改草稿</h4>
+                  <p>上传正式 HTML 或继续基于默认模板调整内容。</p>
+                </div>
+              </div>
+              <div class="step">
+                <div class="index">3</div>
+                <div>
+                  <h4>预览草稿</h4>
+                  <p>确认下载按钮、二维码和页面内容都正确。</p>
+                </div>
+              </div>
+              <div class="step">
+                <div class="index">4</div>
+                <div>
+                  <h4>发布上线</h4>
+                  <p>发布后公开地址才会切换到新内容。</p>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="panel" id="app">
+            <h2>8. 应用管理怎么用</h2>
+            <ul>
+              <li>可以在后台新建应用，维护名称、描述、类型、状态。</li>
+              <li>可以直接从应用卡片跳到该应用的用户、落地页、安装包上下文。</li>
+              <li>可以查看并导出 SDK 文档。</li>
+              <li>SDK 文档会按应用类型输出 Android 或 Web 接入说明。</li>
+            </ul>
+
+            <h3>接入新应用的基本顺序</h3>
+            <div class="steps">
+              <div class="step">
+                <div class="index">1</div>
+                <div>
+                  <h4>创建应用</h4>
+                  <p>在应用管理里点 <strong>+ 接入新应用</strong>，填写基础信息。</p>
+                </div>
+              </div>
+              <div class="step">
+                <div class="index">2</div>
+                <div>
+                  <h4>配置套餐</h4>
+                  <p>为该应用补套餐，否则应用侧拿不到可售套餐。</p>
+                </div>
+              </div>
+              <div class="step">
+                <div class="index">3</div>
+                <div>
+                  <h4>配置安装包或落地页</h4>
+                  <p>如果应用有下载或投放场景，继续配置安装包和落地页。</p>
+                </div>
+              </div>
+              <div class="step">
+                <div class="index">4</div>
+                <div>
+                  <h4>导出 SDK 文档</h4>
+                  <p>给接入方导出 Markdown 文档，减少对接误差。</p>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="panel" id="test">
+            <h2>9. 接入测试怎么做</h2>
+            <h3>注册测试页</h3>
+            <ul>
+              <li>地址：<code>/auth/register-test</code></li>
+              <li>用途：模拟手机号注册某个应用</li>
+              <li>适合验证：验证码、注册资格、首次身份创建</li>
+            </ul>
+
+            <h3>登录测试页</h3>
+            <ul>
+              <li>地址：<code>/auth/login-test</code></li>
+              <li>用途：模拟密码登录、设备切换、改密码</li>
+              <li>适合验证：单设备顶号、当前用户接口、自助改密码</li>
+            </ul>
+
+            <h3>推荐联调顺序</h3>
+            <ol>
+              <li>先在后台创建应用</li>
+              <li>再在后台配置套餐</li>
+              <li>用注册测试页完成注册</li>
+              <li>用登录测试页完成登录</li>
+              <li>调用购买接口完成本地购买闭环</li>
+              <li>在后台用户管理和订单管理确认数据是否同步</li>
+            </ol>
+          </section>
+
+          <section class="panel" id="common">
+            <h2>10. 常见问题</h2>
+            <table>
+              <thead>
+                <tr>
+                  <th>问题</th>
+                  <th>说明</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>一个用户能不能登录多个应用？</td>
+                  <td>可以，但前提是该用户分别拥有这些应用的注册资格。</td>
+                </tr>
+                <tr>
+                  <td>一个应用里能不能多设备同时登录？</td>
+                  <td>当前默认不行，同一应用下只保留 1 台有效设备，新设备会顶掉旧设备。</td>
+                </tr>
+                <tr>
+                  <td>应用买套餐是不是必须跳 CoreID 页面？</td>
+                  <td>不一定。当前推荐是应用自己做购买页面，CoreID 负责套餐、订单和权益中枢。</td>
+                </tr>
+                <tr>
+                  <td><code>current-plan</code> 是否需要 token？</td>
+                  <td>当前更适合服务端同步场景，后端可直接按 <code>user_id + app_id</code> 调用。</td>
+                </tr>
+                <tr>
+                  <td>试用套餐和可续费字段是否完全生效？</td>
+                  <td>基础规则已经接上，但更复杂的支付、退款、提醒类闭环仍可继续补强。</td>
+                </tr>
+              </tbody>
+            </table>
+            <p class="footer">
+              如果你还想要一份“接口使用说明文档”或“数据库表说明文档”，可以继续在此基础上拆成单独文档。
+            </p>
+          </section>
+        </main>
+      </div>
+    </div>
+  </body>
+</html>

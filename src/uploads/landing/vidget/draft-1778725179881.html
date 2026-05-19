@@ -1,0 +1,909 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>各科历次考试成绩对比分析</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;700;900&display=swap');
+
+  :root {
+    --bg:      #0a1628;
+    --panel:   #0d1f3c;
+    --panel2:  #0f1e3a;
+    --accent:  #f5c518;
+    --text:    #e8eaf0;
+    --dim:     #8fa0bc;
+    --border:  rgba(100,160,255,0.18);
+    --bar:     #f5c518;
+    --red:     #ff4040;
+    --blue:    #5b9ec9;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Noto Sans SC', 'Microsoft YaHei', sans-serif;
+    padding: 16px;
+    min-height: 100vh;
+  }
+
+  .main-title {
+    text-align: center;
+    font-size: 28px;
+    font-weight: 900;
+    letter-spacing: 4px;
+    padding: 16px 0 12px;
+    background: linear-gradient(135deg, #f5c518 0%, #fff8a0 50%, #f5c518 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .main-title::after {
+    content: '';
+    display: block;
+    width: 180px; height: 2px;
+    background: linear-gradient(90deg, transparent, #f5c518, transparent);
+    margin: 8px auto 0;
+  }
+
+  .tab-bar {
+    display: flex; gap: 8px; flex-wrap: wrap;
+    justify-content: center; margin: 14px 0 16px;
+  }
+  .tab-btn {
+    padding: 7px 20px;
+    border-radius: 20px;
+    border: 1.5px solid var(--border);
+    background: var(--panel);
+    color: var(--dim);
+    font-size: 13px; font-weight: 700;
+    cursor: pointer; transition: all .2s;
+    font-family: inherit; letter-spacing: 1px;
+  }
+  .tab-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .tab-btn.active {
+    background: var(--accent); color: #0a1628;
+    border-color: var(--accent);
+    box-shadow: 0 0 16px rgba(245,197,24,0.4);
+  }
+
+  .student-card { display: none; }
+  .student-card.active { display: block; }
+
+  .stu-header {
+    background: #071020;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 20px; margin-bottom: 14px;
+  }
+  .stu-name { font-size: 20px; font-weight: 900; color: var(--accent); letter-spacing: 2px; }
+  .stu-class { display: none; }
+
+  .tbl-wrap {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden; margin-bottom: 16px;
+    overflow-x: auto;
+  }
+  .tbl-wrap table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .tbl-wrap th {
+    background: #081528; color: var(--accent);
+    padding: 7px 10px; text-align: center;
+    font-weight: 700; white-space: nowrap;
+    border-bottom: 1px solid var(--border);
+  }
+  .tbl-wrap th.rk { color: var(--blue); background: #06101e; }
+  .tbl-wrap td {
+    padding: 7px 10px; text-align: center;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    white-space: nowrap;
+  }
+  .tbl-wrap tr:last-child td { border-bottom: none; }
+  .tbl-wrap tr:nth-child(even) td { background: rgba(255,255,255,0.025); }
+  .tbl-wrap td.ex  { color: #ffdd55; font-weight: 700; }
+  .tbl-wrap td.rk  { color: var(--blue); font-size: 12px; }
+  .tbl-wrap td.tot { color: #ff9f43; font-weight: 900; font-size: 14px; }
+
+  .charts-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  .chart-full { grid-column: 1 / -1; }
+
+  .chart-box {
+    background: var(--panel2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 12px 8px;
+  }
+  .chart-head {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 12px; color: var(--dim);
+    margin-bottom: 6px; flex-wrap: wrap;
+  }
+  .chart-head .subj { color: var(--accent); font-size: 14px; font-weight: 900; }
+  .lgd { display: flex; align-items: center; gap: 4px; font-size: 11px; }
+  .lgd-bar { width: 12px; height: 10px; background: var(--bar); border-radius: 2px; }
+  .lgd-line { width: 18px; height: 0; border-top: 2.5px solid var(--red); position: relative; }
+  .lgd-line::after {
+    content: ''; position: absolute;
+    left: 50%; top: 50%; transform: translate(-50%,-50%);
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--red); border: 1.5px solid #fff;
+  }
+
+  /* SVG: width 100%, height driven by viewBox aspect ratio */
+  .chart-svg { width: 100%; display: block; }
+
+  /* ── Selector Button & Modal ── */
+  .selector-bar {
+    display: flex; align-items: center; gap: 12px;
+    margin-bottom: 16px; flex-wrap: wrap;
+  }
+  .open-selector-btn {
+    display: flex; align-items: center; gap: 8px;
+    padding: 9px 20px; border-radius: 22px; font-size: 14px;
+    font-weight: 700; cursor: pointer; font-family: inherit;
+    border: 1.5px solid var(--accent);
+    background: rgba(245,197,24,0.1); color: var(--accent);
+    transition: all .2s; letter-spacing: 1px;
+  }
+  .open-selector-btn:hover {
+    background: rgba(245,197,24,0.2);
+    box-shadow: 0 0 14px rgba(245,197,24,0.3);
+  }
+  .open-selector-btn .arrow { font-size: 10px; transition: transform .2s; }
+  .open-selector-btn.open .arrow { transform: rotate(180deg); }
+  .sel-summary {
+    font-size: 12px; color: var(--dim);
+  }
+  .sel-summary span { color: var(--accent); font-weight: 700; }
+
+  /* Modal overlay */
+  .modal-overlay {
+    display: none; position: fixed;
+    inset: 0; z-index: 1000;
+    background: rgba(0,0,0,0.55);
+    backdrop-filter: blur(2px);
+  }
+  .modal-overlay.open { display: block; }
+
+  /* Modal box */
+  .modal-box {
+    position: fixed; z-index: 1001;
+    top: 50%; left: 50%; transform: translate(-50%, -50%);
+    width: min(560px, 92vw);
+    background: linear-gradient(160deg, #0d1f3c 0%, #071020 100%);
+    border: 1.5px solid rgba(100,160,255,0.25);
+    border-radius: 16px;
+    box-shadow: 0 24px 64px rgba(0,0,0,0.7);
+    overflow: hidden;
+    display: none;
+  }
+  .modal-box.open { display: block; }
+
+  .modal-header {
+    display: flex; align-items: center;
+    justify-content: space-between;
+    padding: 14px 18px;
+    border-bottom: 1px solid rgba(255,255,255,0.07);
+    background: rgba(0,0,0,0.2);
+  }
+  .modal-title { font-size: 15px; font-weight: 900; color: var(--accent); letter-spacing: 1px; }
+  .modal-close {
+    width: 28px; height: 28px; border-radius: 50%;
+    border: 1px solid var(--border); background: transparent;
+    color: var(--dim); font-size: 16px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: all .15s; line-height: 1;
+  }
+  .modal-close:hover { border-color: var(--accent); color: var(--accent); }
+
+  .modal-actions {
+    display: flex; gap: 8px; align-items: center;
+    padding: 10px 18px;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+  }
+  .m-action-btn {
+    padding: 4px 14px; border-radius: 14px; font-size: 12px;
+    font-weight: 700; cursor: pointer; font-family: inherit;
+    border: 1.5px solid var(--border); background: transparent;
+    color: var(--dim); transition: all .15s;
+  }
+  .m-action-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .m-count { font-size: 12px; color: var(--dim); margin-left: auto; }
+  .m-count b { color: var(--accent); }
+
+  .modal-list {
+    padding: 14px 18px;
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    max-height: 340px; overflow-y: auto;
+  }
+  .modal-list::-webkit-scrollbar { width: 4px; }
+  .modal-list::-webkit-scrollbar-track { background: transparent; }
+  .modal-list::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 4px; }
+
+  .chk-item {
+    display: flex; align-items: center; gap: 8px;
+    padding: 7px 10px; border-radius: 8px; cursor: pointer;
+    border: 1.5px solid var(--border);
+    background: var(--panel2);
+    transition: all .15s; user-select: none;
+  }
+  .chk-item:hover { border-color: rgba(245,197,24,0.4); }
+  .chk-item.checked {
+    border-color: var(--accent);
+    background: rgba(245,197,24,0.1);
+  }
+  .chk-box {
+    width: 16px; height: 16px; border-radius: 4px; flex-shrink: 0;
+    border: 1.5px solid var(--dim);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; color: transparent; transition: all .15s;
+  }
+  .chk-item.checked .chk-box {
+    background: var(--accent); border-color: var(--accent); color: #0a1628;
+  }
+  .chk-name { font-size: 13px; font-weight: 700; color: var(--dim); transition: color .15s; }
+  .chk-item.checked .chk-name { color: var(--accent); }
+
+  .modal-footer {
+    padding: 12px 18px;
+    border-top: 1px solid rgba(255,255,255,0.07);
+    display: flex; justify-content: flex-end; gap: 10px;
+  }
+  .btn-cancel {
+    padding: 8px 22px; border-radius: 20px; font-size: 13px;
+    font-weight: 700; cursor: pointer; font-family: inherit;
+    border: 1.5px solid var(--border); background: transparent; color: var(--dim);
+    transition: all .15s;
+  }
+  .btn-cancel:hover { border-color: #fff; color: #fff; }
+  .btn-confirm {
+    padding: 8px 28px; border-radius: 20px; font-size: 13px;
+    font-weight: 700; cursor: pointer; font-family: inherit;
+    border: 1.5px solid var(--accent);
+    background: var(--accent); color: #0a1628;
+    transition: all .15s;
+  }
+  .btn-confirm:hover { box-shadow: 0 0 16px rgba(245,197,24,0.45); }
+
+  .no-selection-hint {
+    text-align: center; padding: 40px;
+    color: var(--dim); font-size: 14px;
+  }
+  .no-selection-hint span { color: var(--accent); }
+
+  /* ── Tooltip ── */
+  #tooltip {
+    position: fixed;
+    pointer-events: none;
+    display: none;
+    z-index: 9999;
+    background: linear-gradient(135deg, #0d1f3c 0%, #112244 100%);
+    border: 1.5px solid rgba(100,160,255,0.35);
+    border-radius: 10px;
+    padding: 10px 14px;
+    min-width: 140px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.55), 0 0 0 1px rgba(245,197,24,0.08);
+    font-family: 'Noto Sans SC', 'Microsoft YaHei', sans-serif;
+  }
+  #tooltip.visible { display: block; }
+  .tip-exam {
+    font-size: 11px; font-weight: 700;
+    color: #ffdd55; letter-spacing: 1px;
+    margin-bottom: 6px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    padding-bottom: 5px;
+  }
+  .tip-row {
+    display: flex; align-items: center;
+    gap: 8px; margin-top: 5px; font-size: 13px;
+  }
+  .tip-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .tip-label { color: #8fa0bc; font-size: 12px; }
+  .tip-val { font-weight: 700; margin-left: auto; }
+</style>
+</head>
+<body>
+
+<div class="main-title">各科历次考试成绩对比分析</div>
+<div id="tooltip">
+  <div class="tip-exam" id="tip-exam"></div>
+  <div class="tip-row">
+    <span class="tip-dot" style="background:#f5c518"></span>
+    <span class="tip-label" id="tip-subj-label"></span>
+    <span class="tip-val" style="color:#ffe566" id="tip-score"></span>
+  </div>
+  <div class="tip-row">
+    <span class="tip-dot" style="background:#ff3535"></span>
+    <span class="tip-label">校排名</span>
+    <span class="tip-val" style="color:#ff7070" id="tip-rank"></span>
+  </div>
+</div>
+
+<!-- Selector button bar -->
+<div class="selector-bar">
+  <button class="open-selector-btn" id="openSelectorBtn" onclick="openModal()">
+    📋 选择学生 <span class="arrow">▼</span>
+  </button>
+  <div class="sel-summary">当前分析：<span id="selSummary">13 位学生</span></div>
+</div>
+
+<!-- Modal overlay -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeModal()"></div>
+
+<!-- Modal box -->
+<div class="modal-box" id="modalBox">
+  <div class="modal-header">
+    <div class="modal-title">📋 班级名单选择</div>
+    <button class="modal-close" onclick="closeModal()">✕</button>
+  </div>
+  <div class="modal-actions">
+    <button class="m-action-btn" onclick="modalSelectAll()">全选</button>
+    <button class="m-action-btn" onclick="modalClearAll()">清空</button>
+    <div class="m-count">已勾选 <b id="modalCount">0</b> / 46 人</div>
+  </div>
+  <div class="modal-list" id="modalList"></div>
+  <div class="modal-footer">
+    <button class="btn-cancel" onclick="closeModal()">取消</button>
+    <button class="btn-confirm" onclick="confirmSelection()">确认分析</button>
+  </div>
+</div>
+
+<!-- Tab bar for selected students -->
+<div class="tab-bar" id="tabBar"></div>
+<div id="noSelHint" class="no-selection-hint" style="display:none">
+  请在上方名单中<span>选择学生</span>进行分析
+</div>
+<div id="cards"></div>
+
+<script>
+const EXAMS  = ['2025年11月','2026年1月','2026年4月'];
+const SUBJS  = ['语文','数学','外语','历史','地理','技术'];
+const RKLS   = ['语排','数排','外排','史排','地排','技排'];
+
+const STUDENTS = [
+  { name:'王加茹', cls:'高二2班',
+    scores:[[93,82,72.5,79,78,74],[105,98,75,85,75,86],[102,66,88.5,87,76,80]],
+    ranks: [[53,143,79,54,133,58],[58,107,123,49,123,23],[18,85,92,14,113,34]],
+    total: [59,44,24] },
+  { name:'王子浩', cls:'高二2班',
+    scores:[[84,103,83,72,81,73],[96,111,124,86,76,80],[86,63,120.5,76,77,74]],
+    ranks: [[187,24,34,103,102,69],[199,48,2,41,110,61],[190,102,2,81,96,73]],
+    total: [28,7,25] },
+  { name:'郑皓文', cls:'高二2班',
+    scores:[[99,65,75,63,70,88],[110,89,99,90,69,81],[104,50,104.5,66,84,78]],
+    ranks: [[11,235,64,162,216,5],[18,163,27,13,165,50],[12,178,28,156,38,53]],
+    total: [123,32,35] },
+  { name:'梁聪颖', cls:'高二2班',
+    scores:[[77,90,67.5,69,83,68],[94,102,71,72,73,72],[93,81,84,75,77,70]],
+    ranks: [[279,89,118,122,64,100],[237,88,148,148,133,105],[96,30,106,92,96,102]],
+    total: [140,148,47] },
+  { name:'董一晴', cls:'高二2班',
+    scores:[[74,71,77,60,79,66],[96,92,83,58,67,70],[86,69,107.5,79,68,70]],
+    ranks: [[304,200,52,176,118,107],[199,148,74,204,190,110],[190,71,20,57,193,102]],
+    total: [221,200,48] },
+  { name:'吴煜楠', cls:'高二2班',
+    scores:[[85,85,49.5,84,88,74],[102,105,43,94,69,92],[86,56,48,79,65,81]],
+    ranks: [[164,120,277,31,28,58],[99,74,323,2,165,5],[190,138,335,57,229,31]],
+    total: [99,85,222] },
+  { name:'支朵朵', cls:'高二2班',
+    scores:[[88,52,80.5,58,66,55],[102,74,76,76,73,81],[89,45,71,63,81,74]],
+    ranks: [[116,289,37,189,241,131],[99,243,116,122,133,50],[155,216,198,177,64,73]],
+    total: [288,154,207] },
+  { name:'王靖凯', cls:'高二2班',
+    scores:[[96,102,46.5,85,87,69],[102,104,61,85,70,69],[87,79,104,66,75,66]],
+    ranks: [[27,29,298,27,38,91],[99,80,218,49,155,118],[175,34,31,156,136,116]],
+    total: [40,131,53] },
+  { name:'盛忆欣', cls:'高二2班',
+    scores:[[89,100,67,72,82,88],[100,110,84,73,85,81],[88,77,71,66,87,80]],
+    ranks: [[94,37,124,103,75,5],[134,53,67,140,28,50],[165,43,198,156,22,34]],
+    total: [27,36,71] },
+  { name:'郑琬蓉', cls:'高二2班',
+    scores:[[99,69,56,88,82,84],[104,93,51,90,90,88],[98,77,55,75,68,82]],
+    ranks: [[11,216,230,12,75,19],[66,137,293,13,6,19],[40,43,309,92,193,28]],
+    total: [62,57,100] },
+  { name:'朱佳懿', cls:'高二2班',
+    scores:[[88,83,55.5,76,83,81],[113,110,65,81,87,86],[102,41,63,90,77,85]],
+    ranks: [[116,132,234,73,64,28],[10,53,189,88,17,23],[18,245,259,4,96,17]],
+    total: [98,26,96] },
+  { name:'张钰倩', cls:'高二2班',
+    scores:[[102,88,50.5,63,75,79],[114,104,68,78,87,90],[94,59,64,75,75,84]],
+    ranks: [[4,100,270,162,155,37],[8,80,165,105,17,9],[83,120,250,92,136,21]],
+    total: [133,27,119] },
+  { name:'梁宇博', cls:'高二2班',
+    scores:[[89,88,85,70,88,73],[97,90,118,76,77,64],[95,40,101.5,64,81,72]],
+    ranks: [[94,100,26,117,28,69],[183,158,3,122,97,133],[67,254,36,166,64,91]],
+    total: [33,47,105] },
+  { name:'朱青青', cls:'高二2班',
+    scores:[[92,80,46,75,88,79],[110,110,71,82,77,80],[92,80,61.5,75,88,78]],
+    ranks: [[63,154,304,83,28,37],[18,53,148,74,97,61],[105,32,270,92,16,53]],
+    total: [123,41,59] },
+  { name:'林宏泽', cls:'高二2班',
+    scores:[[89,75,73,63,94,70],[98,78,100,88,92,70],[76,49,107.5,79,89,66]],
+    ranks: [[94,183,74,162,6,85],[167,220,24,21,4,110],[315,185,20,57,14,116]],
+    total: [108,42,74] },
+  { name:'汪楠乔', cls:'高二2班',
+    scores:[[85,46,73,60,66,84],[91,69,97,70,85,78],[79,47,89.5,78,87,89]],
+    ranks: [[164,302,74,176,241,19],[274,271,36,154,28,79],[293,205,85,70,22,3]],
+    total: [256,135,69] },
+  { name:'林炯锴', cls:'高二2班',
+    scores:[[93,99,72,53,79,78],[98,117,77,62,81,80],[86,60,76,82,95,76]],
+    ranks: [[53,40,85,203,118,50],[167,31,103,188,68,61],[190,114,155,37,1,62]],
+    total: [72,59,58] },
+  { name:'陈歆为', cls:'高二2班',
+    scores:[[98,66,97,67,67,74],[105,76,98,73,77,81],[110,36,107,75,68,81]],
+    ranks: [[16,232,8,130,234,58],[58,232,32,140,97,50],[2,277,23,92,193,31]],
+    total: [89,71,53] },
+  { name:'冯榆涵', cls:'高二2班',
+    scores:[[100,90,48,63,88,70],[103,93,57,88,86,80],[92,50,64,76,91,72]],
+    ranks: [[8,89,289,162,28,85],[86,137,257,21,23,61],[105,178,250,81,8,91]],
+    total: [129,77,138] },
+  { name:'金一可', cls:'高二2班',
+    scores:[[77,99,45,63,88,79],[96,104,52,86,81,86],[90,77,45.5,79,82,79]],
+    ranks: [[279,40,313,162,28,37],[199,80,288,41,68,23],[135,43,339,57,60,46]],
+    total: [152,85,114] },
+  { name:'周俊丞', cls:'高二2班',
+    scores:[[85,102,36.5,74,94,57],[92,121,49,70,83,80],[83,89,63,61,72,76]],
+    ranks: [[164,29,336,86,6,126],[264,23,304,154,42,61],[244,17,259,184,166,62]],
+    total: [161,0,141] },
+  { name:'丁子杰', cls:'高二2班',
+    scores:[[97,53,51,66,81,57],[103,57,108,76,76,70],[93,41,91,64,79,75]],
+    ranks: [[22,286,266,138,102,126],[86,307,14,122,110,110],[96,245,77,166,71,71]],
+    total: [277,135,145] },
+  { name:'林煜博', cls:'高二2班',
+    scores:[[85,70,87,66,81,55],[94,102,113,53,67,72],[90,38,110,71,68,66]],
+    ranks: [[164,204,21,138,102,131],[237,88,9,206,190,105],[135,266,16,115,193,116]],
+    total: [176,101,145] },
+  { name:'周安心', cls:'高二2班',
+    scores:[[88,65,75,79,75,66],[111,72,79,84,76,74],[98,46,82.5,78,72,66]],
+    ranks: [[116,235,64,54,155,107],[14,259,95,60,110,93],[40,212,116,70,166,116]],
+    total: [164,118,147] },
+  { name:'蔡桉敏', cls:'高二2班',
+    scores:[[83,83,56.5,64,85,80],[97,98,52,75,79,80],[95,59,67,63,76,76]],
+    ranks: [[202,132,224,153,51,33],[183,107,288,134,75,61],[67,120,226,177,113,62]],
+    total: [149,158,168] },
+  { name:'徐博森', cls:'高二2班',
+    scores:[[91,103,66.5,56,69,80],[94,115,66,51,68,70],[85,74,67,60,73,76]],
+    ranks: [[74,24,127,192,226,33],[237,36,179,208,176,110],[214,56,226,188,151,62]],
+    total: [99,205,172] },
+  { name:'杨韶蔚', cls:'高二2班',
+    scores:[[94,83,62.5,70,87,69],[107,97,67,82,75,75],[99,60,61,64,77,72]],
+    ranks: [[45,132,164,117,38,91],[35,113,172,74,123,87],[33,114,276,166,96,91]],
+    total: [99,94,177] },
+  { name:'卢志瑜', cls:'高二2班',
+    scores:[[90,97,49.5,82,87,75],[99,116,36,85,85,73],[89,71,39.5,79,83,67]],
+    ranks: [[86,56,277,38,38,53],[148,33,339,49,28,101],[155,67,342,57,49,114]],
+    total: [53,123,188] },
+  { name:'张景鑫', cls:'高二2班',
+    scores:[[73,39,61.5,63,56,70],[103,67,64,82,68,69],[86,48,80.5,61,77,73]],
+    ranks: [[311,320,175,162,283,85],[86,278,198,74,176,118],[190,194,127,184,96,83]],
+    total: [325,242,199] },
+  { name:'王柔晶', cls:'高二2班',
+    scores:[[89,55,88.5,58,72,79],[91,95,77,78,67,83],[87,44,109,67,62,76]],
+    ranks: [[94,277,19,189,201,37],[274,127,103,105,190,39],[175,225,18,144,251,62]],
+    total: [187,131,138] },
+  { name:'叶卡特', cls:'高二2班',
+    scores:[[74,58,63,67,75,73],[89,68,86,76,75,75],[78,55,82,86,79,70]],
+    ranks: [[304,265,161,130,155,69],[294,274,61,122,123,87],[301,144,121,19,71,102]],
+    total: [260,193,124] },
+  { name:'马鹏程', cls:'高二2班',
+    scores:[[81,69,48.5,55,75,73],[89,77,54,69,70,81],[88,34,62.5,70,72,79]],
+    ranks: [[227,216,286,196,155,69],[294,227,279,165,155,50],[165,282,262,126,166,46]],
+    total: [282,266,254] },
+  { name:'李钧', cls:'高二2班',
+    scores:[[78,94,51,51,84,88],[96,97,61,63,75,89],[60,65,68,67,68,74]],
+    ranks: [[273,67,266,208,60,5],[199,113,218,183,123,15],[342,91,218,144,193,73]],
+    total: [169,158,261] },
+  { name:'陈晨', cls:'高二2班',
+    scores:[[80,94,60.5,65,75,69],[97,86,58,66,58,86],[80,59,54.5,69,62,77]],
+    ranks: [[241,67,184,147,155,91],[183,183,246,178,276,23],[280,120,313,137,251,60]],
+    total: [178,247,263] },
+  { name:'屠皓哲', cls:'高二2班',
+    scores:[[81,63,43,79,72,61],[89,74,48,69,72,67],[80,52,59.5,84,65,61]],
+    ranks: [[227,245,324,54,201,121],[294,243,307,165,145,125],[280,168,282,29,229,130]],
+    total: [289,299,263] },
+  { name:'蔡一航', cls:'高二2班',
+    scores:[[88,107,50.5,73,78,79],[94,106,57,62,84,75],[79,64,57,60,73,66]],
+    ranks: [[116,9,270,95,133,37],[237,71,257,188,36,87],[293,96,297,188,151,116]],
+    total: [67,167,273] },
+  { name:'徐梁栋', cls:'高二2班',
+    scores:[[57,12,53.5,54,52,62],[86,74,78,70,67,60],[73,33,85.5,61,72,62]],
+    ranks: [[343,343,251,199,298,119],[315,243,99,154,190,136],[325,284,99,184,166,128]],
+    total: [342,272,303] },
+  { name:'方正', cls:'高二2班',
+    scores:[[87,45,60,69,69,72],[100,75,60,82,63,77],[90,31,75.5,64,56,69]],
+    ranks: [[134,305,194,122,226,80],[134,237,227,74,236,82],[135,294,168,166,288,108]],
+    total: [280,233,305] },
+  { name:'高祥豪', cls:'高二2班',
+    scores:[[74,79,43,84,78,66],[97,83,67,70,67,68],[80,18,61,78,76,68]],
+    ranks: [[304,164,324,31,133,107],[183,199,172,154,190,121],[280,334,276,70,113,110]],
+    total: [230,245,310] },
+  { name:'王涵', cls:'高二2班',
+    scores:[[84,31,38.5,64,79,73],[100,32,53.5,63,76,70],[92,23,59,66,69,66]],
+    ranks: [[187,330,333,153,118,69],[134,342,284,183,110,110],[105,322,286,156,178,116]],
+    total: [321,331,318] },
+  { name:'华晨阳', cls:'高二2班',
+    scores:[[81,61,60.5,64,72,60],[98,73,56,86,63,70],[81,37,65.5,64,59,67]],
+    ranks: [[227,252,184,153,201,122],[167,247,271,41,236,110],[272,272,236,166,269,114]],
+    total: [290,258,320] },
+  { name:'胡汶婷', cls:'高二2班',
+    scores:[[91,44,74,50,76,52],[96,59,78,82,64,77],[67,19,96,58,62,64]],
+    ranks: [[74,310,68,209,146,135],[199,299,99,74,223,82],[337,329,56,194,251,127]],
+    total: [309,0,323] },
+  { name:'孔维泽', cls:'高二2班',
+    scores:[[79,70,38,73,88,58],[94,95,41,62,84,65],[73,52,50,60,63,68]],
+    ranks: [[263,204,334,95,28,125],[237,127,328,188,36,128],[325,168,328,188,238,110]],
+    total: [274,264,323] },
+  { name:'刘宇航', cls:'高二2班',
+    scores:[[80,54,36,59,75,60],[97,75,47,62,62,74],[83,38,49,57,57,62]],
+    ranks: [[241,281,337,184,155,122],[183,237,309,188,246,93],[244,266,333,196,284,128]],
+    total: [323,304,333] },
+  { name:'汤佳慧', cls:'高二2班',
+    scores:[[88,74,50.5,69,76,74],[94,93,52,63,79,82],[83,65,62.5,75,79,73]],
+    ranks: [[116,188,270,122,146,58],[237,137,288,183,75,43],[244,91,262,92,71,83]],
+    total: [207,207,164] },
+  { name:'陈一诺', cls:'高二2班',
+    scores:[[81,86,43,63,75,73],[98,73,57,84,64,83],[88,59,53.5,84,84,73]],
+    ranks: [[227,117,324,162,155,69],[167,247,257,60,223,39],[165,120,319,29,38,83]],
+    total: [239,226,149] },
+];
+
+/* ── Default selected names ── */
+const DEFAULT_SELECTED = new Set([
+  '王加茹','王子浩','郑皓文','梁聪颖','董一晴','吴煜楠','支朵朵',
+  '王靖凯','盛忆欣','郑琬蓉','朱佳懿','张钰倩','梁宇博'
+]);
+
+/* ── State ── */
+const tabBar    = document.getElementById('tabBar');
+const cardsEl   = document.getElementById('cards');
+const noSelHint = document.getElementById('noSelHint');
+const modalList = document.getElementById('modalList');
+const modalCount= document.getElementById('modalCount');
+const selSummary= document.getElementById('selSummary');
+const openBtn   = document.getElementById('openSelectorBtn');
+
+// confirmed selection (drives tabs)
+let selectedIndices = new Set();
+// temp selection inside modal (not applied until Confirm)
+let tempSelected = new Set();
+let activeTabSI = -1;
+
+/* ── Pre-build all cards ── */
+STUDENTS.forEach((stu, si) => {
+  const card = document.createElement('div');
+  card.className = 'student-card';
+  card.id = 'card-' + si;
+  card.innerHTML = buildCard(stu, si);
+  cardsEl.appendChild(card);
+});
+
+/* ── Build modal checklist ── */
+STUDENTS.forEach((stu, si) => {
+  const item = document.createElement('div');
+  item.className = 'chk-item' + (DEFAULT_SELECTED.has(stu.name) ? ' checked' : '');
+  item.dataset.si = si;
+  item.innerHTML = `<span class="chk-box">✓</span><span class="chk-name">${stu.name}</span>`;
+  item.onclick = () => toggleModalItem(item, si);
+  modalList.appendChild(item);
+});
+
+function toggleModalItem(item, si) {
+  if (tempSelected.has(si)) {
+    tempSelected.delete(si);
+    item.classList.remove('checked');
+  } else {
+    tempSelected.add(si);
+    item.classList.add('checked');
+  }
+  modalCount.textContent = tempSelected.size;
+}
+
+function modalSelectAll() {
+  STUDENTS.forEach((_, si) => tempSelected.add(si));
+  modalList.querySelectorAll('.chk-item').forEach(el => el.classList.add('checked'));
+  modalCount.textContent = tempSelected.size;
+}
+
+function modalClearAll() {
+  tempSelected.clear();
+  modalList.querySelectorAll('.chk-item').forEach(el => el.classList.remove('checked'));
+  modalCount.textContent = 0;
+}
+
+function openModal() {
+  // Sync tempSelected from current confirmed selection
+  tempSelected = new Set(selectedIndices);
+  modalList.querySelectorAll('.chk-item').forEach(el => {
+    const si = parseInt(el.dataset.si);
+    el.classList.toggle('checked', tempSelected.has(si));
+  });
+  modalCount.textContent = tempSelected.size;
+  document.getElementById('modalOverlay').classList.add('open');
+  document.getElementById('modalBox').classList.add('open');
+  openBtn.classList.add('open');
+}
+
+function closeModal() {
+  document.getElementById('modalOverlay').classList.remove('open');
+  document.getElementById('modalBox').classList.remove('open');
+  openBtn.classList.remove('open');
+}
+
+function confirmSelection() {
+  selectedIndices = new Set(tempSelected);
+  closeModal();
+  rebuildTabs();
+}
+
+function rebuildTabs() {
+  tabBar.innerHTML = '';
+  const selArr = Array.from(selectedIndices);
+
+  // Update summary text
+  selSummary.textContent = selArr.length > 0
+    ? selArr.map(si => STUDENTS[si].name).join('、')
+    : '未选择';
+
+  if (selArr.length === 0) {
+    noSelHint.style.display = 'block';
+    document.querySelectorAll('.student-card').forEach(c => c.classList.remove('active'));
+    activeTabSI = -1;
+    return;
+  }
+  noSelHint.style.display = 'none';
+
+  if (!selectedIndices.has(activeTabSI)) activeTabSI = selArr[0];
+
+  selArr.forEach(si => {
+    const btn = document.createElement('button');
+    btn.className = 'tab-btn' + (si === activeTabSI ? ' active' : '');
+    btn.textContent = STUDENTS[si].name;
+    btn.onclick = () => switchTab(si);
+    tabBar.appendChild(btn);
+  });
+
+  document.querySelectorAll('.student-card').forEach(c => c.classList.remove('active'));
+  document.getElementById('card-' + activeTabSI).classList.add('active');
+  requestAnimationFrame(() => drawStudent(activeTabSI));
+}
+
+window.addEventListener('load', () => {
+  // Apply defaults
+  STUDENTS.forEach((stu, si) => {
+    if (DEFAULT_SELECTED.has(stu.name)) selectedIndices.add(si);
+  });
+  tempSelected = new Set(selectedIndices);
+  rebuildTabs();
+});
+
+function switchTab(si) {
+  activeTabSI = si;
+  tabBar.querySelectorAll('.tab-btn').forEach(b => {
+    b.classList.toggle('active', b.textContent === STUDENTS[si].name);
+  });
+  document.querySelectorAll('.student-card').forEach(c => c.classList.remove('active'));
+  document.getElementById('card-' + si).classList.add('active');
+  requestAnimationFrame(() => drawStudent(si));
+}
+
+/* ── Card HTML ── */
+function buildCard(stu, si) {
+  return `
+    <div class="stu-header">
+      <div class="stu-name">${stu.name}</div>
+      <div class="stu-class">${stu.cls}</div>
+    </div>
+    ${buildTable(stu)}
+    <div class="charts-grid">
+      <div class="chart-box chart-full">
+        ${head('综合','全科总分 &amp; 全校排名趋势')}
+        <svg class="chart-svg" id="svg-${si}-total"></svg>
+      </div>
+      ${SUBJS.map((s,j) => `
+        <div class="chart-box">
+          ${head(s, s+' 成绩 &amp; 校排趋势')}
+          <svg class="chart-svg" id="svg-${si}-${j}"></svg>
+        </div>`).join('')}
+    </div>`;
+}
+
+function head(subj, label) {
+  return `<div class="chart-head">
+    <span class="subj">${subj}</span>
+    <span>${label}</span>
+    <span class="lgd"><span class="lgd-bar"></span>分数</span>
+    <span class="lgd"><span class="lgd-line"></span>校排</span>
+  </div>`;
+}
+
+/* ── Table ── */
+function buildTable(stu) {
+  const thS = SUBJS.map(s=>`<th>${s}</th>`).join('');
+  const thR = SUBJS.map(s=>`<th class="rk">${s}排</th>`).join('');
+  const rows = EXAMS.map((ex,ei) => {
+    const sc = stu.scores[ei].map(v=>`<td>${v}</td>`).join('');
+    const rk = stu.ranks[ei].map(v=>`<td class="rk">${v}</td>`).join('');
+    return `<tr><td class="ex">${ex}</td>${sc}${rk}<td class="tot">${stu.total[ei]}</td></tr>`;
+  }).join('');
+  return `<div class="tbl-wrap"><table>
+    <thead>
+      <tr>
+        <th rowspan="2" style="width:76px">考试</th>
+        <th colspan="${SUBJS.length}">各科成绩</th>
+        <th colspan="${SUBJS.length}" class="rk">各科校排</th>
+        <th rowspan="2" style="color:#ff9f43">全校排名</th>
+      </tr>
+      <tr>${thS}${thR}</tr>
+    </thead>
+    <tbody>${rows}</tbody>
+  </table></div>`;
+}
+
+/* ── Draw all charts for student si ── */
+function drawStudent(si) {
+  const stu = STUDENTS[si];
+  const totals = stu.scores.map(r => r.reduce((a,b)=>a+b,0));
+
+  // Total chart — taller
+  renderChart(`svg-${si}-total`, totals, stu.total, 650, 350, 600, 170, '全科总分');
+
+  // Subject charts
+  SUBJS.forEach((subj, j) => {
+    const sMax = subj==='数学'?135 : subj==='外语'?130 : 120;
+    renderChart(`svg-${si}-${j}`, stu.scores.map(r=>r[j]), stu.ranks.map(r=>r[j]),
+      sMax, 350, 600, 155, subj);
+  });
+}
+
+/* ── Tooltip ── */
+const tip      = document.getElementById('tooltip');
+const tipExam  = document.getElementById('tip-exam');
+const tipSubjL = document.getElementById('tip-subj-label');
+const tipScore = document.getElementById('tip-score');
+const tipRank  = document.getElementById('tip-rank');
+
+function showTip(e, exam, subjLabel, score, rank) {
+  tipExam.textContent  = exam;
+  tipSubjL.textContent = subjLabel;
+  tipScore.textContent = score;
+  tipRank.textContent  = '第 ' + rank + ' 名';
+  tip.classList.add('visible');
+  moveTip(e);
+}
+function moveTip(e) {
+  const x = e.clientX, y = e.clientY;
+  const tw = tip.offsetWidth, th = tip.offsetHeight;
+  const wx = window.innerWidth,  wy = window.innerHeight;
+  tip.style.left = (x + 16 + tw > wx ? x - tw - 12 : x + 16) + 'px';
+  tip.style.top  = (y + 16 + th > wy ? y - th - 12 : y + 16) + 'px';
+}
+function hideTip() { tip.classList.remove('visible'); }
+document.addEventListener('mousemove', e => {
+  if (tip.classList.contains('visible')) moveTip(e);
+});
+
+/* ── Core SVG chart renderer ──
+   VW/VH = logical coordinate space (fixed).
+   CSS width:100% + viewBox = auto-scaling with correct aspect ratio.
+   No DOM measurements needed → works even on hidden cards.
+*/
+function renderChart(id, scores, ranks, scoreMax, rankMax, VW, VH, subjLabel) {
+  const svg = document.getElementById(id);
+  if (!svg) return;
+
+  svg.setAttribute('viewBox', `0 0 ${VW} ${VH}`);
+  svg.setAttribute('preserveAspectRatio', 'xMidYMid meet');
+  svg.setAttribute('height', VH);
+
+  const P  = { t:34, b:28, l:40, r:46 };
+  const cW = VW - P.l - P.r;
+  const cH = VH - P.t - P.b;
+  const N  = scores.length;
+  const gap = cW / (N + 1);
+  const bW  = gap * 0.54;
+
+  const xOf  = i => P.l + gap * (i + 1);
+  const yOfS = v => P.t + cH - (v / scoreMax) * cH;
+  const yOfR = v => P.t + ((v - 1) / Math.max(rankMax - 1, 1)) * cH;
+
+  let h = '';
+
+  /* grid */
+  for (let g = 0; g <= 4; g++) {
+    const yy  = P.t + (g / 4) * cH;
+    const val = Math.round(scoreMax * (1 - g / 4));
+    h += `<line x1="${P.l}" y1="${yy}" x2="${P.l+cW}" y2="${yy}"
+            stroke="rgba(255,255,255,0.07)" stroke-width="1"/>`;
+    h += `<text x="${P.l-4}" y="${yy+4}" text-anchor="end"
+            fill="#607898" font-size="10">${val}</text>`;
+  }
+
+  /* right rank axis */
+  [1, Math.round(rankMax*.25), Math.round(rankMax*.5),
+   Math.round(rankMax*.75), rankMax].forEach(rv => {
+    h += `<text x="${P.l+cW+5}" y="${yOfR(rv)+4}" text-anchor="start"
+            fill="#4a7ea0" font-size="10">${rv}</text>`;
+  });
+
+  /* baseline */
+  h += `<line x1="${P.l}" y1="${P.t+cH}" x2="${P.l+cW}" y2="${P.t+cH}"
+          stroke="rgba(255,255,255,0.2)" stroke-width="1"/>`;
+
+  /* bars + score labels */
+  scores.forEach((s, i) => {
+    const cx = xOf(i);
+    const bH = (s / scoreMax) * cH;
+    const bY = P.t + cH - bH;
+    // Bar with data attributes for tooltip
+    h += `<rect class="tip-bar" x="${cx-bW/2}" y="${bY}" width="${bW}" height="${bH}"
+            fill="#f5c518" rx="2" opacity="0.9"
+            data-exam="${EXAMS[i]}" data-score="${s}" data-rank="${ranks[i]}"
+            style="cursor:pointer"/>`;
+    // Score label above bar
+    const sly = Math.max(bY - 7, 14);
+    h += `<text x="${cx}" y="${sly}" text-anchor="middle"
+            fill="#ffe566" font-size="13" font-weight="700" style="pointer-events:none">${s}</text>`;
+  });
+
+  /* rank line */
+  const pts = ranks.map((r,i) => `${xOf(i)},${yOfR(r)}`).join(' ');
+  h += `<polyline points="${pts}" fill="none" stroke="#ff3535"
+          stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"
+          style="pointer-events:none"/>`;
+
+  /* rank dots + labels */
+  ranks.forEach((r, i) => {
+    const cx = xOf(i);
+    const cy = yOfR(r);
+    // Larger invisible hit area for dot
+    h += `<circle class="tip-dot-hit" cx="${cx}" cy="${cy}" r="14"
+            fill="transparent" style="cursor:pointer"
+            data-exam="${EXAMS[i]}" data-score="${scores[i]}" data-rank="${r}"/>`;
+    // Visible dot
+    h += `<circle cx="${cx}" cy="${cy}" r="5"
+            fill="#ff3535" stroke="#fff" stroke-width="1.5" style="pointer-events:none"/>`;
+
+    // Rank label offset left/right
+    const offsetX = i === 0 ? -(bW/2 + 22) : (bW/2 + 6);
+    const lx = cx + offsetX;
+    const above = cy > P.t + cH * 0.35;
+    const ly = above ? cy - 9 : cy + 19;
+    const labelW = String(r).length * 8 + 8;
+    h += `<rect x="${lx - labelW/2}" y="${ly-13}" width="${labelW}" height="15"
+            fill="rgba(5,12,28,0.88)" rx="3" style="pointer-events:none"/>`;
+    h += `<text x="${lx}" y="${ly-1}" text-anchor="middle"
+            fill="#ff7070" font-size="12" font-weight="700" style="pointer-events:none">${r}</text>`;
+  });
+
+  /* x-axis labels */
+  EXAMS.forEach((ex, i) => {
+    h += `<text x="${xOf(i)}" y="${P.t+cH+20}" text-anchor="middle"
+            fill="#7888a8" font-size="11">${ex}</text>`;
+  });
+
+  svg.innerHTML = h;
+
+  // Attach tooltip events after innerHTML set
+  svg.querySelectorAll('.tip-bar, .tip-dot-hit').forEach(el => {
+    el.addEventListener('mouseenter', e => {
+      showTip(e, el.dataset.exam, subjLabel, el.dataset.score + '分', el.dataset.rank);
+      // highlight bar on hover
+      if (el.classList.contains('tip-bar')) el.setAttribute('opacity','1');
+    });
+    el.addEventListener('mouseleave', () => {
+      hideTip();
+      if (el.classList.contains('tip-bar')) el.setAttribute('opacity','0.9');
+    });
+  });
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,1812 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI 中转站平台 — UI 设计文档</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --color-midnight-abyss: #05060f;
+  --color-ghost-white: #ffffff;
+  --color-comet: #d8ecf8;
+  --color-arctic-mist: #d1e4fa;
+  --color-celestial-light: #b6d9fc;
+  --color-azure-glow: #c7d3ea;
+  --color-slate-dew: #3f4959;
+  --color-whisper-blue: #9da7ba;
+  --color-neon-violet: #663af3;
+  --color-interstellar-gray: #81899b;
+  --color-bg-elevated: #0a0b18;
+  --color-bg-card: rgba(186, 214, 247, 0.03);
+  --border-subtle: rgba(186, 215, 247, 0.12);
+  --shadow-sm: rgba(186, 207, 247, 0.32) 0px 0px 6px 0px;
+  --shadow-md: rgba(238, 186, 247, 0.24) 0px 0px 12px 0px;
+  --shadow-subtle: rgba(186, 215, 247, 0.12) 0px 0px 0px 1px inset;
+  --shadow-card: rgba(199, 211, 234, 0.12) 0px 1px 1px 0px inset, rgba(199, 211, 234, 0.05) 0px 24px 48px 0px inset, rgba(6, 6, 14, 0.7) 0px 24px 32px 0px;
+  --shadow-form: rgba(216, 236, 248, 0.2) 0px 1px 1px 0px inset, rgba(168, 216, 245, 0.06) 0px 24px 48px 0px inset, rgba(0, 0, 0, 0.3) 0px 16px 32px 0px;
+  --font-display: 'Space Grotesk', sans-serif;
+  --font-body: 'Inter', sans-serif;
+  --font-mono: 'IBM Plex Mono', monospace;
+  --spacing-4: 4px; --spacing-8: 8px; --spacing-12: 12px; --spacing-16: 16px;
+  --spacing-20: 20px; --spacing-24: 24px; --spacing-32: 32px; --spacing-48: 48px;
+  --radius-pill: 999px; --radius-card: 14px; --radius-badge: 6px; --radius-input: 4px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: var(--color-midnight-abyss);
+  color: var(--color-comet);
+  font-family: var(--font-body);
+  font-size: 14px;
+  line-height: 1.5;
+  letter-spacing: -0.01px;
+  min-height: 100vh;
+}
+
+/* ── Doc Layout ── */
+.doc-sidebar {
+  position: fixed;
+  left: 0; top: 0; bottom: 0;
+  width: 240px;
+  background: rgba(5, 6, 15, 0.97);
+  border-right: 1px solid var(--border-subtle);
+  padding: 32px 0;
+  overflow-y: auto;
+  z-index: 100;
+}
+
+.doc-logo {
+  padding: 0 24px 32px;
+  border-bottom: 1px solid var(--border-subtle);
+  margin-bottom: 24px;
+}
+.doc-logo-name {
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--color-ghost-white);
+}
+.doc-logo-sub {
+  font-size: 11px;
+  color: var(--color-interstellar-gray);
+  margin-top: 2px;
+}
+
+.nav-section-label {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-interstellar-gray);
+  padding: 0 24px 8px;
+  margin-top: 20px;
+}
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 24px;
+  font-size: 13px;
+  color: var(--color-whisper-blue);
+  cursor: pointer;
+  transition: all 0.15s;
+  text-decoration: none;
+  border-left: 2px solid transparent;
+}
+.nav-item:hover { color: var(--color-arctic-mist); background: rgba(186,214,247,0.04); }
+.nav-item.active { color: var(--color-ghost-white); border-left-color: var(--color-neon-violet); background: rgba(102,58,243,0.08); }
+.nav-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--border-subtle); flex-shrink: 0; }
+.nav-item.active .nav-dot { background: var(--color-neon-violet); box-shadow: 0 0 6px rgba(102,58,243,0.6); }
+
+.doc-main {
+  margin-left: 240px;
+  min-height: 100vh;
+}
+
+.doc-topbar {
+  position: sticky;
+  top: 0;
+  background: rgba(5, 6, 15, 0.9);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border-subtle);
+  padding: 0 48px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  z-index: 50;
+}
+.topbar-breadcrumb {
+  font-size: 13px;
+  color: var(--color-interstellar-gray);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.topbar-breadcrumb span { color: var(--color-comet); }
+.topbar-version {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--color-interstellar-gray);
+  background: rgba(186,214,247,0.06);
+  border: 1px solid var(--border-subtle);
+  padding: 4px 10px;
+  border-radius: var(--radius-badge);
+}
+
+/* ── Sections ── */
+.section {
+  padding: 64px 48px;
+  border-bottom: 1px solid rgba(186,215,247,0.06);
+  display: none;
+}
+.section.active { display: block; }
+
+.section-eyebrow {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--color-neon-violet);
+  margin-bottom: 12px;
+}
+.section-title {
+  font-family: var(--font-display);
+  font-size: 28px;
+  font-weight: 500;
+  color: var(--color-ghost-white);
+  line-height: 1.2;
+  margin-bottom: 12px;
+}
+.section-desc {
+  font-size: 15px;
+  color: var(--color-azure-glow);
+  max-width: 600px;
+  line-height: 1.6;
+  margin-bottom: 48px;
+}
+
+/* ── Design Tokens ── */
+.token-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; margin-bottom: 32px; }
+.token-swatch {
+  background: var(--color-bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-card);
+  padding: 16px;
+  box-shadow: var(--shadow-card);
+}
+.swatch-color { width: 100%; height: 48px; border-radius: 8px; margin-bottom: 12px; }
+.swatch-name { font-size: 12px; font-weight: 600; color: var(--color-arctic-mist); margin-bottom: 2px; }
+.swatch-hex { font-family: var(--font-mono); font-size: 11px; color: var(--color-interstellar-gray); }
+.swatch-role { font-size: 11px; color: var(--color-whisper-blue); margin-top: 6px; line-height: 1.4; }
+
+/* ── Component Showcase ── */
+.component-row { display: flex; flex-wrap: wrap; gap: 16px; align-items: center; margin-bottom: 32px; }
+.component-label { font-size: 11px; color: var(--color-interstellar-gray); margin-top: 8px; text-align: center; }
+.component-block { display: flex; flex-direction: column; align-items: center; }
+
+/* Buttons */
+.btn-primary {
+  background: rgba(186, 214, 247, 0.06);
+  color: var(--color-ghost-white);
+  border: 1px solid rgba(255,255,255,0.18);
+  border-radius: var(--radius-pill);
+  padding: 10px 20px;
+  font-family: var(--font-body);
+  font-size: 14px;
+  cursor: pointer;
+  box-shadow: inset rgba(186, 214, 247, 0.06) 0px 0px 0px 1px;
+}
+.btn-secondary {
+  background: transparent;
+  color: var(--color-arctic-mist);
+  border: 1px solid rgba(186,215,247,0.12);
+  border-radius: var(--radius-pill);
+  padding: 10px 20px;
+  font-family: var(--font-body);
+  font-size: 14px;
+  cursor: pointer;
+}
+.btn-cta {
+  background: var(--color-neon-violet);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 10px 20px;
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+}
+.badge {
+  background: var(--color-midnight-abyss);
+  color: var(--color-arctic-mist);
+  border: 1px solid var(--color-slate-dew);
+  border-radius: var(--radius-badge);
+  padding: 3px 8px;
+  font-size: 12px;
+}
+.badge-green { background: rgba(16,185,129,0.1); color: #34d399; border-color: rgba(16,185,129,0.2); }
+.badge-red { background: rgba(239,68,68,0.1); color: #f87171; border-color: rgba(239,68,68,0.2); }
+.badge-yellow { background: rgba(245,158,11,0.1); color: #fbbf24; border-color: rgba(245,158,11,0.2); }
+.badge-violet { background: rgba(102,58,243,0.15); color: var(--color-celestial-light); border-color: rgba(102,58,243,0.3); }
+.input-field {
+  background: rgba(199, 211, 234, 0.06);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-input);
+  padding: 10px 12px;
+  color: var(--color-ghost-white);
+  font-family: var(--font-body);
+  font-size: 14px;
+  width: 240px;
+  outline: none;
+}
+.input-field::placeholder { color: var(--color-whisper-blue); }
+.glassy-card {
+  background: var(--color-bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  padding: 24px;
+}
+.stat-number {
+  font-family: var(--font-mono);
+  font-size: 28px;
+  color: var(--color-ghost-white);
+  font-weight: 400;
+  letter-spacing: 0.1em;
+}
+
+/* ── Page Mockups ── */
+.mockup-wrapper {
+  background: var(--color-midnight-abyss);
+  border: 1px solid var(--border-subtle);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: var(--shadow-card);
+  margin-bottom: 48px;
+}
+.mockup-titlebar {
+  background: rgba(10,11,24,0.9);
+  border-bottom: 1px solid var(--border-subtle);
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.mockup-dot { width: 10px; height: 10px; border-radius: 50%; }
+.mockup-url {
+  flex: 1;
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--color-interstellar-gray);
+}
+.mockup-body { padding: 0; }
+
+/* Page: Landing */
+.page-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 48px;
+  border-bottom: 1px solid var(--border-subtle);
+  background: rgba(5,6,15,0.9);
+}
+.page-logo { font-family: var(--font-display); font-size: 18px; font-weight: 600; color: var(--color-ghost-white); }
+.page-nav-links { display: flex; gap: 32px; }
+.page-nav-link { font-size: 14px; color: var(--color-whisper-blue); text-decoration: none; }
+.page-nav-actions { display: flex; gap: 12px; align-items: center; }
+
+.hero {
+  text-align: center;
+  padding: 80px 48px 64px;
+  position: relative;
+  overflow: hidden;
+}
+.hero::before {
+  content: '';
+  position: absolute;
+  width: 600px; height: 600px;
+  background: radial-gradient(circle, rgba(102,58,243,0.12) 0%, transparent 70%);
+  top: -100px; left: 50%; transform: translateX(-50%);
+  pointer-events: none;
+}
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(102,58,243,0.15);
+  border: 1px solid rgba(102,58,243,0.3);
+  border-radius: var(--radius-pill);
+  padding: 4px 14px;
+  font-size: 12px;
+  color: var(--color-celestial-light);
+  margin-bottom: 28px;
+}
+.hero-title {
+  font-family: var(--font-display);
+  font-size: 48px;
+  font-weight: 500;
+  color: var(--color-ghost-white);
+  line-height: 1.14;
+  margin-bottom: 20px;
+}
+.hero-title em { color: var(--color-celestial-light); font-style: normal; }
+.hero-sub {
+  font-size: 18px;
+  color: var(--color-azure-glow);
+  max-width: 480px;
+  margin: 0 auto 36px;
+  line-height: 1.6;
+}
+.hero-actions { display: flex; gap: 12px; justify-content: center; }
+
+.pricing-section { padding: 64px 48px; }
+.pricing-title {
+  font-family: var(--font-display);
+  font-size: 28px;
+  font-weight: 500;
+  color: var(--color-ghost-white);
+  text-align: center;
+  margin-bottom: 8px;
+}
+.pricing-sub { text-align: center; color: var(--color-azure-glow); font-size: 15px; margin-bottom: 40px; }
+.pricing-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+.pricing-card {
+  background: var(--color-bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  padding: 28px 24px;
+}
+.pricing-card.featured {
+  border-color: rgba(102,58,243,0.4);
+  background: rgba(102,58,243,0.06);
+  box-shadow: var(--shadow-card), 0 0 40px rgba(102,58,243,0.08);
+}
+.pricing-plan { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--color-interstellar-gray); margin-bottom: 16px; }
+.pricing-plan.violet { color: var(--color-neon-violet); }
+.pricing-amount { font-family: var(--font-display); font-size: 32px; font-weight: 500; color: var(--color-ghost-white); margin-bottom: 4px; }
+.pricing-unit { font-size: 12px; color: var(--color-interstellar-gray); margin-bottom: 20px; }
+.pricing-divider { height: 1px; background: var(--border-subtle); margin: 20px 0; }
+.pricing-feature { font-size: 13px; color: var(--color-azure-glow); margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+.pricing-feature::before { content: '✓'; color: var(--color-celestial-light); font-size: 11px; }
+
+/* Dashboard mockup */
+.dash-layout { display: flex; min-height: 480px; }
+.dash-sidebar {
+  width: 220px;
+  background: rgba(5,6,15,0.95);
+  border-right: 1px solid var(--border-subtle);
+  padding: 24px 0;
+  flex-shrink: 0;
+}
+.dash-sidebar-logo { padding: 0 20px 24px; border-bottom: 1px solid var(--border-subtle); margin-bottom: 16px; }
+.dash-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 20px;
+  font-size: 13px;
+  color: var(--color-whisper-blue);
+  cursor: pointer;
+  border-left: 2px solid transparent;
+}
+.dash-nav-item.active { color: var(--color-ghost-white); background: rgba(102,58,243,0.08); border-left-color: var(--color-neon-violet); }
+.dash-nav-icon { width: 16px; height: 16px; opacity: 0.7; }
+.dash-content { flex: 1; padding: 28px 32px; overflow: hidden; }
+.dash-content-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 28px; }
+.dash-page-title { font-family: var(--font-display); font-size: 20px; font-weight: 500; color: var(--color-ghost-white); }
+.stat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 24px; }
+.stat-card {
+  background: var(--color-bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  padding: 20px;
+}
+.stat-label { font-size: 12px; color: var(--color-interstellar-gray); margin-bottom: 8px; }
+.stat-val { font-family: var(--font-mono); font-size: 22px; color: var(--color-ghost-white); letter-spacing: 0.05em; }
+.stat-change { font-size: 11px; color: #34d399; margin-top: 4px; }
+
+/* Chart */
+.chart-card {
+  background: var(--color-bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  padding: 20px;
+  margin-bottom: 20px;
+}
+.chart-title { font-size: 13px; font-weight: 600; color: var(--color-arctic-mist); margin-bottom: 16px; }
+.chart-bars { display: flex; align-items: flex-end; gap: 6px; height: 80px; }
+.chart-bar { flex: 1; border-radius: 3px 3px 0 0; background: rgba(102,58,243,0.4); min-height: 4px; position: relative; }
+.chart-bar.today { background: var(--color-neon-violet); }
+.chart-bar::after { content: ''; position: absolute; inset: 0; background: inherit; border-radius: inherit; box-shadow: 0 0 12px rgba(102,58,243,0.3); }
+
+/* Table */
+.table-card {
+  background: var(--color-bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+}
+.table-header { padding: 14px 20px; border-bottom: 1px solid var(--border-subtle); display: flex; justify-content: space-between; align-items: center; }
+.table-title { font-size: 13px; font-weight: 600; color: var(--color-arctic-mist); }
+table { width: 100%; border-collapse: collapse; }
+th { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-interstellar-gray); padding: 10px 20px; text-align: left; border-bottom: 1px solid var(--border-subtle); }
+td { font-size: 13px; color: var(--color-azure-glow); padding: 12px 20px; border-bottom: 1px solid rgba(186,215,247,0.04); }
+tr:last-child td { border-bottom: none; }
+td.mono { font-family: var(--font-mono); font-size: 12px; color: var(--color-comet); letter-spacing: 0.05em; }
+
+/* Key manager */
+.key-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 20px;
+  border-bottom: 1px solid rgba(186,215,247,0.04);
+}
+.key-item:last-child { border-bottom: none; }
+.key-name { font-size: 13px; color: var(--color-arctic-mist); font-weight: 500; }
+.key-val { font-family: var(--font-mono); font-size: 12px; color: var(--color-interstellar-gray); flex: 1; }
+.key-actions { display: flex; gap: 8px; }
+.icon-btn {
+  width: 28px; height: 28px;
+  border-radius: var(--radius-pill);
+  border: 1px solid rgba(186,215,247,0.12);
+  background: transparent;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  color: var(--color-whisper-blue);
+  font-size: 12px;
+}
+
+/* Auth page */
+.auth-page {
+  min-height: 400px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48px;
+  position: relative;
+  overflow: hidden;
+}
+.auth-page::before {
+  content: '';
+  position: absolute;
+  width: 500px; height: 500px;
+  background: radial-gradient(circle, rgba(102,58,243,0.1) 0%, transparent 70%);
+  top: -100px; right: -100px;
+  pointer-events: none;
+}
+.auth-card {
+  background: rgba(5, 6, 15, 0.97);
+  border: 1px solid var(--border-subtle);
+  border-radius: 16px;
+  box-shadow: var(--shadow-form);
+  padding: 40px;
+  width: 100%;
+  max-width: 380px;
+  position: relative;
+}
+.auth-title { font-family: var(--font-display); font-size: 24px; font-weight: 500; color: var(--color-ghost-white); margin-bottom: 6px; }
+.auth-sub { font-size: 14px; color: var(--color-whisper-blue); margin-bottom: 28px; }
+.form-label { font-size: 13px; color: var(--color-azure-glow); margin-bottom: 6px; display: block; }
+.form-group { margin-bottom: 16px; }
+.full-input {
+  width: 100%;
+  background: rgba(199, 211, 234, 0.06);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-input);
+  padding: 10px 12px;
+  color: var(--color-ghost-white);
+  font-family: var(--font-body);
+  font-size: 14px;
+  outline: none;
+}
+.full-input::placeholder { color: var(--color-whisper-blue); }
+.full-btn-cta {
+  width: 100%;
+  background: var(--color-neon-violet);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 12px;
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  margin-top: 8px;
+}
+.auth-footer { text-align: center; margin-top: 20px; font-size: 13px; color: var(--color-interstellar-gray); }
+.auth-footer a { color: var(--color-celestial-light); text-decoration: none; }
+
+/* Admin */
+.admin-stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
+.admin-stat {
+  background: var(--color-bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  padding: 16px;
+  box-shadow: var(--shadow-card);
+}
+.admin-stat-label { font-size: 11px; color: var(--color-interstellar-gray); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.05em; }
+.admin-stat-val { font-family: var(--font-mono); font-size: 20px; color: var(--color-ghost-white); }
+.admin-stat-sub { font-size: 11px; color: #34d399; margin-top: 4px; }
+
+/* Recharge page */
+.recharge-options { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 20px; }
+.recharge-option {
+  background: var(--color-bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  padding: 16px;
+  text-align: center;
+  cursor: pointer;
+}
+.recharge-option.selected { border-color: var(--color-neon-violet); background: rgba(102,58,243,0.1); }
+.recharge-amount { font-family: var(--font-display); font-size: 20px; font-weight: 500; color: var(--color-ghost-white); }
+.recharge-credits { font-size: 11px; color: var(--color-interstellar-gray); margin-top: 4px; }
+.recharge-bonus { font-size: 11px; color: #34d399; margin-top: 2px; }
+
+/* QR mockup */
+.qr-box {
+  background: white;
+  border-radius: 8px;
+  width: 120px; height: 120px;
+  margin: 0 auto 16px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; color: #333;
+  overflow: hidden;
+  position: relative;
+}
+.qr-pattern {
+  display: grid;
+  grid-template-columns: repeat(10,10px);
+  gap: 1px;
+}
+.qr-cell { width: 10px; height: 10px; border-radius: 1px; }
+
+/* Annotations */
+.annotation-group { position: relative; }
+.annotation {
+  position: absolute;
+  background: rgba(102,58,243,0.9);
+  color: white;
+  font-size: 11px;
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 10;
+}
+.annotation::before {
+  content: '';
+  position: absolute;
+  width: 1px;
+  background: rgba(102,58,243,0.5);
+}
+
+/* Spec table */
+.spec-table { width: 100%; border-collapse: collapse; margin-bottom: 32px; }
+.spec-table th { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--color-interstellar-gray); padding: 10px 16px; text-align: left; border-bottom: 1px solid var(--border-subtle); background: rgba(186,214,247,0.02); }
+.spec-table td { font-size: 13px; color: var(--color-azure-glow); padding: 11px 16px; border-bottom: 1px solid rgba(186,215,247,0.05); vertical-align: top; }
+.spec-table td:first-child { color: var(--color-arctic-mist); font-weight: 500; width: 160px; }
+.spec-table td code { font-family: var(--font-mono); font-size: 11px; background: rgba(186,214,247,0.06); border: 1px solid var(--border-subtle); padding: 1px 6px; border-radius: 4px; color: var(--color-comet); }
+
+.h2 { font-family: var(--font-display); font-size: 18px; font-weight: 500; color: var(--color-ghost-white); margin-bottom: 20px; margin-top: 40px; padding-bottom: 10px; border-bottom: 1px solid var(--border-subtle); }
+.h2:first-child { margin-top: 0; }
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border-subtle); border-radius: 4px; }
+
+/* Tab switcher */
+.tab-bar { display: flex; gap: 4px; margin-bottom: 24px; }
+.tab {
+  padding: 7px 16px;
+  font-size: 13px;
+  color: var(--color-whisper-blue);
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  border: 1px solid transparent;
+}
+.tab.active { background: rgba(102,58,243,0.15); color: var(--color-celestial-light); border-color: rgba(102,58,243,0.3); }
+
+.divider { height: 1px; background: var(--border-subtle); margin: 40px 0; }
+
+/* Account pool */
+.account-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 20px;
+  border-bottom: 1px solid rgba(186,215,247,0.04);
+}
+.account-avatar {
+  width: 32px; height: 32px;
+  border-radius: var(--radius-pill);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 600;
+}
+.avatar-claude { background: rgba(216,148,64,0.2); color: #f59e0b; }
+.avatar-gpt { background: rgba(16,185,129,0.2); color: #34d399; }
+.avatar-gem { background: rgba(59,130,246,0.2); color: #60a5fa; }
+.account-info { flex: 1; }
+.account-email { font-size: 13px; color: var(--color-arctic-mist); }
+.account-usage { font-size: 11px; color: var(--color-interstellar-gray); margin-top: 2px; }
+.progress-bar { height: 3px; background: rgba(186,214,247,0.08); border-radius: 99px; margin-top: 6px; }
+.progress-fill { height: 100%; border-radius: 99px; background: var(--color-neon-violet); }
+
+/* Scrollable content for mockups */
+.mockup-scroll { max-height: 560px; overflow-y: auto; }
+</style>
+</head>
+<body>
+
+<!-- Sidebar Nav -->
+<nav class="doc-sidebar">
+  <div class="doc-logo">
+    <div class="doc-logo-name">⚡ NexusRelay</div>
+    <div class="doc-logo-sub">UI 设计文档 v1.0</div>
+  </div>
+
+  <div class="nav-section-label">设计系统</div>
+  <a class="nav-item active" onclick="showSection('tokens')"><span class="nav-dot"></span>颜色 & Token</a>
+  <a class="nav-item" onclick="showSection('typography')"><span class="nav-dot"></span>字体排版</a>
+  <a class="nav-item" onclick="showSection('components')"><span class="nav-dot"></span>组件库</a>
+
+  <div class="nav-section-label">用户端页面</div>
+  <a class="nav-item" onclick="showSection('landing')"><span class="nav-dot"></span>首页 Landing</a>
+  <a class="nav-item" onclick="showSection('auth')"><span class="nav-dot"></span>注册 / 登录</a>
+  <a class="nav-item" onclick="showSection('dashboard')"><span class="nav-dot"></span>控制台概览</a>
+  <a class="nav-item" onclick="showSection('apikeys')"><span class="nav-dot"></span>API Key 管理</a>
+  <a class="nav-item" onclick="showSection('usage')"><span class="nav-dot"></span>用量明细</a>
+  <a class="nav-item" onclick="showSection('recharge')"><span class="nav-dot"></span>充值页面</a>
+
+  <div class="nav-section-label">管理后台</div>
+  <a class="nav-item" onclick="showSection('admin')"><span class="nav-dot"></span>数据总览</a>
+  <a class="nav-item" onclick="showSection('accounts')"><span class="nav-dot"></span>账号池管理</a>
+  <a class="nav-item" onclick="showSection('pricing')"><span class="nav-dot"></span>定价配置</a>
+</nav>
+
+<!-- Top bar -->
+<div class="doc-main">
+<div class="doc-topbar">
+  <div class="topbar-breadcrumb">NexusRelay <span>›</span> <span id="breadcrumb">设计 Token</span></div>
+  <span class="topbar-version">Midnight Command Center · v1.0</span>
+</div>
+
+<!-- ══════════════════════════════════════════
+     SECTION: TOKENS
+════════════════════════════════════════════ -->
+<div class="section active" id="sec-tokens">
+  <div class="section-eyebrow">Design System</div>
+  <div class="section-title">颜色 & Design Tokens</div>
+  <div class="section-desc">基于 Midnight Command Center 风格系统，全暗色调，以 Neon Violet 为唯一高亮色，营造高科技仪表盘氛围。</div>
+
+  <div class="h2">主色板</div>
+  <div class="token-grid">
+    <div class="token-swatch">
+      <div class="swatch-color" style="background:#05060f; border:1px solid rgba(255,255,255,0.08)"></div>
+      <div class="swatch-name">Midnight Abyss</div>
+      <div class="swatch-hex">#05060f</div>
+      <div class="swatch-role">页面主背景，深色卡片</div>
+    </div>
+    <div class="token-swatch">
+      <div class="swatch-color" style="background:#663af3"></div>
+      <div class="swatch-name">Neon Violet</div>
+      <div class="swatch-hex">#663af3</div>
+      <div class="swatch-role">唯一 CTA 按钮，主交互色</div>
+    </div>
+    <div class="token-swatch">
+      <div class="swatch-color" style="background:#d8ecf8"></div>
+      <div class="swatch-name">Comet</div>
+      <div class="swatch-hex">#d8ecf8</div>
+      <div class="swatch-role">主要正文，链接文字</div>
+    </div>
+    <div class="token-swatch">
+      <div class="swatch-color" style="background:#d1e4fa"></div>
+      <div class="swatch-name">Arctic Mist</div>
+      <div class="swatch-hex">#d1e4fa</div>
+      <div class="swatch-role">次要文字，图标文字</div>
+    </div>
+    <div class="token-swatch">
+      <div class="swatch-color" style="background:#b6d9fc"></div>
+      <div class="swatch-name">Celestial Light</div>
+      <div class="swatch-hex">#b6d9fc</div>
+      <div class="swatch-role">焦点状态，高亮强调</div>
+    </div>
+    <div class="token-swatch">
+      <div class="swatch-color" style="background:#c7d3ea"></div>
+      <div class="swatch-name">Azure Glow</div>
+      <div class="swatch-hex">#c7d3ea</div>
+      <div class="swatch-role">次级正文，禁用状态</div>
+    </div>
+    <div class="token-swatch">
+      <div class="swatch-color" style="background:#9da7ba"></div>
+      <div class="swatch-name">Whisper Blue</div>
+      <div class="swatch-hex">#9da7ba</div>
+      <div class="swatch-role">输入框 placeholder</div>
+    </div>
+    <div class="token-swatch">
+      <div class="swatch-color" style="background:#81899b"></div>
+      <div class="swatch-name">Interstellar Gray</div>
+      <div class="swatch-hex">#81899b</div>
+      <div class="swatch-role">小标签，次要说明文字</div>
+    </div>
+    <div class="token-swatch">
+      <div class="swatch-color" style="background:#3f4959"></div>
+      <div class="swatch-name">Slate Dew</div>
+      <div class="swatch-hex">#3f4959</div>
+      <div class="swatch-role">Badge 边框，信息标签</div>
+    </div>
+  </div>
+
+  <div class="h2">边框 & 阴影 Token</div>
+  <table class="spec-table">
+    <tr><th>Token</th><th>值</th><th>用途</th></tr>
+    <tr><td>--border-subtle</td><td><code>rgba(186, 215, 247, 0.12)</code></td><td>卡片、分割线、表格边框</td></tr>
+    <tr><td>--shadow-card</td><td><code>inset rgba(199,211,234,0.12) 0 1px 1px, inset rgba(199,211,234,0.05) 0 24px 48px, rgba(6,6,14,0.7) 0 24px 32px</code></td><td>玻璃磨砂卡片阴影</td></tr>
+    <tr><td>--shadow-form</td><td><code>inset rgba(216,236,248,0.2) 0 1px 1px, inset rgba(168,216,245,0.06) 0 24px 48px, rgba(0,0,0,0.3) 0 16px 32px</code></td><td>登录/表单卡片</td></tr>
+    <tr><td>--shadow-sm</td><td><code>rgba(186,207,247,0.32) 0 0 6px</code></td><td>图标按钮发光效果</td></tr>
+    <tr><td>--shadow-md</td><td><code>rgba(238,186,247,0.24) 0 0 12px</code></td><td>强调元素辉光</td></tr>
+  </table>
+
+  <div class="h2">圆角规则</div>
+  <table class="spec-table">
+    <tr><th>元素类型</th><th>圆角值</th><th>说明</th></tr>
+    <tr><td>按钮（主/次）</td><td><code>999px (Pill)</code></td><td>所有可点击按钮统一 Pill 形态</td></tr>
+    <tr><td>CTA 实心按钮</td><td><code>6px</code></td><td>仅 Neon Violet 实心按钮使用</td></tr>
+    <tr><td>卡片 / 容器</td><td><code>12–16px</code></td><td>内容卡片、弹窗</td></tr>
+    <tr><td>Badge / 标签</td><td><code>6px</code></td><td>状态标签、小型标记</td></tr>
+    <tr><td>输入框</td><td><code>2–4px</code></td><td>表单输入区域</td></tr>
+  </table>
+</div>
+
+<!-- ══════════════════════════════════════════
+     SECTION: TYPOGRAPHY
+════════════════════════════════════════════ -->
+<div class="section" id="sec-typography">
+  <div class="section-eyebrow">Design System</div>
+  <div class="section-title">字体排版系统</div>
+  <div class="section-desc">三套字体各司其职：展示标题使用 Space Grotesk，正文 UI 使用 Inter，数字数据使用 IBM Plex Mono。</div>
+
+  <div class="h2">字体家族</div>
+  <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-bottom: 40px;">
+    <div class="glassy-card">
+      <div style="font-size:11px; color:var(--color-interstellar-gray); margin-bottom:12px; text-transform:uppercase; letter-spacing:0.08em;">Display Font</div>
+      <div style="font-family: var(--font-display); font-size:28px; font-weight:500; color:var(--color-ghost-white); margin-bottom:8px;">NexusRelay</div>
+      <div style="font-size:13px; color:var(--color-azure-glow);">Space Grotesk · 替代: aeonikPro</div>
+      <div style="font-size:12px; color:var(--color-interstellar-gray); margin-top:8px;">标题 / 数字展示 / 品牌文字</div>
+    </div>
+    <div class="glassy-card">
+      <div style="font-size:11px; color:var(--color-interstellar-gray); margin-bottom:12px; text-transform:uppercase; letter-spacing:0.08em;">Body Font</div>
+      <div style="font-family: var(--font-body); font-size:16px; color:var(--color-comet); margin-bottom:8px;">The quick brown fox<br>jumps over the lazy dog</div>
+      <div style="font-size:13px; color:var(--color-azure-glow);">Inter · 替代: Untitled Sans</div>
+      <div style="font-size:12px; color:var(--color-interstellar-gray); margin-top:8px;">正文 / UI 标签 / 表单元素</div>
+    </div>
+    <div class="glassy-card">
+      <div style="font-size:11px; color:var(--color-interstellar-gray); margin-bottom:12px; text-transform:uppercase; letter-spacing:0.08em;">Mono Font</div>
+      <div style="font-family: var(--font-mono); font-size:16px; color:var(--color-celestial-light); margin-bottom:8px;">sk-nx-a7f3...b2c1<br>¥ 128.540000</div>
+      <div style="font-size:13px; color:var(--color-azure-glow);">IBM Plex Mono · 替代: dotDigital</div>
+      <div style="font-size:12px; color:var(--color-interstellar-gray); margin-top:8px;">API Key / 数字数据 / 代码</div>
+    </div>
+  </div>
+
+  <div class="h2">字号规格</div>
+  <table class="spec-table">
+    <tr><th>角色</th><th>字号</th><th>行高</th><th>字距</th><th>字体</th><th>使用场景</th></tr>
+    <tr><td>display-xl</td><td>48px</td><td>1.14</td><td>0</td><td>Space Grotesk</td><td>Hero 主标题</td></tr>
+    <tr><td>display</td><td>44px</td><td>1.16</td><td>0</td><td>Space Grotesk</td><td>大型营销标题</td></tr>
+    <tr><td>heading-lg</td><td>28px</td><td>1.2</td><td>0</td><td>Space Grotesk</td><td>章节标题</td></tr>
+    <tr><td>heading</td><td>24px</td><td>1.33</td><td>-0.01px</td><td>Space Grotesk</td><td>页面标题</td></tr>
+    <tr><td>subheading</td><td>18px</td><td>1.43</td><td>-0.01px</td><td>Inter</td><td>副标题，卡片标题</td></tr>
+    <tr><td>body-lg</td><td>16px</td><td>1.5</td><td>-0.01px</td><td>Inter</td><td>重要正文段落</td></tr>
+    <tr><td>body</td><td>14px</td><td>1.5</td><td>-0.01px</td><td>Inter</td><td>常规 UI 文字</td></tr>
+    <tr><td>caption</td><td>12px</td><td>1.5</td><td>-0.01px</td><td>Inter</td><td>标签，辅助说明</td></tr>
+    <tr><td>mono</td><td>12–15px</td><td>1.2</td><td>+0.05em</td><td>IBM Plex Mono</td><td>API Key，数字，代码</td></tr>
+  </table>
+
+  <div class="h2">排版示例</div>
+  <div class="glassy-card" style="padding: 40px;">
+    <div style="font-family:var(--font-display); font-size:48px; font-weight:500; color:var(--color-ghost-white); margin-bottom:16px; line-height:1.14;">AI API 中转平台</div>
+    <div style="font-family:var(--font-display); font-size:28px; font-weight:400; color:var(--color-celestial-light); margin-bottom:20px;">为开发者提供稳定、低延迟的 API 接入</div>
+    <div style="font-size:16px; color:var(--color-azure-glow); margin-bottom:16px; line-height:1.6; max-width:540px;">基于多账号订阅池驱动，支持 Claude、ChatGPT、Gemini 三大平台，标准 OpenAI 兼容接口，接入零成本。</div>
+    <div style="font-size:14px; color:var(--color-whisper-blue); margin-bottom:24px;">当前余额 <span style="font-family:var(--font-mono); color:var(--color-comet);">¥ 128.54</span> · 本月消耗 <span style="font-family:var(--font-mono); color:var(--color-comet);">1,240,000</span> tokens</div>
+    <div style="font-size:12px; color:var(--color-interstellar-gray);">API Key: <span style="font-family:var(--font-mono);">sk-nx-a7f3c2e1...b2c1d9</span></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     SECTION: COMPONENTS
+════════════════════════════════════════════ -->
+<div class="section" id="sec-components">
+  <div class="section-eyebrow">Design System</div>
+  <div class="section-title">组件规范</div>
+  <div class="section-desc">所有可复用 UI 组件的视觉规格与使用指南。</div>
+
+  <div class="h2">按钮系统</div>
+  <div class="component-row">
+    <div class="component-block">
+      <button class="btn-cta">立即充值</button>
+      <div class="component-label">CTA 实心按钮<br><span style="color:var(--color-interstellar-gray);">bg: #663af3 · radius: 6px</span></div>
+    </div>
+    <div class="component-block">
+      <button class="btn-primary">创建 API Key</button>
+      <div class="component-label">Primary Pill 按钮<br><span style="color:var(--color-interstellar-gray);">bg: rgba(186,214,247,0.06) · radius: 999px</span></div>
+    </div>
+    <div class="component-block">
+      <button class="btn-secondary">查看文档</button>
+      <div class="component-label">Secondary Outline 按钮<br><span style="color:var(--color-interstellar-gray);">bg: transparent · border: rgba(186,215,247,0.12)</span></div>
+    </div>
+    <div class="component-block">
+      <button class="icon-btn">⋯</button>
+      <div class="component-label">Icon Button<br><span style="color:var(--color-interstellar-gray);">28×28 · radius: 999px</span></div>
+    </div>
+  </div>
+
+  <div class="h2">状态徽章 Badge</div>
+  <div class="component-row">
+    <div class="component-block"><span class="badge badge-green">● 正常</span><div class="component-label">成功 / 活跃</div></div>
+    <div class="component-block"><span class="badge badge-red">● 封禁</span><div class="component-label">错误 / 封禁</div></div>
+    <div class="component-block"><span class="badge badge-yellow">● 冷却中</span><div class="component-label">警告 / 冷却</div></div>
+    <div class="component-block"><span class="badge badge-violet">Claude</span><div class="component-label">平台标签</div></div>
+    <div class="component-block"><span class="badge">待支付</span><div class="component-label">中性状态</div></div>
+  </div>
+
+  <div class="h2">输入框</div>
+  <div class="component-row">
+    <div class="component-block">
+      <input class="input-field" placeholder="输入邮箱地址">
+      <div class="component-label">Minimal Input Field<br><span style="color:var(--color-interstellar-gray);">bg: rgba(199,211,234,0.06) · radius: 4px</span></div>
+    </div>
+  </div>
+
+  <div class="h2">卡片 Card</div>
+  <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:32px;">
+    <div class="glassy-card">
+      <div style="font-size:11px; color:var(--color-interstellar-gray); margin-bottom:8px; text-transform:uppercase; letter-spacing:0.06em;">Glassy Feature Card</div>
+      <div style="font-size:16px; font-weight:600; color:var(--color-arctic-mist); margin-bottom:6px;">多平台统一接入</div>
+      <div style="font-size:13px; color:var(--color-azure-glow);">Claude / ChatGPT / Gemini 三大平台，一个 Key 全部接入。</div>
+      <div style="margin-top:14px;"><span class="badge badge-violet">Claude</span></div>
+    </div>
+    <div class="glassy-card" style="background:rgba(5,6,15,0.97); box-shadow: var(--shadow-form);">
+      <div style="font-size:11px; color:var(--color-interstellar-gray); margin-bottom:8px; text-transform:uppercase; letter-spacing:0.06em;">Login Form Card</div>
+      <div class="form-group"><label class="form-label">邮箱</label><input class="full-input" placeholder="your@email.com" style="font-size:13px; padding:8px 10px;"></div>
+      <button class="full-btn-cta" style="padding:9px; font-size:13px;">继续</button>
+    </div>
+  </div>
+
+  <div class="h2">数据统计卡</div>
+  <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:12px;">
+    <div class="stat-card">
+      <div class="stat-label">账户余额</div>
+      <div class="stat-val">¥ 128.54</div>
+      <div class="stat-change">↑ 上次充值 ¥50</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">本月 Token 用量</div>
+      <div class="stat-val">1.24M</div>
+      <div class="stat-change">↑ 较上月 +23%</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">活跃 API Key</div>
+      <div class="stat-val">3</div>
+      <div class="stat-change" style="color: var(--color-interstellar-gray);">共创建 5 个</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     SECTION: LANDING
+════════════════════════════════════════════ -->
+<div class="section" id="sec-landing">
+  <div class="section-eyebrow">用户端页面</div>
+  <div class="section-title">首页 Landing Page</div>
+  <div class="section-desc">对外展示产品定位、定价方案，引导用户注册。</div>
+
+  <div class="mockup-wrapper">
+    <div class="mockup-titlebar">
+      <div class="mockup-dot" style="background:#ff5f56"></div>
+      <div class="mockup-dot" style="background:#ffbd2e"></div>
+      <div class="mockup-dot" style="background:#27c93f"></div>
+      <div class="mockup-url">nexusrelay.com</div>
+    </div>
+    <div class="mockup-body mockup-scroll">
+      <!-- Nav -->
+      <div class="page-nav">
+        <div class="page-logo">⚡ NexusRelay</div>
+        <div class="page-nav-links">
+          <a class="page-nav-link">文档</a>
+          <a class="page-nav-link">定价</a>
+          <a class="page-nav-link">状态</a>
+        </div>
+        <div class="page-nav-actions">
+          <button class="btn-secondary" style="padding:7px 16px; font-size:13px;">登录</button>
+          <button class="btn-cta" style="padding:7px 16px; font-size:13px;">免费注册</button>
+        </div>
+      </div>
+
+      <!-- Hero -->
+      <div class="hero">
+        <div class="hero-badge">✦ 支持 Claude · ChatGPT · Gemini</div>
+        <div class="hero-title">一个 Key<br>接入<em>所有</em> AI 平台</div>
+        <div class="hero-sub">订阅池驱动，标准 OpenAI 兼容接口，按 token 计费，人民币充值，即充即用。</div>
+        <div class="hero-actions">
+          <button class="btn-cta" style="padding:12px 28px; font-size:15px; font-family:var(--font-display);">免费开始使用</button>
+          <button class="btn-primary" style="padding:12px 24px; font-size:15px;">查看文档 →</button>
+        </div>
+        <!-- Code snippet preview -->
+        <div style="margin-top:48px; background:rgba(5,6,15,0.9); border:1px solid var(--border-subtle); border-radius:12px; padding:20px 24px; max-width:480px; margin-left:auto; margin-right:auto; text-align:left; box-shadow:var(--shadow-card);">
+          <div style="font-size:11px; color:var(--color-interstellar-gray); margin-bottom:12px;">快速接入示例</div>
+          <div style="font-family:var(--font-mono); font-size:12px; line-height:1.8; color:var(--color-azure-glow);">
+            <span style="color:#81899b;">from</span> <span style="color:var(--color-celestial-light);">anthropic</span> <span style="color:#81899b;">import</span> Anthropic<br><br>
+            client = Anthropic(<br>
+            &nbsp;&nbsp;<span style="color:var(--color-interstellar-gray);">base_url</span>=<span style="color:#a8d8a8;">"https://api.nexusrelay.com"</span>,<br>
+            &nbsp;&nbsp;<span style="color:var(--color-interstellar-gray);">api_key</span>=<span style="color:#a8d8a8;">"sk-nx-your-key"</span>,<br>
+            )
+          </div>
+        </div>
+      </div>
+
+      <!-- Pricing -->
+      <div class="pricing-section">
+        <div class="pricing-title">简单透明的定价</div>
+        <div class="pricing-sub">按实际使用量计费，无月费，充值即可使用</div>
+        <div class="pricing-grid">
+          <div class="pricing-card">
+            <div class="pricing-plan">基础模型</div>
+            <div class="pricing-amount">¥ 0.003</div>
+            <div class="pricing-unit">每 1K 输入 token</div>
+            <div class="pricing-divider"></div>
+            <div class="pricing-feature">claude-haiku-4-5</div>
+            <div class="pricing-feature">gemini-1.5-flash</div>
+            <div class="pricing-feature">gpt-4o-mini</div>
+          </div>
+          <div class="pricing-card featured">
+            <div class="pricing-plan violet">主力模型 ⚡ 推荐</div>
+            <div class="pricing-amount">¥ 0.015</div>
+            <div class="pricing-unit">每 1K 输入 token</div>
+            <div class="pricing-divider"></div>
+            <div class="pricing-feature">claude-sonnet-4-6</div>
+            <div class="pricing-feature">gpt-4o</div>
+            <div class="pricing-feature">gemini-1.5-pro</div>
+            <div style="margin-top:20px;"><button class="btn-cta" style="width:100%; padding:10px; font-size:13px;">开始使用</button></div>
+          </div>
+          <div class="pricing-card">
+            <div class="pricing-plan">顶级模型</div>
+            <div class="pricing-amount">¥ 0.075</div>
+            <div class="pricing-unit">每 1K 输入 token</div>
+            <div class="pricing-divider"></div>
+            <div class="pricing-feature">claude-opus-4-6</div>
+            <div class="pricing-feature">o1-preview</div>
+            <div class="pricing-feature">gemini-ultra</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="h2">页面规格说明</div>
+  <table class="spec-table">
+    <tr><th>区域</th><th>规格</th></tr>
+    <tr><td>顶部导航高度</td><td>64px，sticky，背景 <code>rgba(5,6,15,0.9)</code> + <code>backdrop-filter: blur(12px)</code></td></tr>
+    <tr><td>Hero 区域</td><td>主标题 48px Space Grotesk，副标题 18px Inter，背景辐射渐变 <code>rgba(102,58,243,0.12)</code></td></tr>
+    <tr><td>定价卡高亮</td><td>推荐套餐加 <code>rgba(102,58,243,0.06)</code> 背景，border-color 改为 <code>rgba(102,58,243,0.4)</code></td></tr>
+    <tr><td>代码预览块</td><td>背景 <code>rgba(5,6,15,0.9)</code>，字体 IBM Plex Mono 12px，语法高亮使用 Celestial Light</td></tr>
+  </table>
+</div>
+
+<!-- ══════════════════════════════════════════
+     SECTION: AUTH
+════════════════════════════════════════════ -->
+<div class="section" id="sec-auth">
+  <div class="section-eyebrow">用户端页面</div>
+  <div class="section-title">注册 / 登录</div>
+  <div class="section-desc">独立全屏页面，居中表单卡片，Login Form Card 样式，Neon Violet 径向背景光晕装饰。</div>
+
+  <div style="display:grid; grid-template-columns:1fr 1fr; gap:24px; margin-bottom:32px;">
+    <!-- Login -->
+    <div>
+      <div style="font-size:12px; color:var(--color-interstellar-gray); margin-bottom:12px; text-align:center; text-transform:uppercase; letter-spacing:0.06em;">登录页</div>
+      <div class="mockup-wrapper">
+        <div class="mockup-titlebar">
+          <div class="mockup-dot" style="background:#ff5f56"></div>
+          <div class="mockup-dot" style="background:#ffbd2e"></div>
+          <div class="mockup-dot" style="background:#27c93f"></div>
+          <div class="mockup-url">nexusrelay.com/login</div>
+        </div>
+        <div class="auth-page">
+          <div class="auth-card">
+            <div style="text-align:center; margin-bottom:28px;">
+              <div style="font-family:var(--font-display); font-size:18px; color:var(--color-ghost-white); margin-bottom:4px;">⚡ NexusRelay</div>
+            </div>
+            <div class="auth-title">欢迎回来</div>
+            <div class="auth-sub">登录你的账户继续使用</div>
+            <div class="form-group"><label class="form-label">邮箱地址</label><input class="full-input" placeholder="your@email.com"></div>
+            <div class="form-group"><label class="form-label">密码</label><input class="full-input" type="password" placeholder="••••••••"></div>
+            <button class="full-btn-cta">登录</button>
+            <div class="auth-footer">还没有账号？<a href="#">免费注册</a></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Register -->
+    <div>
+      <div style="font-size:12px; color:var(--color-interstellar-gray); margin-bottom:12px; text-align:center; text-transform:uppercase; letter-spacing:0.06em;">注册页</div>
+      <div class="mockup-wrapper">
+        <div class="mockup-titlebar">
+          <div class="mockup-dot" style="background:#ff5f56"></div>
+          <div class="mockup-dot" style="background:#ffbd2e"></div>
+          <div class="mockup-dot" style="background:#27c93f"></div>
+          <div class="mockup-url">nexusrelay.com/register</div>
+        </div>
+        <div class="auth-page">
+          <div class="auth-card">
+            <div class="auth-title">创建账户</div>
+            <div class="auth-sub">注册后即获赠 ¥5 试用额度</div>
+            <div class="form-group"><label class="form-label">邮箱地址</label><input class="full-input" placeholder="your@email.com"></div>
+            <div class="form-group"><label class="form-label">设置密码</label><input class="full-input" type="password" placeholder="至少 8 位"></div>
+            <div class="form-group"><label class="form-label">确认密码</label><input class="full-input" type="password" placeholder="再次输入密码"></div>
+            <button class="full-btn-cta">创建账户</button>
+            <div class="auth-footer">已有账号？<a href="#">立即登录</a></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="h2">表单规格</div>
+  <table class="spec-table">
+    <tr><th>元素</th><th>规格</th></tr>
+    <tr><td>页面背景</td><td>Midnight Abyss + Neon Violet 径向光晕 <code>radial-gradient(circle, rgba(102,58,243,0.1) 0%, transparent 70%)</code></td></tr>
+    <tr><td>表单卡片</td><td>Login Form Card 样式，宽度 380px，padding 40px，border-radius 16px</td></tr>
+    <tr><td>输入框</td><td>宽度 100%，高度 40px，padding 10px 12px，radius 4px</td></tr>
+    <tr><td>提交按钮</td><td>宽度 100%，Neon Violet 实心，radius 6px，高度 44px</td></tr>
+    <tr><td>元素间距</td><td>16px (element gap)，form-group 之间</td></tr>
+  </table>
+</div>
+
+<!-- ══════════════════════════════════════════
+     SECTION: DASHBOARD
+════════════════════════════════════════════ -->
+<div class="section" id="sec-dashboard">
+  <div class="section-eyebrow">用户端页面</div>
+  <div class="section-title">控制台概览</div>
+  <div class="section-desc">用户登录后的主界面，左侧导航 + 右侧内容区，展示余额、用量统计和最近调用记录。</div>
+
+  <div class="mockup-wrapper">
+    <div class="mockup-titlebar">
+      <div class="mockup-dot" style="background:#ff5f56"></div>
+      <div class="mockup-dot" style="background:#ffbd2e"></div>
+      <div class="mockup-dot" style="background:#27c93f"></div>
+      <div class="mockup-url">nexusrelay.com/dashboard</div>
+    </div>
+    <div class="dash-layout">
+      <!-- Sidebar -->
+      <div class="dash-sidebar">
+        <div class="dash-sidebar-logo">
+          <div style="font-family:var(--font-display); font-size:15px; color:var(--color-ghost-white);">⚡ NexusRelay</div>
+        </div>
+        <div class="dash-nav-item active">📊 <span>概览</span></div>
+        <div class="dash-nav-item">🔑 <span>API Keys</span></div>
+        <div class="dash-nav-item">📈 <span>用量明细</span></div>
+        <div class="dash-nav-item">💳 <span>充值</span></div>
+        <div style="position:absolute; bottom:24px; width:220px;">
+          <div class="dash-nav-item">⚙️ <span>账号设置</span></div>
+        </div>
+      </div>
+      <!-- Content -->
+      <div class="dash-content">
+        <div class="dash-content-header">
+          <div class="dash-page-title">控制台</div>
+          <button class="btn-cta" style="padding:8px 16px; font-size:13px;">+ 充值</button>
+        </div>
+
+        <!-- Stats -->
+        <div class="stat-grid">
+          <div class="stat-card">
+            <div class="stat-label">账户余额</div>
+            <div class="stat-val">¥ 128.54</div>
+            <div class="stat-change">↑ 上次充值 ¥50</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">本月消耗</div>
+            <div class="stat-val">1.24M</div>
+            <div class="stat-change">↑ tokens +23%</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">活跃 API Key</div>
+            <div class="stat-val">3</div>
+            <div class="stat-change" style="color:var(--color-interstellar-gray);">共 5 个</div>
+          </div>
+        </div>
+
+        <!-- Chart -->
+        <div class="chart-card">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+            <div class="chart-title">Token 用量趋势</div>
+            <div class="tab-bar" style="margin:0;">
+              <div class="tab active" style="padding:4px 12px; font-size:12px;">7天</div>
+              <div class="tab" style="padding:4px 12px; font-size:12px;">30天</div>
+            </div>
+          </div>
+          <div class="chart-bars">
+            <div class="chart-bar" style="height:30%"></div>
+            <div class="chart-bar" style="height:45%"></div>
+            <div class="chart-bar" style="height:60%"></div>
+            <div class="chart-bar" style="height:40%"></div>
+            <div class="chart-bar" style="height:75%"></div>
+            <div class="chart-bar" style="height:55%"></div>
+            <div class="chart-bar today" style="height:85%"></div>
+          </div>
+          <div style="display:flex; justify-content:space-between; margin-top:8px;">
+            <span style="font-size:10px; color:var(--color-interstellar-gray);">5/3</span>
+            <span style="font-size:10px; color:var(--color-interstellar-gray);">5/9</span>
+          </div>
+        </div>
+
+        <!-- Recent calls table -->
+        <div class="table-card">
+          <div class="table-header">
+            <div class="table-title">最近调用</div>
+            <a style="font-size:12px; color:var(--color-celestial-light); cursor:pointer;">查看全部 →</a>
+          </div>
+          <table>
+            <tr><th>时间</th><th>模型</th><th>Token</th><th>费用</th></tr>
+            <tr><td>14:32:01</td><td><span class="badge badge-violet" style="font-size:11px;">claude-sonnet</span></td><td class="mono">2,847</td><td class="mono">¥ 0.043</td></tr>
+            <tr><td>14:28:44</td><td><span class="badge" style="font-size:11px; border-color:rgba(16,185,129,0.3); color:#34d399; background:rgba(16,185,129,0.08);">gpt-4o</span></td><td class="mono">1,203</td><td class="mono">¥ 0.018</td></tr>
+            <tr><td>14:15:22</td><td><span class="badge badge-violet" style="font-size:11px;">claude-opus</span></td><td class="mono">5,921</td><td class="mono">¥ 0.444</td></tr>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="h2">布局规格</div>
+  <table class="spec-table">
+    <tr><th>区域</th><th>规格</th></tr>
+    <tr><td>左侧导航宽度</td><td>220px，背景 <code>rgba(5,6,15,0.95)</code>，右边框 1px subtle</td></tr>
+    <tr><td>内容区 padding</td><td>28px 32px</td></tr>
+    <tr><td>统计卡 grid</td><td>3列等宽，gap 16px</td></tr>
+    <tr><td>图表高度</td><td>80px 柱形区域，ECharts 替代示意图</td></tr>
+    <tr><td>活跃导航项</td><td>左边框 2px Neon Violet + 背景 <code>rgba(102,58,243,0.08)</code></td></tr>
+  </table>
+</div>
+
+<!-- ══════════════════════════════════════════
+     SECTION: API KEYS
+════════════════════════════════════════════ -->
+<div class="section" id="sec-apikeys">
+  <div class="section-eyebrow">用户端页面</div>
+  <div class="section-title">API Key 管理</div>
+  <div class="section-desc">用户创建、查看、删除 API Key，支持备注命名，Key 值脱敏展示（仅创建时完整展示一次）。</div>
+
+  <div class="mockup-wrapper">
+    <div class="mockup-titlebar">
+      <div class="mockup-dot" style="background:#ff5f56"></div>
+      <div class="mockup-dot" style="background:#ffbd2e"></div>
+      <div class="mockup-dot" style="background:#27c93f"></div>
+      <div class="mockup-url">nexusrelay.com/dashboard/keys</div>
+    </div>
+    <div class="dash-layout">
+      <div class="dash-sidebar">
+        <div class="dash-sidebar-logo"><div style="font-family:var(--font-display); font-size:15px; color:var(--color-ghost-white);">⚡ NexusRelay</div></div>
+        <div class="dash-nav-item">📊 <span>概览</span></div>
+        <div class="dash-nav-item active">🔑 <span>API Keys</span></div>
+        <div class="dash-nav-item">📈 <span>用量明细</span></div>
+        <div class="dash-nav-item">💳 <span>充值</span></div>
+      </div>
+      <div class="dash-content">
+        <div class="dash-content-header">
+          <div>
+            <div class="dash-page-title">API Keys</div>
+            <div style="font-size:12px; color:var(--color-interstellar-gray); margin-top:4px;">管理你的 API 访问凭证</div>
+          </div>
+          <button class="btn-cta" style="padding:8px 16px; font-size:13px;">+ 创建 Key</button>
+        </div>
+
+        <div class="table-card">
+          <div class="table-header">
+            <div class="table-title">我的 API Keys</div>
+            <span class="badge" style="font-size:11px;">3 / 5 已用</span>
+          </div>
+          <div class="key-item">
+            <div style="width:8px; height:8px; border-radius:50%; background:#34d399; flex-shrink:0;"></div>
+            <div style="flex:1;">
+              <div class="key-name">Claude Code 专用</div>
+              <div class="key-val">sk-nx-a7f3...b2c1</div>
+            </div>
+            <div style="font-size:11px; color:var(--color-interstellar-gray);">最近使用 2分钟前</div>
+            <div class="key-actions">
+              <button class="icon-btn" title="复制">⧉</button>
+              <button class="icon-btn" title="删除" style="color:#f87171;">✕</button>
+            </div>
+          </div>
+          <div class="key-item">
+            <div style="width:8px; height:8px; border-radius:50%; background:#34d399; flex-shrink:0;"></div>
+            <div style="flex:1;">
+              <div class="key-name">Cursor 编辑器</div>
+              <div class="key-val">sk-nx-c8d2...e5f0</div>
+            </div>
+            <div style="font-size:11px; color:var(--color-interstellar-gray);">最近使用 1小时前</div>
+            <div class="key-actions">
+              <button class="icon-btn">⧉</button>
+              <button class="icon-btn" style="color:#f87171;">✕</button>
+            </div>
+          </div>
+          <div class="key-item">
+            <div style="width:8px; height:8px; border-radius:50%; background:#fbbf24; flex-shrink:0;"></div>
+            <div style="flex:1;">
+              <div class="key-name">个人测试</div>
+              <div class="key-val">sk-nx-9a1b...d3e7</div>
+            </div>
+            <div style="font-size:11px; color:var(--color-interstellar-gray);">最近使用 3天前</div>
+            <div class="key-actions">
+              <button class="icon-btn">⧉</button>
+              <button class="icon-btn" style="color:#f87171;">✕</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- New key created state -->
+        <div style="margin-top:16px; background:rgba(16,185,129,0.06); border:1px solid rgba(16,185,129,0.2); border-radius:12px; padding:20px;">
+          <div style="font-size:13px; font-weight:600; color:#34d399; margin-bottom:8px;">✓ 新 Key 已创建，请立即复制保存</div>
+          <div style="font-family:var(--font-mono); font-size:13px; color:var(--color-ghost-white); background:rgba(5,6,15,0.8); border:1px solid var(--border-subtle); border-radius:6px; padding:10px 14px; margin-bottom:12px; word-break:break-all;">sk-nx-f2a9c8e1d3b7f4a2c6e8d1b3f7a9c2e4</div>
+          <div style="font-size:12px; color:var(--color-interstellar-gray);">此 Key 仅展示一次，关闭后无法再次查看。</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     SECTION: USAGE
+════════════════════════════════════════════ -->
+<div class="section" id="sec-usage">
+  <div class="section-eyebrow">用户端页面</div>
+  <div class="section-title">用量明细</div>
+  <div class="section-desc">按时间、模型筛选的 Token 用量记录，支持导出。顶部展示本期汇总数据。</div>
+
+  <div class="mockup-wrapper">
+    <div class="mockup-titlebar">
+      <div class="mockup-dot" style="background:#ff5f56"></div>
+      <div class="mockup-dot" style="background:#ffbd2e"></div>
+      <div class="mockup-dot" style="background:#27c93f"></div>
+      <div class="mockup-url">nexusrelay.com/dashboard/usage</div>
+    </div>
+    <div class="dash-layout">
+      <div class="dash-sidebar">
+        <div class="dash-sidebar-logo"><div style="font-family:var(--font-display); font-size:15px; color:var(--color-ghost-white);">⚡ NexusRelay</div></div>
+        <div class="dash-nav-item">📊 <span>概览</span></div>
+        <div class="dash-nav-item">🔑 <span>API Keys</span></div>
+        <div class="dash-nav-item active">📈 <span>用量明细</span></div>
+        <div class="dash-nav-item">💳 <span>充值</span></div>
+      </div>
+      <div class="dash-content">
+        <div class="dash-content-header">
+          <div class="dash-page-title">用量明细</div>
+          <div style="display:flex; gap:8px;">
+            <select style="background:rgba(199,211,234,0.06); border:1px solid var(--border-subtle); border-radius:6px; padding:7px 12px; color:var(--color-azure-glow); font-size:13px; font-family:var(--font-body);">
+              <option>全部模型</option>
+              <option>Claude</option>
+              <option>GPT</option>
+            </select>
+            <button class="btn-secondary" style="padding:7px 14px; font-size:13px;">导出 CSV</button>
+          </div>
+        </div>
+
+        <!-- Summary -->
+        <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:20px;">
+          <div class="stat-card"><div class="stat-label">本月总消耗</div><div class="stat-val">¥ 24.83</div></div>
+          <div class="stat-card"><div class="stat-label">输入 Token</div><div class="stat-val">876K</div></div>
+          <div class="stat-card"><div class="stat-label">输出 Token</div><div class="stat-val">368K</div></div>
+          <div class="stat-card"><div class="stat-label">调用次数</div><div class="stat-val">1,247</div></div>
+        </div>
+
+        <div class="table-card">
+          <div class="table-header"><div class="table-title">调用记录</div></div>
+          <table>
+            <tr><th>时间</th><th>模型</th><th>Key</th><th>输入</th><th>输出</th><th>费用</th></tr>
+            <tr>
+              <td style="font-family:var(--font-mono); font-size:11px; color:var(--color-interstellar-gray);">2026-05-09 14:32</td>
+              <td><span class="badge badge-violet" style="font-size:11px;">claude-sonnet</span></td>
+              <td style="font-family:var(--font-mono); font-size:11px; color:var(--color-interstellar-gray);">...b2c1</td>
+              <td class="mono">2,401</td><td class="mono">446</td><td class="mono">¥ 0.043</td>
+            </tr>
+            <tr>
+              <td style="font-family:var(--font-mono); font-size:11px; color:var(--color-interstellar-gray);">2026-05-09 14:28</td>
+              <td><span class="badge" style="font-size:11px; color:#34d399; border-color:rgba(16,185,129,0.3); background:rgba(16,185,129,0.08);">gpt-4o</span></td>
+              <td style="font-family:var(--font-mono); font-size:11px; color:var(--color-interstellar-gray);">...e5f0</td>
+              <td class="mono">987</td><td class="mono">216</td><td class="mono">¥ 0.018</td>
+            </tr>
+            <tr>
+              <td style="font-family:var(--font-mono); font-size:11px; color:var(--color-interstellar-gray);">2026-05-09 13:55</td>
+              <td><span class="badge badge-violet" style="font-size:11px;">claude-opus</span></td>
+              <td style="font-family:var(--font-mono); font-size:11px; color:var(--color-interstellar-gray);">...b2c1</td>
+              <td class="mono">4,832</td><td class="mono">1,089</td><td class="mono">¥ 0.444</td>
+            </tr>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     SECTION: RECHARGE
+════════════════════════════════════════════ -->
+<div class="section" id="sec-recharge">
+  <div class="section-eyebrow">用户端页面</div>
+  <div class="section-title">充值页面</div>
+  <div class="section-desc">套餐选择 → 支付方式选择 → 扫码支付 → 到账确认。三步流程，微信/支付宝二维码。</div>
+
+  <div class="mockup-wrapper">
+    <div class="mockup-titlebar">
+      <div class="mockup-dot" style="background:#ff5f56"></div>
+      <div class="mockup-dot" style="background:#ffbd2e"></div>
+      <div class="mockup-dot" style="background:#27c93f"></div>
+      <div class="mockup-url">nexusrelay.com/dashboard/recharge</div>
+    </div>
+    <div class="dash-layout">
+      <div class="dash-sidebar">
+        <div class="dash-sidebar-logo"><div style="font-family:var(--font-display); font-size:15px; color:var(--color-ghost-white);">⚡ NexusRelay</div></div>
+        <div class="dash-nav-item">📊 <span>概览</span></div>
+        <div class="dash-nav-item">🔑 <span>API Keys</span></div>
+        <div class="dash-nav-item">📈 <span>用量明细</span></div>
+        <div class="dash-nav-item active">💳 <span>充值</span></div>
+      </div>
+      <div class="dash-content">
+        <div class="dash-page-title" style="margin-bottom:24px;">账户充值</div>
+
+        <!-- Step 1: Amount -->
+        <div class="glassy-card" style="margin-bottom:16px;">
+          <div style="font-size:13px; font-weight:600; color:var(--color-arctic-mist); margin-bottom:16px;">① 选择充值金额</div>
+          <div class="recharge-options">
+            <div class="recharge-option">
+              <div class="recharge-amount">¥ 10</div>
+              <div class="recharge-credits">10 元额度</div>
+            </div>
+            <div class="recharge-option">
+              <div class="recharge-amount">¥ 30</div>
+              <div class="recharge-credits">30 元额度</div>
+            </div>
+            <div class="recharge-option selected">
+              <div class="recharge-amount">¥ 50</div>
+              <div class="recharge-credits">50 元额度</div>
+              <div class="recharge-bonus">推荐 ⚡</div>
+            </div>
+            <div class="recharge-option">
+              <div class="recharge-amount">¥ 100</div>
+              <div class="recharge-credits">105 元额度</div>
+              <div class="recharge-bonus">赠 5 元</div>
+            </div>
+          </div>
+          <div style="display:flex; align-items:center; gap:8px; margin-top:8px;">
+            <span style="font-size:13px; color:var(--color-azure-glow);">自定义金额</span>
+            <input class="input-field" placeholder="输入金额（元）" style="width:160px; font-size:13px;">
+          </div>
+        </div>
+
+        <!-- Step 2: Payment -->
+        <div class="glassy-card" style="margin-bottom:16px;">
+          <div style="font-size:13px; font-weight:600; color:var(--color-arctic-mist); margin-bottom:16px;">② 选择支付方式</div>
+          <div style="display:flex; gap:12px;">
+            <div style="flex:1; border:2px solid var(--color-neon-violet); border-radius:10px; padding:14px; display:flex; align-items:center; gap:10px; background:rgba(102,58,243,0.06); cursor:pointer;">
+              <span style="font-size:20px;">💚</span>
+              <div>
+                <div style="font-size:13px; font-weight:600; color:var(--color-arctic-mist);">微信支付</div>
+                <div style="font-size:11px; color:var(--color-interstellar-gray);">扫码支付</div>
+              </div>
+            </div>
+            <div style="flex:1; border:1px solid var(--border-subtle); border-radius:10px; padding:14px; display:flex; align-items:center; gap:10px; cursor:pointer;">
+              <span style="font-size:20px;">💙</span>
+              <div>
+                <div style="font-size:13px; font-weight:600; color:var(--color-azure-glow);">支付宝</div>
+                <div style="font-size:11px; color:var(--color-interstellar-gray);">扫码支付</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 3: QR -->
+        <div class="glassy-card">
+          <div style="font-size:13px; font-weight:600; color:var(--color-arctic-mist); margin-bottom:16px;">③ 扫码完成支付</div>
+          <div style="text-align:center; padding:16px;">
+            <div class="qr-box">
+              <svg width="100" height="100" viewBox="0 0 100 100" style="opacity:0.8;">
+                <rect x="5" y="5" width="30" height="30" rx="3" fill="#333" stroke="none"/>
+                <rect x="10" y="10" width="20" height="20" rx="2" fill="white"/>
+                <rect x="13" y="13" width="14" height="14" rx="1" fill="#333"/>
+                <rect x="65" y="5" width="30" height="30" rx="3" fill="#333"/>
+                <rect x="70" y="10" width="20" height="20" rx="2" fill="white"/>
+                <rect x="73" y="13" width="14" height="14" rx="1" fill="#333"/>
+                <rect x="5" y="65" width="30" height="30" rx="3" fill="#333"/>
+                <rect x="10" y="70" width="20" height="20" rx="2" fill="white"/>
+                <rect x="13" y="73" width="14" height="14" rx="1" fill="#333"/>
+                <rect x="45" y="5" width="8" height="8" rx="1" fill="#333"/>
+                <rect x="45" y="20" width="8" height="8" rx="1" fill="#333"/>
+                <rect x="45" y="35" width="8" height="8" rx="1" fill="#333"/>
+                <rect x="55" y="45" width="8" height="8" rx="1" fill="#333"/>
+                <rect x="70" y="45" width="8" height="8" rx="1" fill="#333"/>
+                <rect x="45" y="55" width="8" height="8" rx="1" fill="#333"/>
+                <rect x="55" y="65" width="8" height="8" rx="1" fill="#333"/>
+                <rect x="45" y="75" width="8" height="8" rx="1" fill="#333"/>
+                <rect x="70" y="75" width="8" height="8" rx="1" fill="#333"/>
+                <rect x="85" y="55" width="8" height="8" rx="1" fill="#333"/>
+              </svg>
+            </div>
+            <div style="font-family:var(--font-display); font-size:22px; font-weight:500; color:var(--color-ghost-white); margin-bottom:4px;">¥ 50.00</div>
+            <div style="font-size:12px; color:var(--color-interstellar-gray); margin-bottom:16px;">微信扫码支付 · 到账 ¥50 额度</div>
+            <div style="display:flex; align-items:center; gap:6px; justify-content:center; font-size:12px; color:var(--color-interstellar-gray);">
+              <span style="width:6px; height:6px; border-radius:50%; background:#fbbf24; display:inline-block;"></span>
+              等待支付中...
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     SECTION: ADMIN
+════════════════════════════════════════════ -->
+<div class="section" id="sec-admin">
+  <div class="section-eyebrow">管理后台</div>
+  <div class="section-title">管理后台 — 数据总览</div>
+  <div class="section-desc">管理员专用后台，独立部署，独立域名。展示平台收入、用量、用户数等核心运营指标。</div>
+
+  <div class="mockup-wrapper">
+    <div class="mockup-titlebar">
+      <div class="mockup-dot" style="background:#ff5f56"></div>
+      <div class="mockup-dot" style="background:#ffbd2e"></div>
+      <div class="mockup-dot" style="background:#27c93f"></div>
+      <div class="mockup-url">admin.nexusrelay.com</div>
+    </div>
+    <div class="mockup-scroll">
+      <div style="display:flex;">
+        <!-- Admin sidebar -->
+        <div class="dash-sidebar" style="position:relative;">
+          <div class="dash-sidebar-logo">
+            <div style="font-family:var(--font-display); font-size:14px; color:var(--color-ghost-white);">⚡ NexusRelay Admin</div>
+          </div>
+          <div class="dash-nav-item active">📊 <span>数据总览</span></div>
+          <div class="dash-nav-item">👥 <span>用户管理</span></div>
+          <div class="dash-nav-item">🤖 <span>账号池</span></div>
+          <div class="dash-nav-item">📋 <span>充值订单</span></div>
+          <div class="dash-nav-item">💰 <span>定价配置</span></div>
+          <div class="dash-nav-item">📡 <span>系统状态</span></div>
+        </div>
+        <!-- Admin content -->
+        <div class="dash-content">
+          <div class="dash-content-header">
+            <div class="dash-page-title">数据总览</div>
+            <div style="font-family:var(--font-mono); font-size:12px; color:var(--color-interstellar-gray);">2026-05-09 14:32 刷新</div>
+          </div>
+
+          <div class="admin-stat-grid">
+            <div class="admin-stat">
+              <div class="admin-stat-label">今日收入</div>
+              <div class="admin-stat-val">¥ 384</div>
+              <div class="admin-stat-sub">↑ +12% 昨日</div>
+            </div>
+            <div class="admin-stat">
+              <div class="admin-stat-label">本月收入</div>
+              <div class="admin-stat-val">¥ 9,420</div>
+              <div class="admin-stat-sub">↑ +28% 上月</div>
+            </div>
+            <div class="admin-stat">
+              <div class="admin-stat-label">活跃用户</div>
+              <div class="admin-stat-val">847</div>
+              <div class="admin-stat-sub" style="color:var(--color-interstellar-gray);">注册总数 2,341</div>
+            </div>
+            <div class="admin-stat">
+              <div class="admin-stat-label">今日 Token 量</div>
+              <div class="admin-stat-val">24.8M</div>
+              <div class="admin-stat-sub">↑ +8%</div>
+            </div>
+          </div>
+
+          <!-- Model distribution -->
+          <div class="chart-card" style="margin-bottom:16px;">
+            <div class="chart-title">模型用量占比（本月）</div>
+            <div style="display:flex; gap:24px; align-items:center;">
+              <div style="flex:1; height:12px; background:var(--border-subtle); border-radius:99px; overflow:hidden; display:flex;">
+                <div style="height:100%; width:58%; background:var(--color-neon-violet);"></div>
+                <div style="height:100%; width:27%; background:#34d399;"></div>
+                <div style="height:100%; width:15%; background:#60a5fa;"></div>
+              </div>
+              <div style="display:flex; gap:16px; flex-shrink:0;">
+                <div style="display:flex; align-items:center; gap:6px; font-size:12px; color:var(--color-azure-glow);">
+                  <span style="width:8px; height:8px; border-radius:2px; background:var(--color-neon-violet); display:inline-block;"></span>Claude 58%
+                </div>
+                <div style="display:flex; align-items:center; gap:6px; font-size:12px; color:var(--color-azure-glow);">
+                  <span style="width:8px; height:8px; border-radius:2px; background:#34d399; display:inline-block;"></span>GPT 27%
+                </div>
+                <div style="display:flex; align-items:center; gap:6px; font-size:12px; color:var(--color-azure-glow);">
+                  <span style="width:8px; height:8px; border-radius:2px; background:#60a5fa; display:inline-block;"></span>Gemini 15%
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Recent users table -->
+          <div class="table-card">
+            <div class="table-header"><div class="table-title">最近注册用户</div></div>
+            <table>
+              <tr><th>邮箱</th><th>余额</th><th>本月消耗</th><th>状态</th><th>操作</th></tr>
+              <tr>
+                <td>dev***@gmail.com</td>
+                <td class="mono">¥ 128.54</td>
+                <td class="mono">¥ 24.83</td>
+                <td><span class="badge badge-green" style="font-size:11px;">正常</span></td>
+                <td><a style="font-size:12px; color:var(--color-celestial-light); cursor:pointer;">详情</a></td>
+              </tr>
+              <tr>
+                <td>test***@qq.com</td>
+                <td class="mono">¥ 0.00</td>
+                <td class="mono">¥ 0.00</td>
+                <td><span class="badge badge-yellow" style="font-size:11px;">余额不足</span></td>
+                <td><a style="font-size:12px; color:var(--color-celestial-light); cursor:pointer;">充值</a></td>
+              </tr>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     SECTION: ACCOUNTS
+════════════════════════════════════════════ -->
+<div class="section" id="sec-accounts">
+  <div class="section-eyebrow">管理后台</div>
+  <div class="section-title">账号池管理</div>
+  <div class="section-desc">管理所有 AI 平台订阅账号，实时监控账号状态、今日用量、是否被封。</div>
+
+  <div class="mockup-wrapper">
+    <div class="mockup-titlebar">
+      <div class="mockup-dot" style="background:#ff5f56"></div>
+      <div class="mockup-dot" style="background:#ffbd2e"></div>
+      <div class="mockup-dot" style="background:#27c93f"></div>
+      <div class="mockup-url">admin.nexusrelay.com/accounts</div>
+    </div>
+    <div style="display:flex;">
+      <div class="dash-sidebar" style="position:relative;">
+        <div class="dash-sidebar-logo"><div style="font-family:var(--font-display); font-size:14px; color:var(--color-ghost-white);">⚡ Admin</div></div>
+        <div class="dash-nav-item">📊 <span>数据总览</span></div>
+        <div class="dash-nav-item">👥 <span>用户管理</span></div>
+        <div class="dash-nav-item active">🤖 <span>账号池</span></div>
+        <div class="dash-nav-item">📋 <span>充值订单</span></div>
+        <div class="dash-nav-item">💰 <span>定价配置</span></div>
+      </div>
+      <div class="dash-content">
+        <div class="dash-content-header">
+          <div>
+            <div class="dash-page-title">AI 账号池</div>
+            <div style="font-size:12px; color:var(--color-interstellar-gray); margin-top:4px;">共 12 个账号 · 10 正常 · 1 冷却 · 1 封禁</div>
+          </div>
+          <button class="btn-cta" style="padding:8px 16px; font-size:13px;">+ 添加账号</button>
+        </div>
+
+        <div class="tab-bar" style="margin-bottom:20px;">
+          <div class="tab active">全部 (12)</div>
+          <div class="tab">Claude (5)</div>
+          <div class="tab">ChatGPT (4)</div>
+          <div class="tab">Gemini (3)</div>
+        </div>
+
+        <div class="table-card">
+          <div class="account-item">
+            <div class="account-avatar avatar-claude">C</div>
+            <div class="account-info">
+              <div class="account-email">claude-pro-01@gmail.com</div>
+              <div class="account-usage">今日: 24,832 tokens · 剩余配额估算 ~80%</div>
+              <div class="progress-bar"><div class="progress-fill" style="width:20%"></div></div>
+            </div>
+            <span class="badge badge-green" style="font-size:11px;">● 正常</span>
+            <div class="key-actions">
+              <button class="icon-btn" title="检测">⟳</button>
+              <button class="icon-btn" style="color:#f87171;" title="删除">✕</button>
+            </div>
+          </div>
+          <div class="account-item">
+            <div class="account-avatar avatar-claude">C</div>
+            <div class="account-info">
+              <div class="account-email">claude-pro-02@outlook.com</div>
+              <div class="account-usage">今日: 89,432 tokens · 剩余配额估算 ~30%</div>
+              <div class="progress-bar"><div class="progress-fill" style="width:70%; background:#fbbf24;"></div></div>
+            </div>
+            <span class="badge badge-yellow" style="font-size:11px;">● 冷却中</span>
+            <div class="key-actions">
+              <button class="icon-btn">⟳</button>
+              <button class="icon-btn" style="color:#f87171;">✕</button>
+            </div>
+          </div>
+          <div class="account-item">
+            <div class="account-avatar avatar-gpt">G</div>
+            <div class="account-info">
+              <div class="account-email">chatgpt-plus-01@gmail.com</div>
+              <div class="account-usage">今日: 15,241 tokens · 状态正常</div>
+              <div class="progress-bar"><div class="progress-fill" style="width:12%; background:#34d399;"></div></div>
+            </div>
+            <span class="badge badge-green" style="font-size:11px;">● 正常</span>
+            <div class="key-actions">
+              <button class="icon-btn">⟳</button>
+              <button class="icon-btn" style="color:#f87171;">✕</button>
+            </div>
+          </div>
+          <div class="account-item">
+            <div class="account-avatar avatar-gem">G</div>
+            <div class="account-info">
+              <div class="account-email">gemini-adv-01@gmail.com</div>
+              <div class="account-usage">最后检测: 检测到异常，可能已封禁</div>
+              <div class="progress-bar"><div class="progress-fill" style="width:100%; background:#f87171;"></div></div>
+            </div>
+            <span class="badge badge-red" style="font-size:11px;">● 封禁</span>
+            <div class="key-actions">
+              <button class="icon-btn">⟳</button>
+              <button class="icon-btn" style="color:#f87171;">✕</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     SECTION: PRICING
+════════════════════════════════════════════ -->
+<div class="section" id="sec-pricing">
+  <div class="section-eyebrow">管理后台</div>
+  <div class="section-title">定价配置</div>
+  <div class="section-desc">管理员可调整各模型的输入/输出 token 单价，实时生效，无需重启服务。</div>
+
+  <div class="mockup-wrapper">
+    <div class="mockup-titlebar">
+      <div class="mockup-dot" style="background:#ff5f56"></div>
+      <div class="mockup-dot" style="background:#ffbd2e"></div>
+      <div class="mockup-dot" style="background:#27c93f"></div>
+      <div class="mockup-url">admin.nexusrelay.com/pricing</div>
+    </div>
+    <div style="display:flex;">
+      <div class="dash-sidebar" style="position:relative;">
+        <div class="dash-sidebar-logo"><div style="font-family:var(--font-display); font-size:14px; color:var(--color-ghost-white);">⚡ Admin</div></div>
+        <div class="dash-nav-item">📊 <span>数据总览</span></div>
+        <div class="dash-nav-item">👥 <span>用户管理</span></div>
+        <div class="dash-nav-item">🤖 <span>账号池</span></div>
+        <div class="dash-nav-item">📋 <span>充值订单</span></div>
+        <div class="dash-nav-item active">💰 <span>定价配置</span></div>
+      </div>
+      <div class="dash-content">
+        <div class="dash-content-header">
+          <div class="dash-page-title">模型定价配置</div>
+          <button class="btn-cta" style="padding:8px 16px; font-size:13px;">保存所有更改</button>
+        </div>
+
+        <div style="font-size:12px; color:var(--color-interstellar-gray); margin-bottom:20px; background:rgba(102,58,243,0.08); border:1px solid rgba(102,58,243,0.2); border-radius:8px; padding:10px 14px;">
+          ℹ️ 价格单位为 <span style="font-family:var(--font-mono); color:var(--color-comet);">元/每1K token</span>，修改后实时生效，影响所有后续请求计费。
+        </div>
+
+        <div class="table-card">
+          <div class="table-header">
+            <div class="table-title">Claude 系列</div>
+            <span class="badge badge-violet" style="font-size:11px;">Anthropic</span>
+          </div>
+          <table>
+            <tr><th>模型</th><th>输入价格</th><th>输出价格</th><th>状态</th><th>操作</th></tr>
+            <tr>
+              <td style="font-family:var(--font-mono); font-size:12px; color:var(--color-comet);">claude-opus-4-6</td>
+              <td><input value="0.015000" style="background:rgba(199,211,234,0.06); border:1px solid var(--border-subtle); border-radius:4px; padding:5px 8px; color:var(--color-ghost-white); font-family:var(--font-mono); font-size:12px; width:90px;"></td>
+              <td><input value="0.075000" style="background:rgba(199,211,234,0.06); border:1px solid var(--border-subtle); border-radius:4px; padding:5px 8px; color:var(--color-ghost-white); font-family:var(--font-mono); font-size:12px; width:90px;"></td>
+              <td><span class="badge badge-green" style="font-size:11px;">启用</span></td>
+              <td><button class="btn-secondary" style="padding:4px 10px; font-size:11px; border-radius:4px;">编辑</button></td>
+            </tr>
+            <tr>
+              <td style="font-family:var(--font-mono); font-size:12px; color:var(--color-comet);">claude-sonnet-4-6</td>
+              <td><input value="0.003000" style="background:rgba(199,211,234,0.06); border:1px solid var(--border-subtle); border-radius:4px; padding:5px 8px; color:var(--color-ghost-white); font-family:var(--font-mono); font-size:12px; width:90px;"></td>
+              <td><input value="0.015000" style="background:rgba(199,211,234,0.06); border:1px solid var(--border-subtle); border-radius:4px; padding:5px 8px; color:var(--color-ghost-white); font-family:var(--font-mono); font-size:12px; width:90px;"></td>
+              <td><span class="badge badge-green" style="font-size:11px;">启用</span></td>
+              <td><button class="btn-secondary" style="padding:4px 10px; font-size:11px; border-radius:4px;">编辑</button></td>
+            </tr>
+            <tr>
+              <td style="font-family:var(--font-mono); font-size:12px; color:var(--color-comet);">claude-haiku-4-5</td>
+              <td><input value="0.000800" style="background:rgba(199,211,234,0.06); border:1px solid var(--border-subtle); border-radius:4px; padding:5px 8px; color:var(--color-ghost-white); font-family:var(--font-mono); font-size:12px; width:90px;"></td>
+              <td><input value="0.004000" style="background:rgba(199,211,234,0.06); border:1px solid var(--border-subtle); border-radius:4px; padding:5px 8px; color:var(--color-ghost-white); font-family:var(--font-mono); font-size:12px; width:90px;"></td>
+              <td><span class="badge badge-green" style="font-size:11px;">启用</span></td>
+              <td><button class="btn-secondary" style="padding:4px 10px; font-size:11px; border-radius:4px;">编辑</button></td>
+            </tr>
+          </table>
+        </div>
+
+        <div class="table-card" style="margin-top:12px;">
+          <div class="table-header">
+            <div class="table-title">OpenAI 系列</div>
+            <span class="badge badge-green" style="font-size:11px; background:rgba(16,185,129,0.1); border-color:rgba(16,185,129,0.3); color:#34d399;">OpenAI</span>
+          </div>
+          <table>
+            <tr><th>模型</th><th>输入价格</th><th>输出价格</th><th>状态</th><th>操作</th></tr>
+            <tr>
+              <td style="font-family:var(--font-mono); font-size:12px; color:var(--color-comet);">gpt-4o</td>
+              <td><input value="0.005000" style="background:rgba(199,211,234,0.06); border:1px solid var(--border-subtle); border-radius:4px; padding:5px 8px; color:var(--color-ghost-white); font-family:var(--font-mono); font-size:12px; width:90px;"></td>
+              <td><input value="0.015000" style="background:rgba(199,211,234,0.06); border:1px solid var(--border-subtle); border-radius:4px; padding:5px 8px; color:var(--color-ghost-white); font-family:var(--font-mono); font-size:12px; width:90px;"></td>
+              <td><span class="badge badge-green" style="font-size:11px;">启用</span></td>
+              <td><button class="btn-secondary" style="padding:4px 10px; font-size:11px; border-radius:4px;">编辑</button></td>
+            </tr>
+            <tr>
+              <td style="font-family:var(--font-mono); font-size:12px; color:var(--color-comet);">gpt-4o-mini</td>
+              <td><input value="0.000150" style="background:rgba(199,211,234,0.06); border:1px solid var(--border-subtle); border-radius:4px; padding:5px 8px; color:var(--color-ghost-white); font-family:var(--font-mono); font-size:12px; width:90px;"></td>
+              <td><input value="0.000600" style="background:rgba(199,211,234,0.06); border:1px solid var(--border-subtle); border-radius:4px; padding:5px 8px; color:var(--color-ghost-white); font-family:var(--font-mono); font-size:12px; width:90px;"></td>
+              <td><span class="badge" style="font-size:11px;">禁用</span></td>
+              <td><button class="btn-secondary" style="padding:4px 10px; font-size:11px; border-radius:4px;">编辑</button></td>
+            </tr>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div><!-- /doc-main -->
+
+<script>
+const sections = {
+  'tokens': { el: 'sec-tokens', label: '设计 Token' },
+  'typography': { el: 'sec-typography', label: '字体排版' },
+  'components': { el: 'sec-components', label: '组件规范' },
+  'landing': { el: 'sec-landing', label: '首页 Landing' },
+  'auth': { el: 'sec-auth', label: '注册 / 登录' },
+  'dashboard': { el: 'sec-dashboard', label: '控制台概览' },
+  'apikeys': { el: 'sec-apikeys', label: 'API Key 管理' },
+  'usage': { el: 'sec-usage', label: '用量明细' },
+  'recharge': { el: 'sec-recharge', label: '充值页面' },
+  'admin': { el: 'sec-admin', label: '管理后台总览' },
+  'accounts': { el: 'sec-accounts', label: '账号池管理' },
+  'pricing': { el: 'sec-pricing', label: '定价配置' },
+};
+
+function showSection(key) {
+  // Hide all
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  // Show target
+  document.getElementById(sections[key].el).classList.add('active');
+  document.getElementById('breadcrumb').textContent = sections[key].label;
+  // Activate nav
+  const navItems = document.querySelectorAll('.nav-item');
+  navItems.forEach(item => {
+    if (item.getAttribute('onclick') === `showSection('${key}')`) {
+      item.classList.add('active');
+    }
+  });
+}
+
+// Recharge option click
+document.querySelectorAll('.recharge-option').forEach(opt => {
+  opt.addEventListener('click', () => {
+    document.querySelectorAll('.recharge-option').forEach(o => o.classList.remove('selected'));
+    opt.classList.add('selected');
+  });
+});
+
+// Tab click
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    tab.closest('.tab-bar').querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+  });
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CoreID 项目结构说明</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #f4f6fb;
+        --panel: rgba(255, 255, 255, 0.92);
+        --text: #162033;
+        --muted: #5d6a82;
+        --line: rgba(22, 32, 51, 0.12);
+        --accent: #163fdb;
+        --accent-soft: rgba(22, 63, 219, 0.1);
+        --ok: #0e8a57;
+        --warn: #9f5c00;
+        --shadow: 0 20px 60px rgba(21, 33, 56, 0.08);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: "PingFang SC", "Noto Sans SC", "Helvetica Neue", sans-serif;
+        background:
+          radial-gradient(circle at top left, rgba(22, 63, 219, 0.1), transparent 34%),
+          radial-gradient(circle at top right, rgba(14, 138, 87, 0.08), transparent 28%),
+          var(--bg);
+        color: var(--text);
+        line-height: 1.7;
+      }
+
+      .page {
+        width: min(1240px, calc(100% - 40px));
+        margin: 0 auto;
+        padding: 40px 0 72px;
+      }
+
+      .hero {
+        padding: 40px;
+        border: 1px solid var(--line);
+        border-radius: 28px;
+        background: linear-gradient(145deg, rgba(255, 255, 255, 0.95), rgba(244, 248, 255, 0.88));
+        box-shadow: var(--shadow);
+      }
+
+      .eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 14px;
+        border-radius: 999px;
+        background: var(--accent-soft);
+        color: var(--accent);
+        font-size: 13px;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+      }
+
+      h1 {
+        margin: 18px 0 14px;
+        font-size: clamp(34px, 5vw, 52px);
+        line-height: 1.08;
+      }
+
+      .lead {
+        margin: 0;
+        max-width: 920px;
+        color: var(--muted);
+        font-size: 17px;
+      }
+
+      .meta {
+        margin-top: 22px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+      }
+
+      .meta span {
+        padding: 10px 14px;
+        border-radius: 14px;
+        background: rgba(22, 32, 51, 0.05);
+        color: var(--muted);
+        font-size: 14px;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: 300px minmax(0, 1fr);
+        gap: 22px;
+        margin-top: 24px;
+      }
+
+      .toc,
+      .panel {
+        border: 1px solid var(--line);
+        border-radius: 24px;
+        background: var(--panel);
+        box-shadow: var(--shadow);
+      }
+
+      .toc {
+        position: sticky;
+        top: 24px;
+        align-self: start;
+        padding: 22px 20px;
+      }
+
+      .toc h2 {
+        margin: 0 0 14px;
+        font-size: 16px;
+      }
+
+      .toc a {
+        display: block;
+        margin: 10px 0;
+        color: var(--muted);
+        text-decoration: none;
+        font-size: 14px;
+      }
+
+      .toc a:hover {
+        color: var(--accent);
+      }
+
+      .content {
+        display: grid;
+        gap: 22px;
+      }
+
+      .panel {
+        padding: 26px 28px;
+      }
+
+      .panel h2 {
+        margin: 0 0 16px;
+        font-size: 22px;
+      }
+
+      .panel h3 {
+        margin: 26px 0 10px;
+        font-size: 17px;
+      }
+
+      .muted {
+        color: var(--muted);
+      }
+
+      .chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 14px;
+      }
+
+      .chip {
+        padding: 8px 12px;
+        border-radius: 999px;
+        background: rgba(22, 32, 51, 0.06);
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .tree {
+        margin: 0;
+        padding: 18px 20px;
+        border-radius: 18px;
+        background: #0d1422;
+        color: #dce6ff;
+        overflow: auto;
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+        font-size: 13px;
+        line-height: 1.7;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 14px;
+      }
+
+      th,
+      td {
+        text-align: left;
+        padding: 12px 10px;
+        border-bottom: 1px solid var(--line);
+        vertical-align: top;
+      }
+
+      th {
+        color: var(--muted);
+        font-weight: 700;
+        font-size: 13px;
+      }
+
+      code {
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+        font-size: 0.95em;
+        background: rgba(22, 32, 51, 0.06);
+        padding: 2px 6px;
+        border-radius: 6px;
+      }
+
+      .cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 14px;
+        margin-top: 12px;
+      }
+
+      .card {
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        padding: 18px 18px 16px;
+        background: rgba(255, 255, 255, 0.82);
+      }
+
+      .card h3 {
+        margin: 0 0 8px;
+        font-size: 16px;
+      }
+
+      .card p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 14px;
+      }
+
+      .tag-ok,
+      .tag-warn {
+        display: inline-flex;
+        margin-top: 10px;
+        padding: 6px 10px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 700;
+      }
+
+      .tag-ok {
+        background: rgba(14, 138, 87, 0.12);
+        color: var(--ok);
+      }
+
+      .tag-warn {
+        background: rgba(159, 92, 0, 0.12);
+        color: var(--warn);
+      }
+
+      ul {
+        margin: 10px 0 0;
+        padding-left: 20px;
+      }
+
+      li + li {
+        margin-top: 6px;
+      }
+
+      .footer {
+        margin-top: 18px;
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      @media (max-width: 980px) {
+        .grid {
+          grid-template-columns: 1fr;
+        }
+
+        .toc {
+          position: static;
+        }
+
+        .page {
+          width: min(100% - 24px, 1240px);
+          padding-top: 18px;
+        }
+
+        .hero,
+        .panel,
+        .toc {
+          padding-left: 20px;
+          padding-right: 20px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <section class="hero">
+        <div class="eyebrow">CoreID · 项目结构说明</div>
+        <h1>CoreID 项目结构与功能模块文档</h1>
+        <p class="lead">
+          这份文档面向项目维护者、接手开发者和接入方，用来快速理解 CoreID 仓库里每个目录、每个核心模块负责什么，以及它们之间如何协作。
+          重点不是逐行解释源码，而是从“业务能力”和“系统职责”角度说明项目结构。
+        </p>
+        <div class="meta">
+          <span>项目类型：Node.js + Express + PostgreSQL</span>
+          <span>后台形式：单页 Admin HTML</span>
+          <span>身份底座：Casdoor</span>
+          <span>文档生成时间：2026-05-18</span>
+        </div>
+      </section>
+
+      <div class="grid">
+        <aside class="toc">
+          <h2>目录</h2>
+          <a href="#overview">1. 项目总览</a>
+          <a href="#tree">2. 目录结构</a>
+          <a href="#entry">3. 运行入口</a>
+          <a href="#routes">4. 路由模块</a>
+          <a href="#services">5. 服务模块</a>
+          <a href="#frontend">6. 前端页面</a>
+          <a href="#database">7. 数据与初始化</a>
+          <a href="#docs">8. 文档与接入材料</a>
+          <a href="#flow">9. 核心业务流</a>
+          <a href="#suggestion">10. 阅读建议</a>
+        </aside>
+
+        <main class="content">
+          <section class="panel" id="overview">
+            <h2>1. 项目总览</h2>
+            <p class="muted">
+              CoreID 是一个“统一身份 + 应用资格 + 套餐订单 + 安装包 + 落地页 + 后台管理”的综合平台。
+              它不是单纯的登录服务，而是把多个应用的用户中心能力统一到一个项目里。
+            </p>
+            <div class="cards">
+              <div class="card">
+                <h3>统一身份</h3>
+                <p>底层用 Casdoor 管理账号，CoreID 负责同步用户资料并提供应用接入接口。</p>
+                <span class="tag-ok">核心能力</span>
+              </div>
+              <div class="card">
+                <h3>应用隔离资格</h3>
+                <p>同一个身份不等于自动拥有所有应用资格，CoreID 用 membership 控制用户能进哪个应用。</p>
+                <span class="tag-ok">核心能力</span>
+              </div>
+              <div class="card">
+                <h3>套餐与购买</h3>
+                <p>平台配置套餐，应用读套餐、创建订单、确认支付，最终由 CoreID 统一维护权益。</p>
+                <span class="tag-ok">核心能力</span>
+              </div>
+              <div class="card">
+                <h3>运营后台</h3>
+                <p>管理员通过单页后台管理用户、订单、应用、安装包、落地页、套餐和审计日志。</p>
+                <span class="tag-ok">核心能力</span>
+              </div>
+              <div class="card">
+                <h3>分发能力</h3>
+                <p>支持安装包上传、下载统计、二维码下载，以及落地页草稿、发布、版本回滚。</p>
+                <span class="tag-ok">核心能力</span>
+              </div>
+              <div class="card">
+                <h3>接入文档</h3>
+                <p>项目内置 Android / Web 接入文档与 Markdown 导出能力，用于其他应用接入。</p>
+                <span class="tag-ok">核心能力</span>
+              </div>
+            </div>
+          </section>
+
+          <section class="panel" id="tree">
+            <h2>2. 目录结构</h2>
+            <pre class="tree">CoreID
+├── src/
+│   ├── app.js                     # 应用入口，挂载路由、中间件、静态页面
+│   ├── config/
+│   │   └── db.js                  # PostgreSQL 连接与 query/pool
+│   ├── middleware/
+│   │   ├── adminAuth.js           # 后台 Casdoor 管理员鉴权
+│   │   └── rateLimit.js           # 内存级限流
+│   ├── routes/
+│   │   ├── auth.js                # 后台 Casdoor 登录、回调、管理员会话
+│   │   ├── identity.js            # 应用注册/登录/改密码/资格查询
+│   │   ├── purchase.js            # 套餐、订单、权益、支付确认
+│   │   ├── admin.js               # 后台用户、应用、套餐、订单、日志
+│   │   ├── release.js             # 安装包管理 + 公开下载
+│   │   └── landing.js             # 落地页后台管理 + 公开访问
+│   ├── services/
+│   │   ├── casdoor*.js            # Casdoor 接入与用户管理
+│   │   ├── session*.js            # 管理员会话 / 应用身份会话
+│   │   ├── *Log.js                # 审计日志、用户事件、订单事件
+│   │   ├── landing*.js            # 落地页草稿、发布、渲染
+│   │   ├── paymentCallback.js     # 支付回调签名校验
+│   │   ├── purchaseLifecycle.js   # 订单状态流转规则
+│   │   ├── sdkDocs.js             # SDK 文档生成与 Markdown 导出
+│   │   ├── qrcode.js              # 二维码生成
+│   │   └── bootstrap.js           # 运行时补表 / schema 自修复
+│   ├── utils/
+│   │   ├── http.js                # 通用 HTTP / 环境辅助
+│   │   └── validation.js          # 参数校验、格式标准化
+│   └── uploads/                   # 本地上传文件目录（安装包、落地页）
+├── public/
+│   ├── admin/index.html           # 后台单页应用
+│   └── auth/
+│       ├── register-test.html     # 注册测试页
+│       └── login-test.html        # 登录测试页
+├── db/init/
+│   ├── 001_schema.sql             # 基础表结构
+│   └── 002_seed.sql               # 初始种子数据
+├── docs/
+│   ├── android-integration.md     # Android 接入文档
+│   └── web-integration.md         # Web 接入文档
+├── Dockerfile                     # App 容器镜像
+├── docker-compose.yml             # 本地 PostgreSQL / App 编排
+├── README.md                      # 项目说明
+├── admin.html                     # UI 风格参考稿
+├── user-center-v2.md              # 原始产品/开发说明
+└── project-structure.html         # 当前这份结构说明文档</pre>
+          </section>
+
+          <section class="panel" id="entry">
+            <h2>3. 运行入口</h2>
+            <table>
+              <thead>
+                <tr>
+                  <th>文件</th>
+                  <th>作用</th>
+                  <th>你通常什么时候看它</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><code>src/app.js</code></td>
+                  <td>应用真正的启动入口，负责挂载 API、静态页、安全响应头、限流和错误处理中间件。</td>
+                  <td>想知道系统“是怎么跑起来的”，优先看这里。</td>
+                </tr>
+                <tr>
+                  <td><code>package.json</code></td>
+                  <td>定义启动命令、依赖和项目名。</td>
+                  <td>想确认用什么命令启动、有哪些核心依赖时看这里。</td>
+                </tr>
+                <tr>
+                  <td><code>src/config/db.js</code></td>
+                  <td>封装 PostgreSQL 连接池，是所有数据访问的基础。</td>
+                  <td>数据库连接异常、环境变量或 SQL 调用问题时看这里。</td>
+                </tr>
+              </tbody>
+            </table>
+          </section>
+
+          <section class="panel" id="routes">
+            <h2>4. 路由模块</h2>
+            <p class="muted">路由层负责把外部请求分配到对应的业务模块。可以把它理解成“API 入口地图”。</p>
+            <table>
+              <thead>
+                <tr>
+                  <th>文件</th>
+                  <th>负责的功能</th>
+                  <th>典型场景</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><code>src/routes/auth.js</code></td>
+                  <td>后台管理员登录、Casdoor OIDC 跳转、回调、管理员会话验证。</td>
+                  <td>管理员无法登录后台、Casdoor 跳转异常。</td>
+                </tr>
+                <tr>
+                  <td><code>src/routes/identity.js</code></td>
+                  <td>应用接入侧身份能力：发送验证码、注册、密码登录、单设备校验、当前用户、资格校验、自助改密码。</td>
+                  <td>其他应用要接入手机号注册登录时最重要的模块。</td>
+                </tr>
+                <tr>
+                  <td><code>src/routes/purchase.js</code></td>
+                  <td>套餐列表、购买预校验、创建订单、订单查询、支付确认、当前权益。</td>
+                  <td>套餐购买闭环、付费权益异常、支付联调。</td>
+                </tr>
+                <tr>
+                  <td><code>src/routes/admin.js</code></td>
+                  <td>后台主业务：用户管理、订单、应用管理、套餐配置、审计日志、SDK 文档导出。</td>
+                  <td>后台页面大部分数据和操作都从这里来。</td>
+                </tr>
+                <tr>
+                  <td><code>src/routes/release.js</code></td>
+                  <td>安装包后台管理、版本历史、删除/回滚、下载统计、二维码，以及公开下载。</td>
+                  <td>APK/EXE/DMG/Web/App Store 分发。</td>
+                </tr>
+                <tr>
+                  <td><code>src/routes/landing.js</code></td>
+                  <td>落地页上传、草稿预览、发布、历史版本、回滚，以及公开访问 <code>/get/:slug</code>。</td>
+                  <td>运营落地页、下载页和页面版本控制。</td>
+                </tr>
+              </tbody>
+            </table>
+          </section>
+
+          <section class="panel" id="services">
+            <h2>5. 服务模块</h2>
+            <p class="muted">服务层是项目的业务中枢，路由只负责接收请求，核心逻辑多半沉在这里。</p>
+
+            <h3>5.1 身份与会话</h3>
+            <div class="cards">
+              <div class="card">
+                <h3><code>casdoor.js</code></h3>
+                <p>Casdoor OIDC 集成、issuer 兼容、JWT 校验、授权 URL 构建。</p>
+              </div>
+              <div class="card">
+                <h3><code>casdoorIdentity.js</code></h3>
+                <p>Casdoor 用户创建、密码登录、后台更新用户、自助改密码底层能力。</p>
+              </div>
+              <div class="card">
+                <h3><code>session.js</code></h3>
+                <p>后台管理员 Session token 与 Cookie 配置。</p>
+              </div>
+              <div class="card">
+                <h3><code>identitySession.js</code></h3>
+                <p>应用接入侧的 identity token，包含 <code>app_id</code> 和 <code>device_id</code>。</p>
+              </div>
+              <div class="card">
+                <h3><code>userSync.js</code></h3>
+                <p>把 Casdoor 用户资料同步到本地 <code>users</code> 表。</p>
+              </div>
+              <div class="card">
+                <h3><code>devVerificationCode.js</code></h3>
+                <p>开发环境假验证码实现，当前默认固定码为 <code>123456</code>。</p>
+              </div>
+            </div>
+
+            <h3>5.2 订单、套餐与支付</h3>
+            <div class="cards">
+              <div class="card">
+                <h3><code>purchaseLifecycle.js</code></h3>
+                <p>定义订单状态枚举和合法流转规则，例如 <code>pending -> paid</code>。</p>
+              </div>
+              <div class="card">
+                <h3><code>paymentCallback.js</code></h3>
+                <p>支付回调签名校验，目前基于 HMAC-SHA256。</p>
+              </div>
+              <div class="card">
+                <h3><code>purchaseEventLog.js</code></h3>
+                <p>记录订单生命周期事件，例如创建、确认支付、退款、状态变更。</p>
+              </div>
+            </div>
+
+            <h3>5.3 分发与运营内容</h3>
+            <div class="cards">
+              <div class="card">
+                <h3><code>landingDraft.js</code></h3>
+                <p>生成默认落地页草稿模板，负责草稿文件目录和初始 HTML。</p>
+              </div>
+              <div class="card">
+                <h3><code>landingPage.js</code></h3>
+                <p>渲染公开落地页，自动注入下载按钮和二维码。</p>
+              </div>
+              <div class="card">
+                <h3><code>qrcode.js</code></h3>
+                <p>把下载链接或落地页链接生成为二维码 Data URL。</p>
+              </div>
+            </div>
+
+            <h3>5.4 文档、日志与基础设施</h3>
+            <div class="cards">
+              <div class="card">
+                <h3><code>sdkDocs.js</code></h3>
+                <p>按应用类型动态生成 Android / Web 接入文档，并支持 Markdown 导出。</p>
+              </div>
+              <div class="card">
+                <h3><code>auditLog.js</code></h3>
+                <p>记录后台管理员操作日志，例如上传安装包、回滚落地页、改订单状态。</p>
+              </div>
+              <div class="card">
+                <h3><code>userEventLog.js</code></h3>
+                <p>记录用户级事件，例如注册、登录、改密码、设备顶替、资格变更。</p>
+              </div>
+              <div class="card">
+                <h3><code>bootstrap.js</code></h3>
+                <p>运行时自动补齐数据库表和字段，避免迁移未执行时系统直接起不来。</p>
+                <span class="tag-warn">偏基础设施</span>
+              </div>
+            </div>
+          </section>
+
+          <section class="panel" id="frontend">
+            <h2>6. 前端页面</h2>
+            <table>
+              <thead>
+                <tr>
+                  <th>文件</th>
+                  <th>作用</th>
+                  <th>说明</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><code>public/admin/index.html</code></td>
+                  <td>后台单页应用</td>
+                  <td>虽然是一个 HTML 文件，但里面包含了用户管理、订单、应用、套餐、落地页、安装包、日志、SDK 文档等多个模块的前端逻辑。</td>
+                </tr>
+                <tr>
+                  <td><code>public/auth/register-test.html</code></td>
+                  <td>注册测试页</td>
+                  <td>用于本地验证手机号注册、应用资格开通、假验证码流程。</td>
+                </tr>
+                <tr>
+                  <td><code>public/auth/login-test.html</code></td>
+                  <td>登录测试页</td>
+                  <td>用于本地验证密码登录、单设备顶号、自助改密码等身份链路。</td>
+                </tr>
+                <tr>
+                  <td><code>admin.html</code></td>
+                  <td>UI 风格参考稿</td>
+                  <td>是原始设计/风格样稿，不是实际运行入口。</td>
+                </tr>
+              </tbody>
+            </table>
+          </section>
+
+          <section class="panel" id="database">
+            <h2>7. 数据与初始化</h2>
+            <div class="cards">
+              <div class="card">
+                <h3><code>db/init/001_schema.sql</code></h3>
+                <p>数据库主结构。里面定义用户、订单、应用、套餐、安装包、落地页、日志、设备、membership 等核心表。</p>
+              </div>
+              <div class="card">
+                <h3><code>db/init/002_seed.sql</code></h3>
+                <p>初始种子数据，例如默认应用、演示数据或后台初始展示所需的基础记录。</p>
+              </div>
+              <div class="card">
+                <h3><code>src/uploads/</code></h3>
+                <p>本地文件存储区。安装包和落地页草稿/发布快照都落在这里。</p>
+              </div>
+            </div>
+            <h3>主要业务表可以这样理解</h3>
+            <ul>
+              <li><code>users</code>：统一用户资料的本地镜像。</li>
+              <li><code>user_app_memberships</code>：用户是否拥有某个应用的注册资格。</li>
+              <li><code>devices</code>：单设备登录规则依赖的设备记录表。</li>
+              <li><code>applications</code>：平台上的应用清单。</li>
+              <li><code>app_plans</code>：每个应用的套餐配置。</li>
+              <li><code>purchases</code>：订单与购买记录。</li>
+              <li><code>app_releases</code> / <code>app_release_versions</code>：当前安装包和历史版本。</li>
+              <li><code>landing_pages</code> / <code>landing_page_versions</code>：落地页当前状态与历史版本。</li>
+              <li><code>operation_logs</code>：后台管理员审计日志。</li>
+              <li><code>user_events</code> / <code>purchase_events</code>：用户事件流与订单事件流。</li>
+            </ul>
+          </section>
+
+          <section class="panel" id="docs">
+            <h2>8. 文档与接入材料</h2>
+            <table>
+              <thead>
+                <tr>
+                  <th>文件</th>
+                  <th>定位</th>
+                  <th>适合谁看</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><code>README.md</code></td>
+                  <td>项目总览与启动说明</td>
+                  <td>首次进入项目的人</td>
+                </tr>
+                <tr>
+                  <td><code>user-center-v2.md</code></td>
+                  <td>原始开发说明 / 业务背景</td>
+                  <td>要理解项目最初目标的人</td>
+                </tr>
+                <tr>
+                  <td><code>docs/android-integration.md</code></td>
+                  <td>Android 应用接入 CoreID 的正式文档</td>
+                  <td>Android SDK / 客户端接入方</td>
+                </tr>
+                <tr>
+                  <td><code>docs/web-integration.md</code></td>
+                  <td>Web 应用接入 CoreID 的正式文档</td>
+                  <td>Web 前后端接入方</td>
+                </tr>
+                <tr>
+                  <td>后台 SDK 文档页</td>
+                  <td>动态按应用类型输出接入说明，并支持导出 Markdown</td>
+                  <td>运营、实施、集成同学</td>
+                </tr>
+              </tbody>
+            </table>
+          </section>
+
+          <section class="panel" id="flow">
+            <h2>9. 核心业务流</h2>
+
+            <h3>9.1 应用接入注册登录流</h3>
+            <ul>
+              <li>接入方调用 <code>/api/identity/send-code</code> 发送验证码。</li>
+              <li>调用 <code>/api/identity/register</code> 创建统一账号并开通某个 <code>app_id</code> 的资格。</li>
+              <li>调用 <code>/api/identity/login/password</code> 登录，CoreID 返回 identity token。</li>
+              <li>调用 <code>/api/identity/me</code> 和 <code>/api/identity/access-check</code> 验证当前会话与应用资格。</li>
+              <li>需要改密码时调用 <code>/api/identity/change-password</code>。</li>
+            </ul>
+
+            <h3>9.2 套餐购买流</h3>
+            <ul>
+              <li>后台在套餐配置里维护可售套餐。</li>
+              <li>应用通过 <code>/api/purchase/plans</code> 拉取套餐。</li>
+              <li>先调用 <code>/api/purchase/preview</code> 判断是新购还是续费。</li>
+              <li>调用 <code>/api/purchase/create</code> 创建订单。</li>
+              <li>支付成功后走 <code>/api/purchase/confirm</code>，CoreID 更新权益。</li>
+              <li>接入方通过 <code>/api/purchase/current-plan</code> 同步当前权益。</li>
+            </ul>
+
+            <h3>9.3 安装包分发流</h3>
+            <ul>
+              <li>后台上传二进制安装包或 Web / App Store 链接。</li>
+              <li>CoreID 维护当前版本与历史版本。</li>
+              <li>用户通过 <code>/download/:app_id/:type</code> 或二维码下载。</li>
+              <li>系统记录下载日志，用于统计和二维码追踪。</li>
+            </ul>
+
+            <h3>9.4 落地页运营流</h3>
+            <ul>
+              <li>先创建落地页草稿，再上传正式 HTML。</li>
+              <li>草稿预览与线上发布隔离，避免未发布内容污染线上页。</li>
+              <li>发布后生成版本快照，可历史回滚。</li>
+              <li>公开访问地址为 <code>/get/:slug</code>。</li>
+            </ul>
+          </section>
+
+          <section class="panel" id="suggestion">
+            <h2>10. 阅读建议</h2>
+            <div class="chips">
+              <span class="chip">想看整体先读：<code>README.md</code> + <code>src/app.js</code></span>
+              <span class="chip">想接入登录：<code>src/routes/identity.js</code> + <code>docs/*-integration.md</code></span>
+              <span class="chip">想看后台：<code>public/admin/index.html</code> + <code>src/routes/admin.js</code></span>
+              <span class="chip">想看购买链：<code>src/routes/purchase.js</code></span>
+              <span class="chip">想看分发：<code>src/routes/release.js</code> + <code>src/routes/landing.js</code></span>
+            </div>
+            <p class="footer">
+              维护建议：后续每新增一个大模块，最好同步把它的职责写进这份文档，避免项目继续扩张后只剩“文件越来越多，但没人知道各自干什么”。
+            </p>
+          </section>
+        </main>
+      </div>
+    </div>
+  </body>
+</html>
