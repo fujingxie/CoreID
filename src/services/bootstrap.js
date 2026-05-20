@@ -308,6 +308,11 @@ async function ensureRuntimeSchema() {
   `);
 
   await query(`
+    CREATE INDEX IF NOT EXISTS idx_verification_codes_status_created_at
+    ON verification_codes(send_status, mode, created_at DESC)
+  `);
+
+  await query(`
     CREATE TABLE IF NOT EXISTS redeem_code_batches (
       id BIGSERIAL PRIMARY KEY,
       batch_no VARCHAR(40) UNIQUE NOT NULL,

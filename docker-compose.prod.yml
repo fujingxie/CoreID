@@ -1,0 +1,64 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: coreid-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: coreid
+      POSTGRES_USER: coreid
+      POSTGRES_PASSWORD: eef2c441733429932b1513f3b2ea0dc0
+    volumes:
+      - coreid_pg_data:/var/lib/postgresql/data
+      - ./db/init/001_schema.sql:/docker-entrypoint-initdb.d/001_schema.sql:ro
+      - ./deploy/db/000_create_casdoor_db.sh:/docker-entrypoint-initdb.d/000_create_casdoor_db.sh:ro
+      - ./deploy/db/002_seed_prod.sql:/docker-entrypoint-initdb.d/002_seed_prod.sql:ro
+    networks:
+      - coreid-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U coreid -d coreid"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  casdoor:
+    image: casbin/casdoor:latest
+    container_name: coreid-casdoor
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:8000:8000"
+    volumes:
+      - ./deploy/casdoor/app.conf:/conf/app.conf:ro
+    networks:
+      - coreid-net
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: coreid-app
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      casdoor:
+        condition: service_started
+    env_file:
+      - .env.production
+    ports:
+      - "127.0.0.1:3000:3000"
+    volumes:
+      - coreid_uploads:/app/src/uploads
+    networks:
+      - coreid-net
+
+networks:
+  coreid-net:
+    name: coreid-net
+    driver: bridge
+
+volumes:
+  coreid_pg_data:
+  coreid_uploads:

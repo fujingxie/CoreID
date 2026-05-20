@@ -120,6 +120,16 @@ function serializeRedeemEventRow(row) {
   };
 }
 
+function serializeVerificationCodeRow(row) {
+  if (!row) {
+    return null;
+  }
+  return {
+    ...row,
+    attempt_count: Number(row.attempt_count || 0),
+  };
+}
+
 function getAdminOperatorId(req) {
   return req.admin?.user?.sub || req.currentUser?.sub || req.admin?.user?.username || req.currentUser?.username || "admin";
 }
@@ -467,93 +477,693 @@ function formatPagination(page, limit, total) {
   };
 }
 
+const dashboardRanges = ["today", "7d", "30d", "90d", "custom"];
+
+function startOfLocalDay(value = new Date()) {
+  const date = new Date(value);
+  date.setHours(0, 0, 0, 0);
+  return date;
+}
+
+function addDays(value, days) {
+  const date = new Date(value);
+  date.setDate(date.getDate() + days);
+  return date;
+}
+
+function formatLocalDateInput(value) {
+  const date = new Date(value);
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+}
+
+function parseDashboardWindow(queryParams) {
+  let range = queryParams.range ? ensureEnum(queryParams.range, "range", dashboardRanges) : "7d";
+  const dateFrom = queryParams.date_from ? ensureDateOnly(queryParams.date_from, "date_from") : "";
+  const dateTo = queryParams.date_to ? ensureDateOnly(queryParams.date_to, "date_to") : "";
+
+  const todayStart = startOfLocalDay(new Date());
+  let start = null;
+  let endExclusive = null;
+
+  if (range === "custom" && dateFrom && dateTo) {
+    start = new Date(`${dateFrom}T00:00:00`);
+    endExclusive = addDays(new Date(`${dateTo}T00:00:00`), 1);
+    if (start.getTime() >= endExclusive.getTime()) {
+      throw createHttpError(400, "date_to must be greater than or equal to date_from");
+    }
+  } else if (range === "custom") {
+    range = "7d";
+  }
+
+  if (!start || !endExclusive) {
+    if (range === "today") {
+      start = todayStart;
+      endExclusive = addDays(todayStart, 1);
+    } else if (range === "30d") {
+      start = addDays(todayStart, -29);
+      endExclusive = addDays(todayStart, 1);
+    } else if (range === "90d") {
+      start = addDays(todayStart, -89);
+      endExclusive = addDays(todayStart, 1);
+    } else {
+      start = addDays(todayStart, -6);
+      endExclusive = addDays(todayStart, 1);
+      range = "7d";
+    }
+  }
+
+  const durationDays = Math.max(1, Math.round((endExclusive.getTime() - start.getTime()) / 86400000));
+  const previousStart = addDays(start, -durationDays);
+  const previousEndExclusive = start;
+
+  return {
+    range,
+    dateFrom: range === "custom" ? formatLocalDateInput(start) : dateFrom,
+    dateTo: range === "custom" ? formatLocalDateInput(addDays(endExclusive, -1)) : dateTo,
+    start,
+    endExclusive,
+    previousStart,
+    previousEndExclusive,
+    durationDays,
+  };
+}
+
+function buildDeltaPayload(currentValue, previousValue) {
+  const current = Number(currentValue || 0);
+  const previous = Number(previousValue || 0);
+
+  if (previous === 0) {
+    return {
+      current,
+      previous,
+      delta_percent: current === 0 ? 0 : 100,
+      direction: current === 0 ? "flat" : "up",
+    };
+  }
+
+  const deltaPercent = Number((((current - previous) / Math.abs(previous)) * 100).toFixed(1));
+  return {
+    current,
+    previous,
+    delta_percent: deltaPercent,
+    direction: deltaPercent > 0 ? "up" : deltaPercent < 0 ? "down" : "flat",
+  };
+}
+
 router.get("/dashboard", async (req, res, next) => {
   try {
-    const [overviewResult, growthResult, revenueByAppResult, recentOrdersResult] = await Promise.all([
+    const window = parseDashboardWindow(req.query);
+    const dashboardRevenueTarget = process.env.DASHBOARD_REVENUE_TARGET
+      ? Number(process.env.DASHBOARD_REVENUE_TARGET)
+      : null;
+    const currentRangeParams = [window.start.toISOString(), window.endExclusive.toISOString()];
+    const previousRangeParams = [window.previousStart.toISOString(), window.previousEndExclusive.toISOString()];
+
+    const [
+      currentSummaryResult,
+      previousSummaryResult,
+      totalUsersResult,
+      previousTotalUsersResult,
+      growthResult,
+      growthByAppResult,
+      distributionResult,
+      revenueByAppResult,
+      pendingOrdersResult,
+      failedOrdersResult,
+      unpublishedLandingsResult,
+      expiringBatchesResult,
+      recentUserActivityResult,
+      recentPurchaseActivityResult,
+      recentLogActivityResult,
+      recentRedeemActivityResult,
+      smsFailureResult,
+      paid24hResult,
+      newUsers24hResult,
+      expiredRedeemAlertResult,
+    ] = await Promise.all([
       query(
         `
           SELECT
-            (SELECT COUNT(*) FROM users) AS total_users,
-            (
-              SELECT COUNT(*)
-              FROM users
-              WHERE created_at::date = CURRENT_DATE
-            ) AS new_users_today,
+            (SELECT COUNT(*) FROM users WHERE created_at >= $1::timestamp AND created_at < $2::timestamp) AS new_users,
             (
               SELECT COALESCE(SUM(amount), 0)
               FROM purchases
               WHERE status = 'paid'
+                AND created_at >= $1::timestamp
+                AND created_at < $2::timestamp
             ) AS total_revenue,
             (
               SELECT COUNT(*)
               FROM devices
               WHERE COALESCE(is_active, true) = true
-                AND last_login >= NOW() - INTERVAL '7 days'
+                AND last_login >= $1::timestamp
+                AND last_login < $2::timestamp
             ) AS active_devices
         `
+        ,
+        currentRangeParams
+      ),
+      query(
+        `
+          SELECT
+            (SELECT COUNT(*) FROM users WHERE created_at >= $1::timestamp AND created_at < $2::timestamp) AS new_users,
+            (
+              SELECT COALESCE(SUM(amount), 0)
+              FROM purchases
+              WHERE status = 'paid'
+                AND created_at >= $1::timestamp
+                AND created_at < $2::timestamp
+            ) AS total_revenue,
+            (
+              SELECT COUNT(*)
+              FROM devices
+              WHERE COALESCE(is_active, true) = true
+                AND last_login >= $1::timestamp
+                AND last_login < $2::timestamp
+            ) AS active_devices
+        `
+        ,
+        previousRangeParams
+      ),
+      query(
+        `SELECT COUNT(*) AS total_users FROM users`
+      ),
+      query(
+        `
+          SELECT COUNT(*) AS total_users
+          FROM users
+          WHERE created_at < $1::timestamp
+        `,
+        [window.start.toISOString()]
       ),
       query(
         `
           WITH date_series AS (
-            SELECT generate_series(CURRENT_DATE - INTERVAL '29 days', CURRENT_DATE, INTERVAL '1 day')::date AS day
+            SELECT generate_series($1::date, ($2::timestamp - INTERVAL '1 day')::date, INTERVAL '1 day')::date AS day
           )
           SELECT
             ds.day::text AS date,
             COALESCE(COUNT(u.id), 0) AS count
           FROM date_series ds
-          LEFT JOIN users u ON u.created_at::date = ds.day
+          LEFT JOIN users u
+            ON u.created_at::date = ds.day
           GROUP BY ds.day
           ORDER BY ds.day ASC
+        `,
+        currentRangeParams
+      ),
+      query(
         `
+          WITH date_series AS (
+            SELECT generate_series($1::date, ($2::timestamp - INTERVAL '1 day')::date, INTERVAL '1 day')::date AS day
+          )
+          SELECT
+            ds.day::text AS date,
+            a.id AS app_id,
+            a.name AS app_name,
+            COALESCE(COUNT(m.id), 0) AS count
+          FROM date_series ds
+          CROSS JOIN applications a
+          LEFT JOIN user_app_memberships m
+            ON m.app_id = a.id
+           AND m.status = 'active'
+           AND m.created_at::date = ds.day
+          GROUP BY ds.day, a.id, a.name
+          ORDER BY ds.day ASC, a.created_at ASC
+        `,
+        currentRangeParams
       ),
       query(
         `
           SELECT
             a.id AS app_id,
             a.name,
-            COALESCE(SUM(p.amount), 0) AS revenue,
-            COUNT(DISTINCT p.user_id) FILTER (WHERE p.status = 'paid') AS paid_users
+            COALESCE(registration_summary.registered_users, 0) AS registered_users,
+            COALESCE(purchase_summary.paid_users, 0) AS paid_users
           FROM applications a
-          LEFT JOIN purchases p ON p.app_id = a.id AND p.status = 'paid'
-          GROUP BY a.id, a.name
-          ORDER BY revenue DESC, a.id ASC
+          LEFT JOIN LATERAL (
+            SELECT COUNT(DISTINCT user_id) AS registered_users
+            FROM user_app_memberships
+            WHERE app_id = a.id
+              AND status = 'active'
+              AND created_at >= $1::timestamp
+              AND created_at < $2::timestamp
+          ) registration_summary ON true
+          LEFT JOIN LATERAL (
+            SELECT COUNT(DISTINCT user_id) AS paid_users
+            FROM purchases
+            WHERE app_id = a.id
+              AND status = 'paid'
+              AND created_at >= $1::timestamp
+              AND created_at < $2::timestamp
+          ) purchase_summary ON true
+          ORDER BY registered_users DESC, a.created_at ASC
+        `,
+        currentRangeParams
+      ),
+      query(
+        `
+          SELECT
+            a.id AS app_id,
+            a.name,
+            COALESCE(SUM(p.amount) FILTER (
+              WHERE p.status = 'paid'
+                AND p.created_at >= $1::timestamp
+                AND p.created_at < $2::timestamp
+            ), 0) AS revenue,
+            COUNT(*) FILTER (
+              WHERE p.status = 'paid'
+                AND p.created_at >= $1::timestamp
+                AND p.created_at < $2::timestamp
+            ) AS paid_orders,
+            COUNT(DISTINCT p.user_id) FILTER (
+              WHERE p.status = 'paid'
+                AND p.created_at >= $1::timestamp
+                AND p.created_at < $2::timestamp
+            ) AS paid_users
+          FROM applications a
+          LEFT JOIN purchases p ON p.app_id = a.id
+          GROUP BY a.id, a.name, a.created_at
+          ORDER BY revenue DESC, a.created_at ASC
+        `,
+        currentRangeParams
+      ),
+      query(
+        `
+          SELECT COUNT(*) AS count, MAX(created_at) AS latest_at
+          FROM purchases
+          WHERE status = 'pending'
+        `
+      ),
+      query(
+        `
+          SELECT COUNT(*) AS count, MAX(created_at) AS latest_at
+          FROM purchases
+          WHERE status = 'failed'
+        `
+      ),
+      query(
+        `
+          SELECT COUNT(*) AS count, MAX(COALESCE(draft_updated_at, updated_at)) AS latest_at
+          FROM landing_pages
+          WHERE COALESCE(is_published, false) = false
+            AND (draft_html_path IS NOT NULL OR html_path IS NOT NULL)
+        `
+      ),
+      query(
+        `
+          WITH expiring_batches AS (
+            ${buildRedeemBatchDatasetCte({}).cteSql}
+            SELECT *
+            FROM redeem_batch_rows
+            WHERE computed_status = 'active'
+              AND valid_until IS NOT NULL
+              AND valid_until >= NOW()
+              AND valid_until < NOW() + INTERVAL '3 days'
+              AND COALESCE(unused_count, 0) > 0
+          )
+          SELECT COUNT(*) AS count, MAX(valid_until) AS latest_at
+          FROM expiring_batches
+        `
+      ),
+      query(
+        `
+          SELECT ue.*, u.username
+          FROM user_events ue
+          LEFT JOIN users u ON u.id = ue.user_id
+          ORDER BY ue.created_at DESC, ue.id DESC
+          LIMIT 8
+        `
+      ),
+      query(
+        `
+          SELECT pe.*, p.amount, p.plan, p.order_no, u.username
+          FROM purchase_events pe
+          LEFT JOIN purchases p ON p.order_no = pe.order_no
+          LEFT JOIN users u ON u.id = COALESCE(pe.user_id, p.user_id)
+          ORDER BY pe.created_at DESC, pe.id DESC
+          LIMIT 8
+        `
+      ),
+      query(
+        `
+          SELECT *
+          FROM operation_logs
+          ORDER BY created_at DESC, id DESC
+          LIMIT 8
         `
       ),
       query(
         `
           SELECT
-            p.order_no,
-            p.amount,
-            p.plan,
-            p.created_at,
-            p.app_id,
-            u.username
-          FROM purchases p
-          JOIN users u ON u.id = p.user_id
-          ORDER BY p.created_at DESC
+            re.*,
+            batch.batch_no,
+            batch.app_id,
+            batch.plan_code,
+            rc.code_preview
+          FROM redeem_events re
+          LEFT JOIN redeem_code_batches batch ON batch.id = re.batch_id
+          LEFT JOIN redeem_codes rc ON rc.id = re.code_id
+          ORDER BY re.created_at DESC, re.id DESC
           LIMIT 8
+        `
+      ),
+      query(
+        `
+          SELECT COUNT(*) AS failed_count, MAX(created_at) AS latest_at
+          FROM verification_codes
+          WHERE send_status = 'failed'
+            AND created_at >= NOW() - INTERVAL '24 hours'
+        `
+      ),
+      query(
+        `
+          SELECT COUNT(*) AS paid_count, MAX(created_at) AS latest_at
+          FROM purchases
+          WHERE status = 'paid'
+            AND created_at >= NOW() - INTERVAL '24 hours'
+        `
+      ),
+      query(
+        `
+          SELECT COUNT(*) AS new_user_count, MAX(created_at) AS latest_at
+          FROM users
+          WHERE created_at >= NOW() - INTERVAL '24 hours'
+        `
+      ),
+      query(
+        `
+          WITH expired_batches AS (
+            ${buildRedeemBatchDatasetCte({}).cteSql}
+            SELECT *
+            FROM redeem_batch_rows
+            WHERE computed_status = 'expired'
+              AND status <> 'disabled'
+              AND COALESCE(unused_count, 0) > 0
+          )
+          SELECT COUNT(*) AS count, MAX(valid_until) AS latest_at
+          FROM expired_batches
         `
       ),
     ]);
 
-    const overview = overviewResult.rows[0];
+    const currentSummary = currentSummaryResult.rows[0] || {};
+    const previousSummary = previousSummaryResult.rows[0] || {};
+    const totalUsers = Number(totalUsersResult.rows[0]?.total_users || 0);
+    const previousTotalUsers = Number(previousTotalUsersResult.rows[0]?.total_users || 0);
+    const growthPoints = growthResult.rows.map((row) => ({
+      date: row.date,
+      count: Number(row.count || 0),
+    }));
+    const growthByAppMap = new Map();
+    for (const row of growthByAppResult.rows) {
+      if (!growthByAppMap.has(row.app_id)) {
+        growthByAppMap.set(row.app_id, {
+          app_id: row.app_id,
+          name: row.app_name,
+          points: [],
+        });
+      }
+      growthByAppMap.get(row.app_id).points.push({
+        date: row.date,
+        count: Number(row.count || 0),
+      });
+    }
+
+    const distributionApps = distributionResult.rows.map((row) => ({
+      app_id: row.app_id,
+      name: row.name,
+      registered_users: Number(row.registered_users || 0),
+      paid_users: Number(row.paid_users || 0),
+    }));
+    const totalRegisteredUsers = distributionApps.reduce((sum, item) => sum + item.registered_users, 0);
+    const totalPaidUsers = distributionApps.reduce((sum, item) => sum + item.paid_users, 0);
+
+    const revenueByApp = revenueByAppResult.rows.map((row) => ({
+      app_id: row.app_id,
+      name: row.name,
+      revenue: Number(row.revenue || 0),
+      paid_orders: Number(row.paid_orders || 0),
+      paid_users: Number(row.paid_users || 0),
+    }));
+    const revenueTotal = revenueByApp.reduce((sum, item) => sum + item.revenue, 0);
+
+    const todos = {
+      pending_orders: {
+        count: Number(pendingOrdersResult.rows[0]?.count || 0),
+        latest_at: pendingOrdersResult.rows[0]?.latest_at || null,
+        action_link: {
+          route: "orders",
+          filters: {
+            status: "pending",
+          },
+        },
+      },
+      failed_orders: {
+        count: Number(failedOrdersResult.rows[0]?.count || 0),
+        latest_at: failedOrdersResult.rows[0]?.latest_at || null,
+        action_link: {
+          route: "orders",
+          filters: {
+            status: "failed",
+          },
+        },
+      },
+      unpublished_landings: {
+        count: Number(unpublishedLandingsResult.rows[0]?.count || 0),
+        latest_at: unpublishedLandingsResult.rows[0]?.latest_at || null,
+        action_link: {
+          route: "landing",
+        },
+      },
+      expiring_redeem_batches: {
+        count: Number(expiringBatchesResult.rows[0]?.count || 0),
+        latest_at: expiringBatchesResult.rows[0]?.latest_at || null,
+        action_link: {
+          route: "redeem",
+          filters: {
+            status: "active",
+          },
+        },
+      },
+    };
+
+    const alerts = [];
+    if (Number(newUsers24hResult.rows[0]?.new_user_count || 0) === 0) {
+      alerts.push({
+        level: "warning",
+        code: "no_new_users_24h",
+        title: "近 24 小时没有新增用户",
+        subtitle: "请检查注册链路、落地页转化和短信发送状态",
+        created_at: new Date().toISOString(),
+        action_link: {
+          route: "users",
+          filters: {
+            registeredRange: "today",
+          },
+        },
+      });
+    }
+    if (Number(paid24hResult.rows[0]?.paid_count || 0) === 0) {
+      alerts.push({
+        level: "warning",
+        code: "no_paid_orders_24h",
+        title: "近 24 小时没有支付成功订单",
+        subtitle: "请检查支付链路、订单创建和支付确认流程",
+        created_at: new Date().toISOString(),
+        action_link: {
+          route: "orders",
+          filters: {
+            status: "paid",
+            dateFrom: formatLocalDateInput(addDays(new Date(), -1)),
+            dateTo: formatLocalDateInput(new Date()),
+          },
+        },
+      });
+    }
+    if (Number(smsFailureResult.rows[0]?.failed_count || 0) > 0) {
+      alerts.push({
+        level: "danger",
+        code: "sms_failures_24h",
+        title: `最近 24 小时短信发送失败 ${Number(smsFailureResult.rows[0]?.failed_count || 0)} 次`,
+        subtitle: "请检查短信模板、供应商凭证和验证码发送链路",
+        created_at: smsFailureResult.rows[0]?.latest_at || new Date().toISOString(),
+        action_link: {
+          route: "sms",
+          filters: {
+            sendStatus: "failed",
+            createdFrom: formatLocalDateInput(addDays(new Date(), -1)),
+            createdTo: formatLocalDateInput(new Date()),
+          },
+        },
+      });
+    }
+    if (Number(expiredRedeemAlertResult.rows[0]?.count || 0) > 0) {
+      alerts.push({
+        level: "warning",
+        code: "expired_redeem_batches",
+        title: `存在 ${Number(expiredRedeemAlertResult.rows[0]?.count || 0)} 个已过期兑换码批次`,
+        subtitle: "这些批次仍有未使用兑换码，建议尽快核查并停用",
+        created_at: expiredRedeemAlertResult.rows[0]?.latest_at || new Date().toISOString(),
+        action_link: {
+          route: "redeem",
+          filters: {
+            status: "expired",
+          },
+        },
+      });
+    }
+
+    const activityItems = [];
+    for (const event of recentUserActivityResult.rows) {
+      activityItems.push({
+        type: "user_event",
+        title:
+          event.event_type === "account_created"
+            ? `${event.username || event.user_id || "用户"} 创建了统一账号`
+            : event.event_type === "membership_registered"
+            ? `${event.username || event.user_id || "用户"} 注册了 ${event.app_id || "应用"}`
+            : event.event_type === "login_password"
+            ? `${event.username || event.user_id || "用户"} 完成密码登录`
+            : `${event.username || event.user_id || "用户"} 发生了用户事件`,
+        subtitle: event.app_id ? `应用 ${event.app_id} · ${event.event_type}` : event.event_type,
+        created_at: event.created_at,
+        target_type: "user",
+        target_id: event.user_id,
+        action_link: {
+          route: "users",
+          filters: {
+            search: event.user_id || event.username || "",
+          },
+        },
+      });
+    }
+    for (const event of recentPurchaseActivityResult.rows) {
+      activityItems.push({
+        type: "purchase_event",
+        title:
+          event.event_type === "payment_confirmed"
+            ? `订单 ${event.order_no} 支付成功`
+            : event.event_type === "order_created"
+            ? `订单 ${event.order_no} 已创建`
+            : `订单 ${event.order_no} 更新为 ${event.to_status || event.event_type}`,
+        subtitle: `${event.username || "未知用户"} · ${event.app_id || "未知应用"}${event.amount != null ? ` · ¥${Number(event.amount).toFixed(2)}` : ""}`,
+        created_at: event.created_at,
+        target_type: "purchase",
+        target_id: event.order_no,
+        action_link: {
+          route: "orders",
+          order_no: event.order_no,
+        },
+      });
+    }
+    for (const event of recentLogActivityResult.rows) {
+      const details = event.details && typeof event.details === "object" ? event.details : {};
+      let route = "logs";
+      if (event.target_type === "landing_page") route = "landing";
+      if (event.target_type === "release") route = "builds";
+      if (event.target_type === "purchase") route = "orders";
+      if (event.target_type === "redeem_batch" || event.target_type === "redeem_code") route = "redeem";
+      activityItems.push({
+        type: "operation_log",
+        title: `${event.actor_id || event.actor_name || "管理员"} ${event.action}`,
+        subtitle: event.target_type
+          ? `${event.target_type} · ${details.app_id || details.batch_no || details.slug || event.target_id || ""}`
+          : "后台操作",
+        created_at: event.created_at,
+        target_type: event.target_type,
+        target_id: event.target_id,
+        action_link: {
+          route,
+          order_no: event.target_type === "purchase" ? event.target_id : null,
+          batch_id: event.target_type === "redeem_batch" ? event.target_id : null,
+          filters: route === "logs" ? { targetType: event.target_type || "" } : null,
+        },
+      });
+    }
+    for (const event of recentRedeemActivityResult.rows) {
+      activityItems.push({
+        type: "redeem_event",
+        title:
+          event.event_type === "redeemed"
+            ? `兑换码批次 ${event.batch_no || event.batch_id} 已核销`
+            : event.event_type === "exported"
+            ? `兑换码批次 ${event.batch_no || event.batch_id} 已导出`
+            : `兑换码批次 ${event.batch_no || event.batch_id} ${event.event_type}`,
+        subtitle: `${event.app_id || "未知应用"} · ${event.plan_code || "未知套餐"}${event.code_preview ? ` · ${event.code_preview}` : ""}`,
+        created_at: event.created_at,
+        target_type: "redeem_batch",
+        target_id: event.batch_id,
+        action_link: {
+          route: "redeem",
+          batch_id: event.batch_id,
+        },
+      });
+    }
+
+    activityItems.sort((left, right) => new Date(right.created_at).getTime() - new Date(left.created_at).getTime());
 
     return res.json({
-      total_users: Number(overview.total_users),
-      new_users_today: Number(overview.new_users_today),
-      total_revenue: Number(overview.total_revenue),
-      active_devices: Number(overview.active_devices),
-      revenue_by_app: revenueByAppResult.rows.map((row) => ({
-        app_id: row.app_id,
-        name: row.name,
-        revenue: Number(row.revenue),
-        paid_users: Number(row.paid_users),
+      summary: {
+        total_users: totalUsers,
+        new_users: Number(currentSummary.new_users || 0),
+        total_revenue: Number(currentSummary.total_revenue || 0),
+        active_devices: Number(currentSummary.active_devices || 0),
+        deltas: {
+          total_users: buildDeltaPayload(totalUsers, previousTotalUsers),
+          new_users: buildDeltaPayload(currentSummary.new_users, previousSummary.new_users),
+          total_revenue: buildDeltaPayload(currentSummary.total_revenue, previousSummary.total_revenue),
+          active_devices: buildDeltaPayload(currentSummary.active_devices, previousSummary.active_devices),
+        },
+      },
+      user_growth: {
+        range: window.range,
+        date_from: formatLocalDateInput(window.start),
+        date_to: formatLocalDateInput(addDays(window.endExclusive, -1)),
+        points: growthPoints,
+        by_app: Array.from(growthByAppMap.values()),
+      },
+      distribution: {
+        basis: "registered_users",
+        total_registered_users: totalRegisteredUsers,
+        total_paid_users: totalPaidUsers,
+        apps: distributionApps,
+      },
+      revenue: {
+        total: revenueTotal,
+        target: Number.isFinite(dashboardRevenueTarget) ? dashboardRevenueTarget : null,
+        progress:
+          Number.isFinite(dashboardRevenueTarget) && dashboardRevenueTarget > 0
+            ? Number(((revenueTotal / dashboardRevenueTarget) * 100).toFixed(1))
+            : null,
+        by_app: revenueByApp,
+      },
+      todos,
+      alerts: {
+        items: alerts,
+      },
+      activities: {
+        items: activityItems.slice(0, 20),
+      },
+      filters: {
+        range: window.range,
+        date_from: formatLocalDateInput(window.start),
+        date_to: formatLocalDateInput(addDays(window.endExclusive, -1)),
+        previous_date_from: formatLocalDateInput(window.previousStart),
+        previous_date_to: formatLocalDateInput(addDays(window.previousEndExclusive, -1)),
+      },
+      total_users: totalUsers,
+      new_users_today: Number(currentSummary.new_users || 0),
+      total_revenue: revenueTotal,
+      active_devices: Number(currentSummary.active_devices || 0),
+      revenue_by_app: revenueByApp.map((item) => ({
+        app_id: item.app_id,
+        name: item.name,
+        revenue: item.revenue,
+        paid_users: item.paid_users,
       })),
-      user_growth_30d: growthResult.rows.map((row) => ({
-        date: row.date,
-        count: Number(row.count),
-      })),
-      recent_orders: recentOrdersResult.rows,
+      user_growth_30d: growthPoints,
+      recent_orders: [],
     });
   } catch (error) {
     return next(error);
@@ -567,6 +1177,9 @@ router.get("/users", async (req, res, next) => {
     const appId = req.query.app_id ? ensureAppId(req.query.app_id) : "";
     const status = req.query.status ? ensureEnum(req.query.status, "status", userStatuses) : "";
     const registeredRange = ensureOptionalString(req.query.registered_range, { maxLength: 20, defaultValue: "" });
+    const activeRange = req.query.active_range
+      ? ensureEnum(req.query.active_range, "active_range", ["24h", "7d", "30d"])
+      : "";
     const createdFrom = ensureDateInput(req.query.created_from, "created_from");
     const createdTo = ensureDateInput(req.query.created_to, "created_to");
 
@@ -576,7 +1189,7 @@ router.get("/users", async (req, res, next) => {
     if (search) {
       params.push(`%${search}%`);
       conditions.push(
-        `(u.username ILIKE $${params.length} OR COALESCE(u.phone, '') ILIKE $${params.length} OR COALESCE(u.email, '') ILIKE $${params.length})`
+        `(u.id ILIKE $${params.length} OR u.username ILIKE $${params.length} OR COALESCE(u.phone, '') ILIKE $${params.length} OR COALESCE(u.email, '') ILIKE $${params.length})`
       );
     }
 
@@ -635,6 +1248,14 @@ router.get("/users", async (req, res, next) => {
       conditions.push(`u.created_at >= NOW() - INTERVAL '7 days'`);
     } else if (registeredRange === "30d") {
       conditions.push(`u.created_at >= NOW() - INTERVAL '30 days'`);
+    }
+
+    if (activeRange === "24h") {
+      conditions.push(`u.last_login >= NOW() - INTERVAL '24 hours'`);
+    } else if (activeRange === "7d") {
+      conditions.push(`u.last_login >= NOW() - INTERVAL '7 days'`);
+    } else if (activeRange === "30d") {
+      conditions.push(`u.last_login >= NOW() - INTERVAL '30 days'`);
     }
 
     if (createdFrom) {
@@ -744,6 +1365,9 @@ router.get("/users/export", async (req, res, next) => {
     const appId = req.query.app_id ? ensureAppId(req.query.app_id) : "";
     const status = req.query.status ? ensureEnum(req.query.status, "status", userStatuses) : "";
     const registeredRange = ensureOptionalString(req.query.registered_range, { maxLength: 20, defaultValue: "" });
+    const activeRange = req.query.active_range
+      ? ensureEnum(req.query.active_range, "active_range", ["24h", "7d", "30d"])
+      : "";
     const createdFrom = ensureDateInput(req.query.created_from, "created_from");
     const createdTo = ensureDateInput(req.query.created_to, "created_to");
 
@@ -753,7 +1377,7 @@ router.get("/users/export", async (req, res, next) => {
     if (search) {
       params.push(`%${search}%`);
       conditions.push(
-        `(u.username ILIKE $${params.length} OR COALESCE(u.phone, '') ILIKE $${params.length} OR COALESCE(u.email, '') ILIKE $${params.length})`
+        `(u.id ILIKE $${params.length} OR u.username ILIKE $${params.length} OR COALESCE(u.phone, '') ILIKE $${params.length} OR COALESCE(u.email, '') ILIKE $${params.length})`
       );
     }
 
@@ -812,6 +1436,14 @@ router.get("/users/export", async (req, res, next) => {
       conditions.push(`u.created_at >= NOW() - INTERVAL '7 days'`);
     } else if (registeredRange === "30d") {
       conditions.push(`u.created_at >= NOW() - INTERVAL '30 days'`);
+    }
+
+    if (activeRange === "24h") {
+      conditions.push(`u.last_login >= NOW() - INTERVAL '24 hours'`);
+    } else if (activeRange === "7d") {
+      conditions.push(`u.last_login >= NOW() - INTERVAL '7 days'`);
+    } else if (activeRange === "30d") {
+      conditions.push(`u.last_login >= NOW() - INTERVAL '30 days'`);
     }
 
     if (createdFrom) {
@@ -1484,10 +2116,28 @@ router.get("/purchases", async (req, res, next) => {
     const totalParams = [...params];
     const listParams = [...params, limit, offset];
 
-    const [countResult, listResult] = await Promise.all([
+    const [countResult, summaryResult, listResult] = await Promise.all([
       query(
         `
           SELECT COUNT(*) AS total
+          FROM purchases p
+          JOIN users u ON u.id = p.user_id
+          ${whereClause}
+        `,
+        totalParams
+      ),
+      query(
+        `
+          SELECT
+            COUNT(*) AS total_orders,
+            COUNT(*) FILTER (WHERE p.status = 'paid') AS paid_orders,
+            COUNT(*) FILTER (WHERE p.status = 'pending') AS pending_orders,
+            COUNT(*) FILTER (WHERE p.status = 'failed') AS failed_orders,
+            COUNT(*) FILTER (WHERE p.status = 'refunded') AS refunded_orders,
+            COALESCE(SUM(p.amount) FILTER (WHERE p.status = 'paid'), 0) AS paid_revenue,
+            COALESCE(SUM(p.amount) FILTER (WHERE p.status = 'refunded'), 0) AS refunded_amount,
+            COALESCE(AVG(p.amount) FILTER (WHERE p.status = 'paid'), 0) AS paid_average_value,
+            MAX(p.created_at) FILTER (WHERE p.status = 'paid') AS latest_paid_at
           FROM purchases p
           JOIN users u ON u.id = p.user_id
           ${whereClause}
@@ -1524,6 +2174,17 @@ router.get("/purchases", async (req, res, next) => {
         ...row,
         amount: Number(row.amount),
       })),
+      summary: {
+        total_orders: Number(summaryResult.rows[0]?.total_orders || 0),
+        paid_orders: Number(summaryResult.rows[0]?.paid_orders || 0),
+        pending_orders: Number(summaryResult.rows[0]?.pending_orders || 0),
+        failed_orders: Number(summaryResult.rows[0]?.failed_orders || 0),
+        refunded_orders: Number(summaryResult.rows[0]?.refunded_orders || 0),
+        paid_revenue: Number(summaryResult.rows[0]?.paid_revenue || 0),
+        refunded_amount: Number(summaryResult.rows[0]?.refunded_amount || 0),
+        paid_average_value: Number(summaryResult.rows[0]?.paid_average_value || 0),
+        latest_paid_at: summaryResult.rows[0]?.latest_paid_at || null,
+      },
       pagination: formatPagination(page, limit, Number(countResult.rows[0].total)),
     });
   } catch (error) {
@@ -3203,6 +3864,122 @@ router.get("/operation-logs", async (req, res, next) => {
 
     return res.json({
       items: listResult.rows,
+      pagination: formatPagination(page, limit, Number(countResult.rows[0].total)),
+    });
+  } catch (error) {
+    return next(error);
+  }
+});
+
+router.get("/verification-codes", async (req, res, next) => {
+  try {
+    const { page, limit, offset } = parsePagination(req.query, { defaultLimit: 20, maxLimit: 100 });
+    const appId = req.query.app_id ? ensureAppId(req.query.app_id) : "";
+    const purpose = req.query.purpose ? ensureEnum(req.query.purpose, "purpose", ["register", "reset_password"]) : "";
+    const mode = req.query.mode ? ensureEnum(req.query.mode, "mode", ["dev", "sms"]) : "";
+    const sendStatus = req.query.send_status
+      ? ensureEnum(req.query.send_status, "send_status", ["pending", "sent", "failed"])
+      : "";
+    const provider = ensureOptionalString(req.query.provider, { maxLength: 50, defaultValue: "" });
+    const search = ensureOptionalString(req.query.search, { maxLength: 100, defaultValue: "" });
+    const createdFrom = ensureDateOnly(req.query.created_from, "created_from");
+    const createdTo = ensureDateOnly(req.query.created_to, "created_to");
+
+    const params = [];
+    const conditions = [];
+
+    if (appId) {
+      params.push(appId);
+      conditions.push(`vc.app_id = $${params.length}`);
+    }
+    if (purpose) {
+      params.push(purpose);
+      conditions.push(`vc.purpose = $${params.length}`);
+    }
+    if (mode) {
+      params.push(mode);
+      conditions.push(`vc.mode = $${params.length}`);
+    }
+    if (sendStatus) {
+      params.push(sendStatus);
+      conditions.push(`vc.send_status = $${params.length}`);
+    }
+    if (provider) {
+      params.push(provider);
+      conditions.push(`vc.provider = $${params.length}`);
+    }
+    if (search) {
+      params.push(`%${search}%`);
+      conditions.push(
+        `(vc.phone ILIKE $${params.length} OR COALESCE(vc.provider_request_id, '') ILIKE $${params.length} OR COALESCE(vc.provider_serial_no, '') ILIKE $${params.length} OR COALESCE(vc.error_message, '') ILIKE $${params.length})`
+      );
+    }
+    if (createdFrom) {
+      params.push(createdFrom);
+      conditions.push(`vc.created_at::date >= $${params.length}::date`);
+    }
+    if (createdTo) {
+      params.push(createdTo);
+      conditions.push(`vc.created_at::date <= $${params.length}::date`);
+    }
+
+    const whereClause = conditions.length ? `WHERE ${conditions.join(" AND ")}` : "";
+    const totalParams = [...params];
+    const listParams = [...params, limit, offset];
+
+    const [countResult, summaryResult, listResult] = await Promise.all([
+      query(
+        `
+          SELECT COUNT(*) AS total
+          FROM verification_codes vc
+          JOIN applications a ON a.id = vc.app_id
+          ${whereClause}
+        `,
+        totalParams
+      ),
+      query(
+        `
+          SELECT
+            COUNT(*) AS total_codes,
+            COUNT(*) FILTER (WHERE vc.send_status = 'sent') AS sent_count,
+            COUNT(*) FILTER (WHERE vc.send_status = 'failed') AS failed_count,
+            COUNT(*) FILTER (WHERE vc.send_status = 'pending') AS pending_count,
+            COUNT(*) FILTER (WHERE vc.mode = 'sms') AS sms_count,
+            COUNT(*) FILTER (WHERE vc.mode = 'dev') AS dev_count,
+            MAX(vc.created_at) AS latest_created_at
+          FROM verification_codes vc
+          JOIN applications a ON a.id = vc.app_id
+          ${whereClause}
+        `,
+        totalParams
+      ),
+      query(
+        `
+          SELECT
+            vc.*,
+            a.name AS app_name
+          FROM verification_codes vc
+          JOIN applications a ON a.id = vc.app_id
+          ${whereClause}
+          ORDER BY vc.created_at DESC, vc.id DESC
+          LIMIT $${params.length + 1}
+          OFFSET $${params.length + 2}
+        `,
+        listParams
+      ),
+    ]);
+
+    return res.json({
+      items: listResult.rows.map(serializeVerificationCodeRow),
+      summary: {
+        total_codes: Number(summaryResult.rows[0]?.total_codes || 0),
+        sent_count: Number(summaryResult.rows[0]?.sent_count || 0),
+        failed_count: Number(summaryResult.rows[0]?.failed_count || 0),
+        pending_count: Number(summaryResult.rows[0]?.pending_count || 0),
+        sms_count: Number(summaryResult.rows[0]?.sms_count || 0),
+        dev_count: Number(summaryResult.rows[0]?.dev_count || 0),
+        latest_created_at: summaryResult.rows[0]?.latest_created_at || null,
+      },
       pagination: formatPagination(page, limit, Number(countResult.rows[0].total)),
     });
   } catch (error) {

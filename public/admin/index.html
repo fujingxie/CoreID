@@ -1605,6 +1605,10 @@ table.tbl tr.row-clickable:hover td { background: rgba(28,29,34,0.4); }
         <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="2.5" y="4" width="11" height="8" rx="1.2"/><path d="M5.5 6.5h5M5.5 9.5h3"/><path d="M11 4V3M5 4V3M5 12v1M11 12v1"/></svg>
         兑换码管理
       </div>
+      <div class="nav-item" data-route="sms">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="2" y="3" width="12" height="9" rx="1.2"/><path d="M4 5.5l4 3 4-3"/><path d="M5 11h6"/></svg>
+        短信记录
+      </div>
     </div>
 
     <div class="nav-group">
@@ -1658,61 +1662,56 @@ table.tbl tr.row-clickable:hover td { background: rgba(28,29,34,0.4); }
     <section class="view active page" id="view-dashboard">
       <div class="page-head">
         <div>
-          <h1>晚上好，陈一鸣 <em>—</em></h1>
-          <div class="sub" style="margin-top:8px;">2026 年 5 月 9 日 · 周六 · 实时数据</div>
+          <h1 id="dashboard-headline">运营工作台 <em>—</em></h1>
+          <div class="sub" id="dashboard-status-line" style="margin-top:8px;">正在加载概览数据…</div>
         </div>
         <div class="page-head-actions">
-          <button class="btn-pill"><span style="opacity:.7;">本周</span></button>
-          <button class="btn-pill primary">导出报表</button>
+          <button class="btn-pill active" data-dashboard-range="today">今天</button>
+          <button class="btn-pill primary" data-dashboard-range="7d">近 7 天</button>
+          <button class="btn-pill" data-dashboard-range="30d">近 30 天</button>
+          <button class="btn-pill" data-dashboard-range="custom">自定义</button>
+          <input type="date" class="text-input hidden" id="dashboard-date-from" style="min-width:146px;" />
+          <input type="date" class="text-input hidden" id="dashboard-date-to" style="min-width:146px;" />
+          <button class="btn-pill hidden" id="dashboard-apply-custom">应用</button>
+          <button class="btn-pill" id="dashboard-refresh">刷新数据</button>
+          <button class="btn-pill primary" id="dashboard-export">导出报表</button>
         </div>
       </div>
 
       <!-- KPI -->
       <div class="kpi-row">
-        <div class="kpi">
+        <div class="kpi row-clickable" id="dashboard-kpi-users" data-dashboard-card="users">
           <div class="kpi-label"><span class="dot"></span>总用户数</div>
-          <div class="kpi-value" id="kpi-total-users">128,402</div>
-          <div class="kpi-foot">
-            <span class="delta up">↑ 4.2%</span>
-            <span class="muted">较上周</span>
-          </div>
+          <div class="kpi-value" id="kpi-total-users">0</div>
+          <div class="kpi-foot" id="kpi-total-users-foot"><span class="muted">较上周期</span></div>
           <svg class="spark" viewBox="0 0 100 40" preserveAspectRatio="none">
             <defs><linearGradient id="sg1" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#cc9166" stop-opacity=".4"/><stop offset="100%" stop-color="#cc9166" stop-opacity="0"/></linearGradient></defs>
             <path d="M0,30 L10,28 L20,25 L30,26 L40,20 L50,18 L60,15 L70,16 L80,10 L90,8 L100,5 L100,40 L0,40 Z" fill="url(#sg1)"/>
             <path d="M0,30 L10,28 L20,25 L30,26 L40,20 L50,18 L60,15 L70,16 L80,10 L90,8 L100,5" fill="none" stroke="#cc9166" stroke-width="1.2"/>
           </svg>
         </div>
-        <div class="kpi">
-          <div class="kpi-label"><span class="dot"></span>今日新增</div>
-          <div class="kpi-value" id="kpi-new-users">1,284</div>
-          <div class="kpi-foot">
-            <span class="delta up">↑ 12.6%</span>
-            <span class="muted">环比昨日</span>
-          </div>
+        <div class="kpi row-clickable" id="dashboard-kpi-new-users" data-dashboard-card="new-users">
+          <div class="kpi-label"><span class="dot"></span>周期新增</div>
+          <div class="kpi-value" id="kpi-new-users">0</div>
+          <div class="kpi-foot" id="kpi-new-users-foot"><span class="muted">较上周期</span></div>
           <svg class="spark" viewBox="0 0 100 40" preserveAspectRatio="none">
             <path d="M0,30 L12,32 L24,22 L36,28 L48,18 L60,22 L72,12 L84,16 L100,6" fill="none" stroke="#84d1a8" stroke-width="1.2"/>
           </svg>
         </div>
-        <div class="kpi">
-          <div class="kpi-label"><span class="dot"></span>总收入</div>
-          <div class="kpi-value" id="kpi-total-revenue"><span class="unit">¥</span>3,847,210</div>
-          <div class="kpi-foot">
-            <span class="delta up">↑ 8.9%</span>
-            <span class="muted">较上月</span>
-          </div>
+        <div class="kpi row-clickable" id="dashboard-kpi-revenue" data-dashboard-card="revenue">
+          <div class="kpi-label"><span class="dot"></span>支付收入</div>
+          <div class="kpi-value" id="kpi-total-revenue"><span class="unit">¥</span>0</div>
+          <div class="kpi-foot" id="kpi-total-revenue-foot"><span class="muted">较上周期</span></div>
           <svg class="spark" viewBox="0 0 100 40" preserveAspectRatio="none">
             <defs><linearGradient id="sg3" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#cc9166" stop-opacity=".5"/><stop offset="100%" stop-color="#cc9166" stop-opacity="0"/></linearGradient></defs>
             <path d="M0,32 L10,28 L20,30 L30,22 L40,24 L50,16 L60,18 L70,12 L80,14 L90,8 L100,4 L100,40 L0,40 Z" fill="url(#sg3)"/>
             <path d="M0,32 L10,28 L20,30 L30,22 L40,24 L50,16 L60,18 L70,12 L80,14 L90,8 L100,4" fill="none" stroke="#cc9166" stroke-width="1.2"/>
           </svg>
         </div>
-        <div class="kpi">
+        <div class="kpi row-clickable" id="dashboard-kpi-devices" data-dashboard-card="devices">
           <div class="kpi-label"><span class="dot"></span>活跃设备数</div>
-          <div class="kpi-value" id="kpi-active-devices">42,196</div>
-          <div class="kpi-foot">
-            <span class="delta down">↓ 2.1%</span>
-            <span class="muted">7 日活跃</span>
-          </div>
+          <div class="kpi-value" id="kpi-active-devices">0</div>
+          <div class="kpi-foot" id="kpi-active-devices-foot"><span class="muted">较上周期</span></div>
           <svg class="spark" viewBox="0 0 100 40" preserveAspectRatio="none">
             <path d="M0,12 L10,16 L20,14 L30,20 L40,18 L50,24 L60,22 L70,26 L80,24 L90,28 L100,26" fill="none" stroke="#acafb9" stroke-width="1.2"/>
           </svg>
@@ -1725,20 +1724,15 @@ table.tbl tr.row-clickable:hover td { background: rgba(28,29,34,0.4); }
           <div class="card-head">
             <div>
               <h3 class="card-title">用户增长趋势</h3>
-              <div class="card-sub" id="growth-subtitle">近 30 天 · 累计 +38,402 新用户</div>
+              <div class="card-sub" id="growth-subtitle">正在加载趋势数据…</div>
             </div>
             <div class="card-tabs">
-              <span class="card-tab">7D</span>
-              <span class="card-tab active">30D</span>
-              <span class="card-tab">90D</span>
-              <span class="card-tab">1Y</span>
+              <span class="card-tab" data-dashboard-trend-range="7d">7D</span>
+              <span class="card-tab active" data-dashboard-trend-range="30d">30D</span>
+              <span class="card-tab" data-dashboard-trend-range="90d">90D</span>
             </div>
           </div>
-          <div class="legend" style="margin-bottom:6px;">
-            <span class="legend-item"><span class="legend-swatch" style="background:#cc9166;"></span>VidGet</span>
-            <span class="legend-item"><span class="legend-swatch" style="background:#7d94b8;"></span>助教云</span>
-            <span class="legend-item"><span class="legend-swatch" style="background:#5e616e;"></span>合计</span>
-          </div>
+          <div class="legend" id="dashboard-growth-legend" style="margin-bottom:6px;"></div>
           <svg id="line-chart" viewBox="0 0 760 280" width="100%" preserveAspectRatio="none" style="display:block;"></svg>
           <div class="chart-tip" id="line-tip"></div>
         </div>
@@ -1747,7 +1741,7 @@ table.tbl tr.row-clickable:hover td { background: rgba(28,29,34,0.4); }
           <div class="card-head">
             <div>
               <h3 class="card-title">产品用户分布</h3>
-              <div class="card-sub" id="distribution-subtitle">总计 128,402 名用户</div>
+              <div class="card-sub" id="distribution-subtitle">正在加载应用分布…</div>
             </div>
           </div>
           <div style="display:flex; align-items:center; gap:24px; padding: 6px 0 14px;">
@@ -1755,25 +1749,25 @@ table.tbl tr.row-clickable:hover td { background: rgba(28,29,34,0.4); }
             <div style="flex:1; display:flex; flex-direction:column; gap:14px;">
               <div>
                 <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:4px;">
-                  <span class="legend-item"><span class="legend-swatch" style="background:#cc9166;"></span>VidGet</span>
-                  <span class="cell-mono" id="dist-share-1" style="color:var(--color-pure-white); font-size:13px;">62.8%</span>
+                  <span class="legend-item" id="dist-label-1"><span class="legend-swatch" style="background:#cc9166;"></span>应用一</span>
+                  <span class="cell-mono" id="dist-share-1" style="color:var(--color-pure-white); font-size:13px;">0%</span>
                 </div>
-                <div id="dist-value-1" style="font-family:var(--font-display); font-size:24px; color:var(--color-pure-white); line-height:1;">80,617</div>
-                <div style="font-size:11px; color:var(--color-stone-text); margin-top:4px;">视频创作工具</div>
+                <div id="dist-value-1" style="font-family:var(--font-display); font-size:24px; color:var(--color-pure-white); line-height:1;">0</div>
+                <div id="dist-meta-1" style="font-size:11px; color:var(--color-stone-text); margin-top:4px;">注册用户 0 · 付费用户 0</div>
               </div>
               <div>
                 <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:4px;">
-                  <span class="legend-item"><span class="legend-swatch" style="background:#7d94b8;"></span>助教云</span>
-                  <span class="cell-mono" id="dist-share-2" style="color:var(--color-pure-white); font-size:13px;">37.2%</span>
+                  <span class="legend-item" id="dist-label-2"><span class="legend-swatch" style="background:#7d94b8;"></span>应用二</span>
+                  <span class="cell-mono" id="dist-share-2" style="color:var(--color-pure-white); font-size:13px;">0%</span>
                 </div>
-                <div id="dist-value-2" style="font-family:var(--font-display); font-size:24px; color:var(--color-pure-white); line-height:1;">47,785</div>
-                <div style="font-size:11px; color:var(--color-stone-text); margin-top:4px;">教学辅导平台</div>
+                <div id="dist-value-2" style="font-family:var(--font-display); font-size:24px; color:var(--color-pure-white); line-height:1;">0</div>
+                <div id="dist-meta-2" style="font-size:11px; color:var(--color-stone-text); margin-top:4px;">注册用户 0 · 付费用户 0</div>
               </div>
             </div>
           </div>
           <div style="border-top:var(--hairline); padding-top:14px; display:flex; justify-content:space-between; font-size:12px;">
-            <span class="muted">交叉用户</span>
-            <span id="cross-user-stat" style="color:var(--color-pure-white); font-variant-numeric:tabular-nums;">8,042 <span class="muted">(6.3%)</span></span>
+            <span class="muted" id="distribution-footer-label">付费用户占比</span>
+            <span id="cross-user-stat" style="color:var(--color-pure-white); font-variant-numeric:tabular-nums;">0 <span class="muted">(0%)</span></span>
           </div>
         </div>
       </div>
@@ -1784,82 +1778,45 @@ table.tbl tr.row-clickable:hover td { background: rgba(28,29,34,0.4); }
           <div class="card-head">
             <div>
               <h3 class="card-title">收入构成</h3>
-              <div class="card-sub" id="revenue-subtitle">本月 · ¥384,720 / 目标 ¥500,000</div>
+              <div class="card-sub" id="revenue-subtitle">正在加载收入构成…</div>
             </div>
-            <span class="muted" id="revenue-progress" style="font-family:var(--font-mono); font-size:11px;">76.9%</span>
+            <span class="muted" id="revenue-progress" style="font-family:var(--font-mono); font-size:11px;">—</span>
           </div>
           <!-- stacked horizontal bar -->
-          <div style="display:flex; height:14px; border-radius:7px; overflow:hidden; background:var(--color-pewter-accent);">
-            <div style="width:48%; background:linear-gradient(90deg,#a07a48,#cc9166);"></div>
-            <div style="width:22%; background:#7d94b8;"></div>
-            <div style="width:8%; background:#4a5364;"></div>
-            <div style="flex:1; background:transparent;"></div>
-          </div>
-          <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-top:18px;">
-            <div>
-              <div class="legend-item" style="font-size:11.5px;"><span class="legend-swatch" style="background:#cc9166;"></span>VidGet 订阅</div>
-              <div style="font-family:var(--font-display); font-size:22px; color:var(--color-pure-white); margin-top:6px; line-height:1;">¥184,560</div>
-              <div style="font-size:11px; color:var(--color-stone-text); margin-top:3px;">48% · 1,840 单</div>
-            </div>
-            <div>
-              <div class="legend-item" style="font-size:11.5px;"><span class="legend-swatch" style="background:#7d94b8;"></span>助教云 SaaS</div>
-              <div style="font-family:var(--font-display); font-size:22px; color:var(--color-pure-white); margin-top:6px; line-height:1;">¥84,640</div>
-              <div style="font-size:11px; color:var(--color-stone-text); margin-top:3px;">22% · 312 单</div>
-            </div>
-            <div>
-              <div class="legend-item" style="font-size:11.5px;"><span class="legend-swatch" style="background:#4a5364;"></span>增值服务</div>
-              <div style="font-family:var(--font-display); font-size:22px; color:var(--color-pure-white); margin-top:6px; line-height:1;">¥30,720</div>
-              <div style="font-size:11px; color:var(--color-stone-text); margin-top:3px;">8% · 普通包</div>
-            </div>
-          </div>
+          <div id="dashboard-revenue-bar" style="display:flex; height:14px; border-radius:7px; overflow:hidden; background:var(--color-pewter-accent);"></div>
+          <div id="dashboard-revenue-breakdown" style="display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-top:18px;"></div>
         </div>
 
-        <div class="card">
-          <div class="card-head">
-            <div>
-              <h3 class="card-title">最近动态</h3>
-              <div class="card-sub">用户、订单、系统事件</div>
+        <div style="display:flex; flex-direction:column; gap:18px;">
+          <div class="card">
+            <div class="card-head">
+              <div>
+                <h3 class="card-title">待处理事项</h3>
+                <div class="card-sub">直接进入订单、落地页和兑换码处理页</div>
+              </div>
             </div>
-            <a class="muted" style="font-size:12px;">查看全部 →</a>
+            <div id="dashboard-todos" class="activity-list"></div>
           </div>
-          <div class="activity-list">
-            <div class="activity">
-              <div class="activity-icon">
-                <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="8" cy="6" r="2.5"/><path d="M3 13c0-2 2.2-3.5 5-3.5s5 1.5 5 3.5"/></svg>
+          <div class="card">
+            <div class="card-head">
+              <div>
+                <h3 class="card-title">运营预警</h3>
+                <div class="card-sub">轻量异常提示，不引入额外告警中心</div>
               </div>
-              <div class="activity-text">王梓涵 注册并购买 <b>VidGet 年度套餐</b><span> · 138****8821</span></div>
-              <div class="activity-time">2 分钟前</div>
             </div>
-            <div class="activity">
-              <div class="activity-icon" style="color:var(--color-golden);">
-                <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M2.5 4h11l-1 8.5a1.5 1.5 0 0 1-1.5 1.3H5a1.5 1.5 0 0 1-1.5-1.3L2.5 4z"/></svg>
-              </div>
-              <div class="activity-text">订单 <b class="cell-mono">#A8F4-2810</b> 支付成功 <span>· ¥298.00</span></div>
-              <div class="activity-time">8 分钟前</div>
-            </div>
-            <div class="activity">
-              <div class="activity-icon">
-                <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="2" y="3" width="12" height="9" rx="1"/><path d="M6 12v2M10 12v2M5 14h6"/></svg>
-              </div>
-              <div class="activity-text">发现新设备登录：<b>助教云 桌面端 · MacBook Pro</b></div>
-              <div class="activity-time">14 分钟前</div>
-            </div>
-            <div class="activity">
-              <div class="activity-icon">
-                <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M3 8l3 3 7-7"/></svg>
-              </div>
-              <div class="activity-text">VidGet v2.4 已发布，<b>1,284 名用户</b> 已升级</div>
-              <div class="activity-time">1 小时前</div>
-            </div>
-            <div class="activity">
-              <div class="activity-icon">
-                <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="8" cy="8" r="6"/><path d="M8 5v3l2 2"/></svg>
-              </div>
-              <div class="activity-text">每日用户报表已生成 <span>· 自动归档至 oss/reports/</span></div>
-              <div class="activity-time">3 小时前</div>
-            </div>
+            <div id="dashboard-alerts" class="activity-list"></div>
           </div>
         </div>
+      </div>
+
+      <div class="card" style="margin-top:18px;">
+        <div class="card-head">
+          <div>
+            <h3 class="card-title">最近动态</h3>
+            <div class="card-sub">用户、订单、兑换码与后台操作事件</div>
+          </div>
+        </div>
+        <div id="dashboard-activity-list" class="activity-list"></div>
       </div>
     </section>
 
@@ -1890,11 +1847,20 @@ table.tbl tr.row-clickable:hover td { background: rgba(28,29,34,0.4); }
           <span id="users-app-filter-group" style="display:contents;">
             <button class="filter-chip active" id="users-app-all">全部应用</button>
           </span>
+          <select id="users-active-filter" class="text-input" style="min-width:140px;">
+            <option value="">活跃筛选 · 全部</option>
+            <option value="24h">最近 24 小时</option>
+            <option value="7d">最近 7 天</option>
+            <option value="30d">最近 30 天</option>
+          </select>
           <div class="toolbar-spacer"></div>
           <button class="filter-chip active" id="users-date-all">注册时间 · 全部</button>
           <button class="filter-chip" data-user-range="today">今天</button>
           <button class="filter-chip" data-user-range="7d">近 7 天</button>
           <button class="filter-chip" data-user-range="30d">近 30 天</button>
+          <input type="date" class="text-input" id="users-created-from" style="min-width:146px;" />
+          <input type="date" class="text-input" id="users-created-to" style="min-width:146px;" />
+          <button class="btn-pill" id="users-clear-date">清除日期</button>
         </div>
         <table class="tbl">
           <thead>
@@ -1939,37 +1905,42 @@ table.tbl tr.row-clickable:hover td { background: rgba(28,29,34,0.4); }
         <div class="rev-cell">
           <div class="lbl"><span class="pip"></span>今日收入</div>
           <div class="val" id="orders-today-revenue"><span class="ccy">¥</span>284,720</div>
-          <div class="foot"><span class="delta up">↑ 18.4%</span><span>较昨日</span></div>
+          <div class="foot" id="orders-today-revenue-foot"><span class="muted">当前筛选口径</span></div>
         </div>
         <div class="rev-cell minor">
           <div class="lbl">今日订单数</div>
           <div class="val" id="orders-today-count">1,284</div>
-          <div class="foot"><span class="delta up">↑ 12.1%</span></div>
+          <div class="foot" id="orders-today-count-foot"><span class="muted">支付成功订单</span></div>
         </div>
         <div class="rev-cell minor">
           <div class="lbl">客单价</div>
           <div class="val" id="orders-average-value"><span class="ccy">¥</span>221.7</div>
-          <div class="foot"><span class="muted">本月平均 ¥208.5</span></div>
+          <div class="foot" id="orders-average-value-foot"><span class="muted">已支付订单均值</span></div>
         </div>
         <div class="rev-cell minor">
           <div class="lbl">退款</div>
           <div class="val" id="orders-refund-value"><span class="ccy">¥</span>2,180</div>
-          <div class="foot"><span class="muted">退款率 0.76%</span></div>
+          <div class="foot" id="orders-refund-value-foot"><span class="muted">退款订单占比</span></div>
         </div>
       </div>
 
       <div class="table-card">
         <div class="table-toolbar">
-          <button class="filter-chip active">全部产品</button>
-          <button class="filter-chip"><span style="display:inline-block;width:8px;height:8px;background:#cc9166;border-radius:2px;"></span>VidGet</button>
-          <button class="filter-chip"><span style="display:inline-block;width:8px;height:8px;background:#7d94b8;border-radius:2px;"></span>助教云</button>
+          <select id="orders-app-filter" class="text-input" style="min-width:160px;">
+            <option value="">全部产品</option>
+          </select>
           <span style="width:1px; align-self:stretch; background:rgba(226,227,233,0.06); margin:0 4px;"></span>
-          <button class="filter-chip">
-            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="2" y="3" width="12" height="11" rx="1"/><path d="M2 6h12M5 1v3M11 1v3"/></svg>
-            2026.05.01 – 2026.05.09
-          </button>
-          <button class="filter-chip">套餐类型 · 全部</button>
-          <button class="filter-chip">支付状态 · 全部</button>
+          <select id="orders-status-filter" class="text-input" style="min-width:150px;">
+            <option value="">支付状态 · 全部</option>
+            <option value="pending">待支付</option>
+            <option value="paid">已付费</option>
+            <option value="failed">支付失败</option>
+            <option value="refunded">已退款</option>
+            <option value="expired">已过期</option>
+          </select>
+          <input type="date" class="text-input" id="orders-date-from" style="min-width:146px;" />
+          <input type="date" class="text-input" id="orders-date-to" style="min-width:146px;" />
+          <button class="btn-pill" id="orders-clear-filters">清除筛选</button>
           <div class="toolbar-spacer"></div>
           <div class="search-pill" style="max-width:240px;">
             <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="7" cy="7" r="5"/><path d="M11 11l3 3"/></svg>
@@ -1993,15 +1964,94 @@ table.tbl tr.row-clickable:hover td { background: rgba(28,29,34,0.4); }
         </table>
         <div class="pagination">
           <span id="orders-pagination">显示 1 – 12，共 7,418 条</span>
-          <div class="pager-btns">
-            <button>‹</button>
-            <button class="active">1</button>
-            <button>2</button>
-            <button>3</button>
-            <button>…</button>
-            <button>619</button>
-            <button>›</button>
+          <div class="pager-btns" id="orders-pager-btns"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== SMS Logs ===== -->
+    <section class="view page" id="view-sms">
+      <div class="page-head">
+        <div>
+          <h1>短信 <em>记录</em></h1>
+          <div class="sub" id="sms-page-subtitle" style="margin-top:8px;">查看验证码发送结果、失败原因和供应商请求号。</div>
+        </div>
+        <div class="page-head-actions">
+          <select id="sms-app-filter" class="text-input" style="min-width:180px;">
+            <option value="">全部应用</option>
+          </select>
+          <button class="btn-pill" id="sms-refresh-btn">刷新</button>
+        </div>
+      </div>
+
+      <div class="revenue-banner">
+        <div class="rev-cell">
+          <div class="lbl"><span class="pip"></span>发送总数</div>
+          <div class="val" id="sms-total-count">0</div>
+          <div class="foot" id="sms-total-foot"><span class="muted">当前筛选口径</span></div>
+        </div>
+        <div class="rev-cell minor">
+          <div class="lbl">发送成功</div>
+          <div class="val" id="sms-sent-count">0</div>
+          <div class="foot" id="sms-sent-foot"><span class="muted">成功率 0%</span></div>
+        </div>
+        <div class="rev-cell minor">
+          <div class="lbl">发送失败</div>
+          <div class="val" id="sms-failed-count">0</div>
+          <div class="foot" id="sms-failed-foot"><span class="muted">最近失败 —</span></div>
+        </div>
+        <div class="rev-cell minor">
+          <div class="lbl">真实短信 / 开发模式</div>
+          <div class="val" id="sms-mode-count">0 / 0</div>
+          <div class="foot" id="sms-mode-foot"><span class="muted">生产联调状态</span></div>
+        </div>
+      </div>
+
+      <div class="table-card">
+        <div class="table-toolbar">
+          <select id="sms-purpose-filter" class="text-input" style="min-width:150px;">
+            <option value="">用途 · 全部</option>
+            <option value="register">注册</option>
+            <option value="reset_password">重置密码</option>
+          </select>
+          <select id="sms-send-status-filter" class="text-input" style="min-width:150px;">
+            <option value="">发送状态 · 全部</option>
+            <option value="sent">发送成功</option>
+            <option value="failed">发送失败</option>
+            <option value="pending">待发送</option>
+          </select>
+          <select id="sms-mode-filter" class="text-input" style="min-width:150px;">
+            <option value="">模式 · 全部</option>
+            <option value="sms">真实短信</option>
+            <option value="dev">开发模式</option>
+          </select>
+          <input type="date" class="text-input" id="sms-created-from" style="min-width:146px;" />
+          <input type="date" class="text-input" id="sms-created-to" style="min-width:146px;" />
+          <button class="btn-pill" id="sms-clear-filters">清除筛选</button>
+          <div class="toolbar-spacer"></div>
+          <div class="search-pill" style="max-width:260px;">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="7" cy="7" r="5"/><path d="M11 11l3 3"/></svg>
+            <input id="sms-search" placeholder="手机号 / 请求号 / 错误信息" />
           </div>
+        </div>
+        <table class="tbl">
+          <thead>
+            <tr>
+              <th>发送时间</th>
+              <th>应用 / 用途</th>
+              <th>手机号</th>
+              <th>模式 / 供应商</th>
+              <th>状态</th>
+              <th>请求号</th>
+              <th>失败原因</th>
+              <th>有效期 / 消费</th>
+            </tr>
+          </thead>
+          <tbody id="sms-tbody"></tbody>
+        </table>
+        <div class="pagination">
+          <span id="sms-pagination">显示 0 条</span>
+          <div class="pager-btns" id="sms-pager-btns"></div>
         </div>
       </div>
     </section>
@@ -2455,6 +2505,7 @@ table.tbl tr.row-clickable:hover td { background: rgba(28,29,34,0.4); }
       </div>
       <div class="section-title" style="margin-top:0;">状态流转</div>
       <div class="membership-actions" style="margin: 0 0 12px;">
+        <button class="btn-pill" data-order-status-action="pending">恢复待支付</button>
         <button class="btn-pill" data-order-status-action="paid">标记支付成功</button>
         <button class="btn-pill" data-order-status-action="failed">标记失败</button>
         <button class="btn-pill" data-order-status-action="refunded">标记退款</button>
@@ -2966,7 +3017,7 @@ table.tbl tr.row-clickable:hover td { background: rgba(28,29,34,0.4); }
 </aside>
 
 <script>
-const routes = ["dashboard", "users", "orders", "apps", "plans", "redeem", "landing", "builds", "logs"];
+const routes = ["dashboard", "users", "orders", "apps", "plans", "redeem", "sms", "landing", "builds", "logs"];
 const labels = {
   dashboard: "概览",
   users: "用户管理",
@@ -2974,6 +3025,7 @@ const labels = {
   apps: "应用管理",
   plans: "套餐配置",
   redeem: "兑换码管理",
+  sms: "短信记录",
   "app-sdk": "SDK 接入文档",
   landing: "落地页管理",
   builds: "安装包管理",
@@ -2996,6 +3048,7 @@ const state = {
   userPagination: null,
   purchases: [],
   purchasePagination: null,
+  purchaseSummary: null,
   currentOrder: null,
   applications: [],
   plans: [],
@@ -3016,6 +3069,9 @@ const state = {
   releaseQr: null,
   operationLogs: [],
   operationLogPagination: null,
+  smsLogs: [],
+  smsLogPagination: null,
+  smsSummary: null,
   appContext: {
     landing: "",
     builds: "",
@@ -3027,15 +3083,30 @@ const state = {
   currentEditingPlanId: "",
   currentRedeemBatch: null,
   currentPlanNameCustom: false,
+  dashboardFilters: {
+    range: "7d",
+    dateFrom: "",
+    dateTo: "",
+    lastLoadedAt: null,
+    focusedGrowthAppId: "",
+  },
   userFilters: {
     search: "",
     status: "",
     appId: "",
     registeredRange: "",
+    activeRange: "",
+    createdFrom: "",
+    createdTo: "",
     page: 1,
   },
   orderFilters: {
     search: "",
+    appId: "",
+    status: "",
+    dateFrom: "",
+    dateTo: "",
+    page: 1,
   },
   planFilters: {
     appId: "",
@@ -3067,6 +3138,16 @@ const state = {
   logFilters: {
     actor: "",
     targetType: "",
+  },
+  smsFilters: {
+    search: "",
+    appId: "",
+    purpose: "",
+    mode: "",
+    sendStatus: "",
+    createdFrom: "",
+    createdTo: "",
+    page: 1,
   },
   selectedUploadFile: null,
   currentUser: null,
@@ -3163,6 +3244,15 @@ function formatCurrencyCompact(value) {
   });
 }
 
+function formatSignedPercent(value) {
+  const numeric = Number(value || 0);
+  const prefix = numeric > 0 ? "↑ " : numeric < 0 ? "↓ " : "→ ";
+  return `${prefix}${Math.abs(numeric).toLocaleString("zh-CN", {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 1,
+  })}%`;
+}
+
 function formatDate(value) {
   if (!value) {
     return "—";
@@ -3198,6 +3288,28 @@ function formatRelative(value) {
   if (hours < 24) return `${hours} 小时前`;
   const days = Math.floor(hours / 24);
   return `${days} 天前`;
+}
+
+function formatDashboardRangeLabel(filters = state.dashboardFilters) {
+  if (filters.range === "today") return "今天";
+  if (filters.range === "30d") return "近 30 天";
+  if (filters.range === "90d") return "近 90 天";
+  if (filters.range === "custom" && filters.dateFrom && filters.dateTo) {
+    return `${filters.dateFrom} 至 ${filters.dateTo}`;
+  }
+  return "近 7 天";
+}
+
+function setKpiFoot(id, delta) {
+  const container = document.getElementById(id);
+  if (!container) {
+    return;
+  }
+  const directionClass = delta?.direction === "up" ? "up" : delta?.direction === "down" ? "down" : "";
+  container.innerHTML = `
+    <span class="delta ${directionClass}">${formatSignedPercent(delta?.delta_percent || 0)}</span>
+    <span class="muted">较上周期</span>
+  `;
 }
 
 function formatBytes(bytes) {
@@ -3327,6 +3439,30 @@ function renderAppSelectionControls() {
       )
       .join("");
     plansAppFilter.value = state.planFilters.appId || "";
+  }
+
+  const ordersAppFilter = document.getElementById("orders-app-filter");
+  if (ordersAppFilter) {
+    ordersAppFilter.innerHTML = [`<option value="">全部产品</option>`]
+      .concat(
+        state.applications.map(
+          (application) => `<option value="${escapeHtml(application.id)}">${escapeHtml(appLabel(application.id))}</option>`
+        )
+      )
+      .join("");
+    ordersAppFilter.value = state.orderFilters.appId || "";
+  }
+
+  const smsAppFilter = document.getElementById("sms-app-filter");
+  if (smsAppFilter) {
+    smsAppFilter.innerHTML = [`<option value="">全部应用</option>`]
+      .concat(
+        state.applications.map(
+          (application) => `<option value="${escapeHtml(application.id)}">${escapeHtml(appLabel(application.id))}</option>`
+        )
+      )
+      .join("");
+    smsAppFilter.value = state.smsFilters.appId || "";
   }
 
   const planEditorApp = document.getElementById("plan-editor-app");
@@ -3530,6 +3666,15 @@ function buildUserExportUrl() {
   }
   if (state.userFilters.registeredRange) {
     params.set("registered_range", state.userFilters.registeredRange);
+  }
+  if (state.userFilters.activeRange) {
+    params.set("active_range", state.userFilters.activeRange);
+  }
+  if (state.userFilters.createdFrom) {
+    params.set("created_from", state.userFilters.createdFrom);
+  }
+  if (state.userFilters.createdTo) {
+    params.set("created_to", state.userFilters.createdTo);
   }
   return `/api/admin/users/export?${params.toString()}`;
 }
@@ -4006,81 +4151,135 @@ function renderAppContextBanner(route) {
 }
 
 async function loadDashboard() {
+  const params = new URLSearchParams();
+  params.set("range", state.dashboardFilters.range || "7d");
+  if (state.dashboardFilters.range === "custom") {
+    if (state.dashboardFilters.dateFrom) params.set("date_from", state.dashboardFilters.dateFrom);
+    if (state.dashboardFilters.dateTo) params.set("date_to", state.dashboardFilters.dateTo);
+  }
+
   const [dashboard, applications] = await Promise.all([
-    requestJson("/api/admin/dashboard"),
+    requestJson(`/api/admin/dashboard?${params.toString()}`),
     requestJson("/api/admin/applications"),
   ]);
 
   state.dashboard = dashboard;
   state.applications = applications.items;
+  state.dashboardFilters.range = dashboard.filters?.range || state.dashboardFilters.range;
+  state.dashboardFilters.dateFrom = dashboard.filters?.date_from || state.dashboardFilters.dateFrom;
+  state.dashboardFilters.dateTo = dashboard.filters?.date_to || state.dashboardFilters.dateTo;
+  state.dashboardFilters.lastLoadedAt = new Date().toISOString();
   if (!applications.items.some((application) => application.id === state.currentSdkAppId)) {
     state.currentSdkAppId = applications.items[0]?.id || "";
   }
   renderAppSelectionControls();
   document.getElementById("apps-page-subtitle").textContent = `${formatNumber(applications.items.length)} 个已接入应用 · 共 ${formatNumber(
-    dashboard.total_users
+    dashboard.summary?.total_users || dashboard.total_users
   )} 名用户`;
-
-  document.getElementById("kpi-total-users").textContent = formatNumber(dashboard.total_users);
-  document.getElementById("kpi-new-users").textContent = formatNumber(dashboard.new_users_today);
-  document.getElementById("kpi-total-revenue").innerHTML = `<span class="unit">¥</span>${formatCurrencyCompact(
-    dashboard.total_revenue
-  )}`;
-  document.getElementById("kpi-active-devices").textContent = formatNumber(dashboard.active_devices);
-  document.getElementById("growth-subtitle").textContent = `近 30 天 · 累计 +${formatNumber(
-    dashboard.user_growth_30d.reduce((sum, item) => sum + item.count, 0)
-  )} 新用户`;
-  document.getElementById("distribution-subtitle").textContent = `总计 ${formatNumber(
-    dashboard.total_users
-  )} 名用户`;
-
-  const appStats = applications.items.slice(0, 2);
-  const paidUserTotal = appStats.reduce((sum, item) => sum + Number(item.paid_users || 0), 0) || 1;
-  const first = appStats[0];
-  const second = appStats[1];
-
-  if (first) {
-    document.getElementById("dist-value-1").textContent = formatNumber(first.paid_users);
-    document.getElementById("dist-share-1").textContent = `${(
-      (Number(first.paid_users) / paidUserTotal) *
-      100
-    ).toFixed(1)}%`;
-  }
-
-  if (second) {
-    document.getElementById("dist-value-2").textContent = formatNumber(second.paid_users);
-    document.getElementById("dist-share-2").textContent = `${(
-      (Number(second.paid_users) / paidUserTotal) *
-      100
-    ).toFixed(1)}%`;
-  }
-
-  document.getElementById("cross-user-stat").innerHTML = `${formatNumber(
-    Math.round(paidUserTotal * 0.08)
-  )} <span class="muted">(估算 8.0%)</span>`;
-  document.getElementById("revenue-subtitle").textContent = `累计收入 · ${formatCurrency(
-    dashboard.total_revenue
-  )} / 目标 ¥500,000`;
-  document.getElementById("revenue-progress").textContent = `${Math.min(
-    100,
-    (dashboard.total_revenue / 500000) * 100
-  ).toFixed(1)}%`;
+  syncDashboardRangeControls();
+  renderDashboardSummary();
 
   const userNavCount = document.querySelector('.nav-item[data-route="users"] .nav-count');
   const orderNavCount = document.querySelector('.nav-item[data-route="orders"] .nav-count');
   const appsNavCount = document.querySelector('.nav-item[data-route="apps"] .nav-count');
-  if (userNavCount) userNavCount.textContent = formatNumber(dashboard.total_users);
+  if (userNavCount) userNavCount.textContent = formatNumber(dashboard.summary?.total_users || dashboard.total_users);
   if (orderNavCount) orderNavCount.textContent = formatNumber(state.purchasePagination?.total || 0);
   if (appsNavCount) appsNavCount.textContent = formatNumber(applications.items.length);
 
-  renderLineChart(dashboard.user_growth_30d, appStats);
-  renderDonut(appStats, paidUserTotal);
   renderApplications();
   renderPlans();
   renderAppSdkContent();
 }
 
-function renderLineChart(growth, appStats) {
+function syncDashboardRangeControls() {
+  document.querySelectorAll("[data-dashboard-range]").forEach((button) => {
+    button.classList.toggle("primary", button.dataset.dashboardRange === state.dashboardFilters.range);
+    button.classList.toggle("active", button.dataset.dashboardRange === state.dashboardFilters.range);
+  });
+  document.querySelectorAll("[data-dashboard-trend-range]").forEach((button) => {
+    button.classList.toggle("active", button.dataset.dashboardTrendRange === state.dashboardFilters.range);
+  });
+  const custom = state.dashboardFilters.range === "custom";
+  document.getElementById("dashboard-date-from")?.classList.toggle("hidden", !custom);
+  document.getElementById("dashboard-date-to")?.classList.toggle("hidden", !custom);
+  document.getElementById("dashboard-apply-custom")?.classList.toggle("hidden", !custom);
+  document.getElementById("dashboard-date-from").value = state.dashboardFilters.dateFrom || "";
+  document.getElementById("dashboard-date-to").value = state.dashboardFilters.dateTo || "";
+}
+
+function renderDashboardSummary() {
+  const dashboard = state.dashboard || {};
+  const summary = dashboard.summary || {};
+  const growth = dashboard.user_growth || { points: [], by_app: [] };
+  const distribution = dashboard.distribution || { apps: [] };
+  const revenue = dashboard.revenue || { by_app: [] };
+  const filters = dashboard.filters || {};
+  const lastLoadedAt = state.dashboardFilters.lastLoadedAt ? formatDateTime(state.dashboardFilters.lastLoadedAt) : "—";
+
+  document.getElementById("dashboard-status-line").textContent = `${formatDateTime(new Date())} · ${formatDashboardRangeLabel(
+    state.dashboardFilters
+  )} · 上次刷新 ${lastLoadedAt}`;
+  document.getElementById("kpi-total-users").textContent = formatNumber(summary.total_users || 0);
+  document.getElementById("kpi-new-users").textContent = formatNumber(summary.new_users || 0);
+  document.getElementById("kpi-total-revenue").innerHTML = `<span class="unit">¥</span>${formatCurrencyCompact(
+    summary.total_revenue || 0
+  )}`;
+  document.getElementById("kpi-active-devices").textContent = formatNumber(summary.active_devices || 0);
+  setKpiFoot("kpi-total-users-foot", summary.deltas?.total_users);
+  setKpiFoot("kpi-new-users-foot", summary.deltas?.new_users);
+  setKpiFoot("kpi-total-revenue-foot", summary.deltas?.total_revenue);
+  setKpiFoot("kpi-active-devices-foot", summary.deltas?.active_devices);
+
+  document.getElementById("growth-subtitle").textContent = `${formatDashboardRangeLabel(state.dashboardFilters)} · 累计 +${formatNumber(
+    (growth.points || []).reduce((sum, item) => sum + Number(item.count || 0), 0)
+  )} 新用户`;
+  document.getElementById("distribution-subtitle").textContent = `${formatDashboardRangeLabel(
+    state.dashboardFilters
+  )} · 共 ${formatNumber(distribution.total_registered_users || 0)} 次应用注册`;
+  document.getElementById("revenue-subtitle").textContent =
+    revenue.target != null
+      ? `${formatDashboardRangeLabel(state.dashboardFilters)} · ${formatCurrency(revenue.total || 0)} / 目标 ${formatCurrency(
+          revenue.target
+        )}`
+      : `${formatDashboardRangeLabel(state.dashboardFilters)} · 累计收入 ${formatCurrency(revenue.total || 0)}`;
+  document.getElementById("revenue-progress").textContent =
+    revenue.progress == null ? "未配置目标" : `${formatPercent(revenue.progress)}`;
+
+  renderGrowthLegend(growth.by_app || []);
+  renderLineChart(growth.points || [], growth.by_app || []);
+  renderDonut(distribution.apps || [], distribution.total_registered_users || 0, distribution.total_paid_users || 0);
+  renderRevenueBreakdown(revenue);
+  renderDashboardTodos(dashboard.todos || {});
+  renderDashboardAlerts(dashboard.alerts?.items || []);
+  renderDashboardActivities(dashboard.activities?.items || []);
+}
+
+function renderGrowthLegend(appSeries) {
+  const container = document.getElementById("dashboard-growth-legend");
+  const colors = ["#cc9166", "#7d94b8", "#88b9a4", "#d6a87a"];
+  container.innerHTML = appSeries
+    .map(
+      (item, index) => `
+        <span class="legend-item ${state.dashboardFilters.focusedGrowthAppId === item.app_id ? "active" : ""}" data-growth-app="${escapeHtml(
+          item.app_id
+        )}" style="cursor:pointer;">
+          <span class="legend-swatch" style="background:${colors[index % colors.length]};"></span>${escapeHtml(item.name)}
+        </span>
+      `
+    )
+    .concat(`<span class="legend-item"><span class="legend-swatch" style="background:#e2e3e9;"></span>合计</span>`)
+    .join("");
+  container.querySelectorAll("[data-growth-app]").forEach((item) => {
+    item.addEventListener("click", () => {
+      state.dashboardFilters.focusedGrowthAppId =
+        state.dashboardFilters.focusedGrowthAppId === item.dataset.growthApp ? "" : item.dataset.growthApp;
+      renderGrowthLegend(appSeries);
+      renderLineChart((state.dashboard?.user_growth?.points || []), appSeries);
+    });
+  });
+}
+
+function renderLineChart(growth, appSeries) {
   const svg = document.getElementById("line-chart");
   const tip = document.getElementById("line-tip");
   const W = 760;
@@ -4089,19 +4288,18 @@ function renderLineChart(growth, appStats) {
   const PAD_R = 16;
   const PAD_T = 14;
   const PAD_B = 30;
-  const totals = [];
-  let running = 0;
-  for (const item of growth) {
-    running += Number(item.count);
-    totals.push(running);
-  }
+  const colors = ["#cc9166", "#7d94b8", "#88b9a4", "#d6a87a"];
+  const totals = growth.map((item) => Number(item.count || 0));
+  const visibleSeries =
+    state.dashboardFilters.focusedGrowthAppId
+      ? appSeries.filter((item) => item.app_id === state.dashboardFilters.focusedGrowthAppId)
+      : appSeries;
 
-  const shares = appStats.length
-    ? appStats.map((item) => Number(item.paid_users || 0))
-    : [1, 1];
-  const shareTotal = shares.reduce((sum, value) => sum + value, 0) || 1;
-  const lineA = totals.map((value) => value * (shares[0] / shareTotal));
-  const lineB = totals.map((value) => value * ((shares[1] || 0) / shareTotal));
+  if (!totals.length) {
+    svg.innerHTML = `<text x="380" y="140" text-anchor="middle" font-size="12" fill="#777a88">当前时间范围没有趋势数据</text>`;
+    tip.style.display = "none";
+    return;
+  }
 
   const max = Math.max(...totals, 1) * 1.1;
   const xAt = (index) => PAD_L + ((W - PAD_L - PAD_R) * index) / Math.max(1, totals.length - 1);
@@ -4151,13 +4349,14 @@ function renderLineChart(growth, appStats) {
   });
 
   const totalPath = buildPath(totals);
-  const aPath = buildPath(lineA);
-  const bPath = buildPath(lineB);
   const areaPath = `${totalPath} L${xAt(totals.length - 1)},${H - PAD_B} L${xAt(0)},${H - PAD_B} Z`;
 
   html += `<path d="${areaPath}" fill="url(#lineFill)" />`;
-  html += `<path d="${aPath}" fill="none" stroke="#cc9166" stroke-width="1.6" stroke-linecap="round" />`;
-  html += `<path d="${bPath}" fill="none" stroke="#7d94b8" stroke-width="1.4" stroke-linecap="round" />`;
+  visibleSeries.forEach((series, index) => {
+    html += `<path d="${buildPath((series.points || []).map((point) => Number(point.count || 0)))}" fill="none" stroke="${
+      colors[index % colors.length]
+    }" stroke-width="1.6" stroke-linecap="round" />`;
+  });
   html += `<path d="${totalPath}" fill="none" stroke="url(#lineStroke)" stroke-width="2.2" stroke-linecap="round" />`;
   html += `<rect id="hoverArea" x="${PAD_L}" y="${PAD_T}" width="${W - PAD_L - PAD_R}" height="${
     H - PAD_T - PAD_B
@@ -4177,13 +4376,16 @@ function renderLineChart(growth, appStats) {
     tip.style.display = "block";
     tip.style.left = `${px + 16}px`;
     tip.style.top = `${py - 6}px`;
-    tip.innerHTML = `<b>${formatNumber(Math.round(totals[index]))} 用户</b>
-      <div style="display:flex; gap:10px; font-size:11px;"><span style="color:#cc9166;">●</span>${appLabel(
-        appStats[0]?.id || "vidget"
-      )} ${formatNumber(Math.round(lineA[index]))}<span style="color:#7d94b8;">●</span>${appLabel(
-        appStats[1]?.id || "zhujiaoyun"
-      )} ${formatNumber(Math.round(lineB[index]))}</div>
-      <div style="color:#5e616e; margin-top:2px;">${growth[index].date}</div>`;
+    tip.innerHTML = `<b>${formatNumber(Math.round(totals[index] || 0))} 用户</b>
+      <div style="display:flex; flex-direction:column; gap:4px; font-size:11px;">${visibleSeries
+        .map(
+          (series, seriesIndex) =>
+            `<span><span style="color:${colors[seriesIndex % colors.length]};">●</span>${escapeHtml(series.name)} ${formatNumber(
+              Number(series.points?.[index]?.count || 0)
+            )}</span>`
+        )
+        .join("")}</div>
+      <div style="color:#5e616e; margin-top:2px;">${growth[index]?.date || "—"}</div>`;
   });
 
   svg.querySelector("#hoverArea").addEventListener("mouseleave", () => {
@@ -4191,7 +4393,7 @@ function renderLineChart(growth, appStats) {
   });
 }
 
-function renderDonut(appStats, totalUsers) {
+function renderDonut(appStats, totalUsers, totalPaidUsers) {
   const svg = document.getElementById("donut");
   const cx = 80;
   const cy = 80;
@@ -4199,7 +4401,7 @@ function renderDonut(appStats, totalUsers) {
   const r = 44;
   const total = totalUsers || 1;
   const slices = appStats.map((item, index) => ({
-    value: (Number(item.paid_users || 0) / total) * 100,
+    value: (Number(item.registered_users || 0) / total) * 100,
     fill: index === 0 ? "url(#dgrad1)" : "url(#dgrad2)",
   }));
   let start = -90;
@@ -4235,11 +4437,234 @@ function renderDonut(appStats, totalUsers) {
     start += angle;
   });
 
-  html += `<text x="${cx}" y="${cy - 2}" text-anchor="middle" font-family="Playfair Display" font-size="22" font-weight="500" fill="#ffffff">${Math.round(
-    totalUsers / 1000
-  )}k</text>`;
-  html += `<text x="${cx}" y="${cy + 16}" text-anchor="middle" font-size="10" fill="#777a88" letter-spacing="1">付费用户</text>`;
+  html += `<text x="${cx}" y="${cy - 2}" text-anchor="middle" font-family="Playfair Display" font-size="22" font-weight="500" fill="#ffffff">${formatNumber(
+    totalUsers
+  )}</text>`;
+  html += `<text x="${cx}" y="${cy + 16}" text-anchor="middle" font-size="10" fill="#777a88" letter-spacing="1">注册用户</text>`;
   svg.innerHTML = html;
+
+  const first = appStats[0] || { name: "应用一", registered_users: 0, paid_users: 0 };
+  const second = appStats[1] || { name: "应用二", registered_users: 0, paid_users: 0 };
+  document.getElementById("dist-label-1").innerHTML = `<span class="legend-swatch" style="background:#cc9166;"></span>${escapeHtml(
+    first.name
+  )}`;
+  document.getElementById("dist-label-2").innerHTML = `<span class="legend-swatch" style="background:#7d94b8;"></span>${escapeHtml(
+    second.name
+  )}`;
+  document.getElementById("dist-value-1").textContent = formatNumber(first.registered_users || 0);
+  document.getElementById("dist-value-2").textContent = formatNumber(second.registered_users || 0);
+  document.getElementById("dist-share-1").textContent = formatPercent(
+    totalUsers ? ((Number(first.registered_users || 0) / totalUsers) * 100).toFixed(1) : 0
+  );
+  document.getElementById("dist-share-2").textContent = formatPercent(
+    totalUsers ? ((Number(second.registered_users || 0) / totalUsers) * 100).toFixed(1) : 0
+  );
+  document.getElementById("dist-meta-1").textContent = `注册用户 ${formatNumber(first.registered_users || 0)} · 付费用户 ${formatNumber(
+    first.paid_users || 0
+  )}`;
+  document.getElementById("dist-meta-2").textContent = `注册用户 ${formatNumber(second.registered_users || 0)} · 付费用户 ${formatNumber(
+    second.paid_users || 0
+  )}`;
+  document.getElementById("distribution-footer-label").textContent = "付费用户占比";
+  document.getElementById("cross-user-stat").innerHTML = `${formatNumber(totalPaidUsers || 0)} <span class="muted">(${formatPercent(
+    totalUsers ? (((totalPaidUsers || 0) / totalUsers) * 100).toFixed(1) : 0
+  )})</span>`;
+}
+
+function renderRevenueBreakdown(revenue) {
+  const bar = document.getElementById("dashboard-revenue-bar");
+  const breakdown = document.getElementById("dashboard-revenue-breakdown");
+  const colors = [
+    "linear-gradient(90deg,#a07a48,#cc9166)",
+    "#7d94b8",
+    "#4a5364",
+    "#88b9a4",
+  ];
+  const total = Number(revenue.total || 0) || 1;
+  bar.innerHTML = (revenue.by_app || [])
+    .map((item, index) => {
+      const width = Math.max(6, ((Number(item.revenue || 0) / total) * 100).toFixed(2));
+      return `<div style="width:${width}%; background:${colors[index % colors.length]};"></div>`;
+    })
+    .join("");
+  breakdown.innerHTML = (revenue.by_app || [])
+    .slice(0, 4)
+    .map(
+      (item, index) => `
+        <div class="row-clickable" data-dashboard-revenue-app="${escapeHtml(item.app_id)}">
+          <div class="legend-item" style="font-size:11.5px;"><span class="legend-swatch" style="background:${
+            index === 0 ? "#cc9166" : index === 1 ? "#7d94b8" : index === 2 ? "#4a5364" : "#88b9a4"
+          };"></span>${escapeHtml(item.name)}</div>
+          <div style="font-family:var(--font-display); font-size:22px; color:var(--color-pure-white); margin-top:6px; line-height:1;">${formatCurrency(
+            item.revenue || 0
+          )}</div>
+          <div style="font-size:11px; color:var(--color-stone-text); margin-top:3px;">${formatNumber(
+            item.paid_orders || 0
+          )} 单 · ${formatNumber(item.paid_users || 0)} 人</div>
+        </div>
+      `
+    )
+    .join("");
+}
+
+function renderDashboardTodos(todos) {
+  const container = document.getElementById("dashboard-todos");
+  const items = [
+    { key: "pending_orders", label: "待确认订单", empty: "当前没有待支付订单" },
+    { key: "failed_orders", label: "失败/异常订单", empty: "当前没有失败订单" },
+    { key: "unpublished_landings", label: "未发布落地页", empty: "当前没有待发布落地页" },
+    { key: "expiring_redeem_batches", label: "快过期兑换码批次", empty: "当前没有快过期批次" },
+  ];
+  container.innerHTML = items
+    .map((item) => {
+      const current = todos[item.key] || {};
+      return `
+        <div class="activity row-clickable" data-dashboard-action='${escapeHtml(JSON.stringify(current.action_link || {}))}'>
+          <div class="activity-icon" style="color:var(--color-golden);">
+            <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="8" cy="8" r="6"/><path d="M8 5v3l2 2"/></svg>
+          </div>
+          <div class="activity-text">${escapeHtml(item.label)} <b>${formatNumber(current.count || 0)}</b><span> · ${
+            current.latest_at ? `最近 ${formatRelative(current.latest_at)}` : item.empty
+          }</span></div>
+          <div class="activity-time">处理</div>
+        </div>
+      `;
+    })
+    .join("");
+}
+
+function renderDashboardAlerts(items) {
+  const container = document.getElementById("dashboard-alerts");
+  if (!items.length) {
+    container.innerHTML = `<div class="activity"><div class="activity-icon" style="color:var(--color-golden);">✓</div><div class="activity-text">当前没有需要处理的运营预警</div><div class="activity-time">正常</div></div>`;
+    return;
+  }
+  container.innerHTML = items
+    .map(
+      (item) => `
+        <div class="activity ${item.action_link ? "row-clickable" : ""}" ${
+          item.action_link ? `data-dashboard-action='${escapeHtml(JSON.stringify(item.action_link))}'` : ""
+        }>
+          <div class="activity-icon" style="color:${item.level === "danger" ? "#d27b7b" : "var(--color-golden)"};">
+            <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M8 2.5l6 10.5H2L8 2.5z"/><path d="M8 6v3.5M8 12h.01"/></svg>
+          </div>
+          <div class="activity-text">${escapeHtml(item.title)}<span> · ${escapeHtml(item.subtitle || "")}</span></div>
+          <div class="activity-time">${formatRelative(item.created_at)}</div>
+        </div>
+      `
+    )
+    .join("");
+}
+
+function renderDashboardActivities(items) {
+  const container = document.getElementById("dashboard-activity-list");
+  if (!items.length) {
+    container.innerHTML = `<div class="activity"><div class="activity-icon">·</div><div class="activity-text">暂无最近动态</div><div class="activity-time">—</div></div>`;
+    return;
+  }
+  container.innerHTML = items
+    .map(
+      (item) => `
+        <div class="activity ${item.action_link ? "row-clickable" : ""}" ${
+          item.action_link ? `data-dashboard-action='${escapeHtml(JSON.stringify(item.action_link))}'` : ""
+        }>
+          <div class="activity-icon" style="color:${item.type === "purchase_event" ? "var(--color-golden)" : "currentColor"};">
+            <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4">${
+              item.type === "purchase_event"
+                ? '<path d="M2.5 4h11l-1 8.5a1.5 1.5 0 0 1-1.5 1.3H5a1.5 1.5 0 0 1-1.5-1.3L2.5 4z"/>'
+                : item.type === "redeem_event"
+                ? '<rect x="2" y="3" width="12" height="10" rx="1"/><path d="M5 6.5h6M5 9.5h6"/>'
+                : '<circle cx="8" cy="6" r="2.5"/><path d="M3 13c0-2 2.2-3.5 5-3.5s5 1.5 5 3.5"/>'
+            }</svg>
+          </div>
+          <div class="activity-text">${escapeHtml(item.title)}<span> · ${escapeHtml(item.subtitle || "")}</span></div>
+          <div class="activity-time">${formatRelative(item.created_at)}</div>
+        </div>
+      `
+    )
+    .join("");
+}
+
+function buildDashboardScopedDateFilters() {
+  const filters = state.dashboard?.filters || {};
+  return {
+    dateFrom: filters.date_from || state.dashboardFilters.dateFrom || "",
+    dateTo: filters.date_to || state.dashboardFilters.dateTo || "",
+  };
+}
+
+async function triggerDashboardAction(payload) {
+  if (!payload?.route) {
+    return;
+  }
+  if (payload.route === "users") {
+    state.userFilters.search = payload.filters?.search || "";
+    state.userFilters.status = payload.filters?.status || "";
+    state.userFilters.appId = payload.filters?.appId || "";
+    state.userFilters.registeredRange = payload.filters?.registeredRange || "";
+    state.userFilters.activeRange = payload.filters?.activeRange || "";
+    state.userFilters.createdFrom = payload.filters?.createdFrom || "";
+    state.userFilters.createdTo = payload.filters?.createdTo || "";
+    state.userFilters.page = 1;
+    document.getElementById("users-search").value = state.userFilters.search;
+    await loadUsers();
+    go("users");
+    return;
+  }
+  if (payload.route === "orders") {
+    state.orderFilters.search = payload.filters?.search || "";
+    state.orderFilters.appId = payload.filters?.appId || "";
+    state.orderFilters.status = payload.filters?.status || "";
+    state.orderFilters.dateFrom = payload.filters?.dateFrom || "";
+    state.orderFilters.dateTo = payload.filters?.dateTo || "";
+    state.orderFilters.page = 1;
+    document.getElementById("orders-search").value = state.orderFilters.search;
+    await loadOrders();
+    go("orders");
+    if (payload.order_no) {
+      await openOrderDetailModal(payload.order_no);
+    }
+    return;
+  }
+  if (payload.route === "redeem") {
+    if (payload.filters?.status) {
+      state.redeemFilters.status = payload.filters.status;
+    }
+    await loadRedeemWorkspace();
+    go("redeem");
+    if (payload.batch_id) {
+      await openRedeemDetailModal(payload.batch_id);
+    }
+    return;
+  }
+  if (payload.route === "landing") {
+    go("landing");
+    return;
+  }
+  if (payload.route === "sms") {
+    state.smsFilters.search = payload.filters?.search || "";
+    state.smsFilters.appId = payload.filters?.appId || "";
+    state.smsFilters.purpose = payload.filters?.purpose || "";
+    state.smsFilters.mode = payload.filters?.mode || "";
+    state.smsFilters.sendStatus = payload.filters?.sendStatus || "";
+    state.smsFilters.createdFrom = payload.filters?.createdFrom || "";
+    state.smsFilters.createdTo = payload.filters?.createdTo || "";
+    state.smsFilters.page = 1;
+    await loadSmsLogs();
+    go("sms");
+    return;
+  }
+  if (payload.route === "builds") {
+    go("builds");
+    return;
+  }
+  if (payload.route === "logs") {
+    state.logFilters.targetType = payload.filters?.targetType || "";
+    await loadOperationLogs();
+    go("logs");
+    return;
+  }
+  go(payload.route);
 }
 
 function renderUsers() {
@@ -4281,7 +4706,7 @@ function renderUsers() {
 
   document.getElementById("users-page-subtitle").textContent = `${formatNumber(
     state.userPagination.total
-  )} 名用户 · 今日新增 ${formatNumber(state.dashboard?.new_users_today || 0)}`;
+  )} 名用户 · 当前口径 ${formatDashboardRangeLabel(state.dashboardFilters)}`;
   document.getElementById("users-filter-all").textContent = `全部 · ${formatNumber(
     state.userPagination.total
   )}`;
@@ -4352,6 +4777,15 @@ async function loadUsers(search = state.userFilters.search) {
   if (state.userFilters.registeredRange) {
     params.set("registered_range", state.userFilters.registeredRange);
   }
+  if (state.userFilters.activeRange) {
+    params.set("active_range", state.userFilters.activeRange);
+  }
+  if (state.userFilters.createdFrom) {
+    params.set("created_from", state.userFilters.createdFrom);
+  }
+  if (state.userFilters.createdTo) {
+    params.set("created_to", state.userFilters.createdTo);
+  }
   const data = await requestJson(`/api/admin/users?${params.toString()}`);
   state.users = data.items;
   state.userPagination = data.pagination;
@@ -4374,6 +4808,9 @@ function syncUserFilterButtons() {
     button.classList.toggle("active", button.dataset.userRange === state.userFilters.registeredRange);
   });
   document.getElementById("users-date-all").classList.toggle("active", !state.userFilters.registeredRange);
+  document.getElementById("users-active-filter").value = state.userFilters.activeRange || "";
+  document.getElementById("users-created-from").value = state.userFilters.createdFrom || "";
+  document.getElementById("users-created-to").value = state.userFilters.createdTo || "";
 }
 
 function renderOrders() {
@@ -4411,29 +4848,45 @@ function renderOrders() {
     })
     .join("");
 
-  const paidOrders = state.purchases.filter((item) => item.status === "paid");
-  const todayRevenue = paidOrders.reduce((sum, item) => sum + Number(item.amount || 0), 0);
-  const todayCount = paidOrders.length;
-  const refundValue = state.purchases
-    .filter((item) => item.status === "refunded")
-    .reduce((sum, item) => sum + Number(item.amount || 0), 0);
+  const summary = state.purchaseSummary || {
+    total_orders: 0,
+    paid_orders: 0,
+    pending_orders: 0,
+    failed_orders: 0,
+    refunded_orders: 0,
+    paid_revenue: 0,
+    refunded_amount: 0,
+    paid_average_value: 0,
+  };
+  const currentPage = state.purchasePagination?.page || 1;
+  const totalPages = state.purchasePagination?.total_pages || 1;
+  const start = state.purchases.length ? (currentPage - 1) * (state.purchasePagination?.limit || 12) + 1 : 0;
+  const end = state.purchases.length ? start + state.purchases.length - 1 : 0;
 
   document.getElementById("orders-page-subtitle").textContent = `${formatNumber(
     state.purchasePagination.total
-  )} 单 · 累计金额 ${formatCurrency(
-    state.purchases.reduce((sum, item) => sum + Number(item.amount || 0), 0)
-  )}`;
+  )} 单 · 当前筛选收入 ${formatCurrency(summary.paid_revenue || 0)}`;
   document.getElementById("orders-today-revenue").innerHTML = `<span class="ccy">¥</span>${formatCurrencyCompact(
-    todayRevenue
+    summary.paid_revenue || 0
   )}`;
-  document.getElementById("orders-today-count").textContent = formatNumber(todayCount);
-  document.getElementById("orders-average-value").innerHTML = `<span class="ccy">¥</span>${todayCount ? (
-    todayRevenue / todayCount
-  ).toFixed(1) : "0.0"}`;
+  document.getElementById("orders-today-count").textContent = formatNumber(summary.paid_orders || 0);
+  document.getElementById("orders-average-value").innerHTML = `<span class="ccy">¥</span>${Number(
+    summary.paid_average_value || 0
+  ).toFixed(1)}`;
   document.getElementById("orders-refund-value").innerHTML = `<span class="ccy">¥</span>${formatCurrencyCompact(
-    refundValue
+    summary.refunded_amount || 0
   )}`;
-  document.getElementById("orders-pagination").textContent = `显示 1 – ${state.purchases.length}，共 ${formatNumber(
+  document.getElementById("orders-today-revenue-foot").innerHTML = `<span class="muted">${
+    summary.latest_paid_at ? `最近支付 ${formatRelative(summary.latest_paid_at)}` : "当前筛选没有支付成功订单"
+  }</span>`;
+  document.getElementById("orders-today-count-foot").innerHTML = `<span class="muted">待支付 ${formatNumber(
+    summary.pending_orders || 0
+  )} · 失败 ${formatNumber(summary.failed_orders || 0)}</span>`;
+  document.getElementById("orders-average-value-foot").innerHTML = `<span class="muted">当前筛选已支付订单均值</span>`;
+  document.getElementById("orders-refund-value-foot").innerHTML = `<span class="muted">退款率 ${formatPercent(
+    summary.total_orders ? (((summary.refunded_orders || 0) / summary.total_orders) * 100).toFixed(1) : 0
+  )}</span>`;
+  document.getElementById("orders-pagination").textContent = `显示 ${start} – ${end}，共 ${formatNumber(
     state.purchasePagination.total
   )} 条`;
 
@@ -4441,6 +4894,17 @@ function renderOrders() {
   if (orderNavCount) {
     orderNavCount.textContent = formatNumber(state.purchasePagination.total);
   }
+  const ordersSearch = document.getElementById("orders-search");
+  if (ordersSearch) ordersSearch.value = state.orderFilters.search || "";
+  const ordersStatusFilter = document.getElementById("orders-status-filter");
+  if (ordersStatusFilter) ordersStatusFilter.value = state.orderFilters.status || "";
+  const ordersAppFilter = document.getElementById("orders-app-filter");
+  if (ordersAppFilter) ordersAppFilter.value = state.orderFilters.appId || "";
+  const ordersDateFrom = document.getElementById("orders-date-from");
+  if (ordersDateFrom) ordersDateFrom.value = state.orderFilters.dateFrom || "";
+  const ordersDateTo = document.getElementById("orders-date-to");
+  if (ordersDateTo) ordersDateTo.value = state.orderFilters.dateTo || "";
+  renderOrderPager(currentPage, totalPages);
 
   tbody.querySelectorAll("[data-order-open]").forEach((row) => {
     row.addEventListener("click", () => {
@@ -4452,18 +4916,89 @@ function renderOrders() {
   });
 }
 
-async function loadOrders(search = "") {
+async function loadOrders(search = state.orderFilters.search) {
   state.orderFilters.search = search;
-  const data = await requestJson(`/api/admin/purchases?limit=12&search=${encodeURIComponent(search)}`);
+  const params = new URLSearchParams({
+    limit: "12",
+    search: state.orderFilters.search,
+    page: String(state.orderFilters.page || 1),
+  });
+  if (state.orderFilters.appId) {
+    params.set("app_id", state.orderFilters.appId);
+  }
+  if (state.orderFilters.status) {
+    params.set("status", state.orderFilters.status);
+  }
+  if (state.orderFilters.dateFrom) {
+    params.set("date_from", state.orderFilters.dateFrom);
+  }
+  if (state.orderFilters.dateTo) {
+    params.set("date_to", state.orderFilters.dateTo);
+  }
+  const data = await requestJson(`/api/admin/purchases?${params.toString()}`);
   state.purchases = data.items;
+  state.purchaseSummary = data.summary || null;
   state.purchasePagination = data.pagination;
   renderOrders();
+}
+
+function renderOrderPager(currentPage, totalPages) {
+  const container = document.getElementById("orders-pager-btns");
+  if (!container) {
+    return;
+  }
+  const pages = [];
+  const startPage = Math.max(1, currentPage - 1);
+  const endPage = Math.min(totalPages, currentPage + 1);
+
+  for (let page = startPage; page <= endPage; page += 1) {
+    pages.push(page);
+  }
+
+  container.innerHTML = `
+    <button id="orders-page-prev" ${currentPage <= 1 ? "disabled" : ""}>‹</button>
+    ${pages
+      .map((page) => `<button class="${page === currentPage ? "active" : ""}" data-order-page="${page}">${page}</button>`)
+      .join("")}
+    <button id="orders-page-next" ${currentPage >= totalPages ? "disabled" : ""}>›</button>
+  `;
+
+  document.getElementById("orders-page-prev")?.addEventListener("click", () => {
+    if (currentPage <= 1) return;
+    state.orderFilters.page = currentPage - 1;
+    loadOrders().catch((error) => showToast(error.message));
+  });
+
+  document.getElementById("orders-page-next")?.addEventListener("click", () => {
+    if (currentPage >= totalPages) return;
+    state.orderFilters.page = currentPage + 1;
+    loadOrders().catch((error) => showToast(error.message));
+  });
+
+  container.querySelectorAll("[data-order-page]").forEach((button) => {
+    button.addEventListener("click", () => {
+      state.orderFilters.page = Number(button.dataset.orderPage);
+      loadOrders().catch((error) => showToast(error.message));
+    });
+  });
 }
 
 function buildPurchaseExportUrl() {
   const params = new URLSearchParams();
   if (state.orderFilters.search) {
     params.set("search", state.orderFilters.search);
+  }
+  if (state.orderFilters.appId) {
+    params.set("app_id", state.orderFilters.appId);
+  }
+  if (state.orderFilters.status) {
+    params.set("status", state.orderFilters.status);
+  }
+  if (state.orderFilters.dateFrom) {
+    params.set("date_from", state.orderFilters.dateFrom);
+  }
+  if (state.orderFilters.dateTo) {
+    params.set("date_to", state.orderFilters.dateTo);
   }
   return `/api/admin/purchases/export?${params.toString()}`;
 }
@@ -4610,6 +5145,7 @@ async function updateOrderStatus(nextStatus) {
     return;
   }
   const labelMap = {
+    pending: "恢复为待支付",
     paid: "标记为已支付",
     failed: "标记为失败",
     refunded: "标记为已退款",
@@ -7022,6 +7558,176 @@ async function loadOperationLogs() {
   renderOperationLogs();
 }
 
+function verificationPurposeText(purpose) {
+  if (purpose === "register") return "注册";
+  if (purpose === "reset_password") return "重置密码";
+  return purpose || "—";
+}
+
+function smsSendStatusText(status) {
+  if (status === "sent") return "发送成功";
+  if (status === "failed") return "发送失败";
+  if (status === "pending") return "待发送";
+  return status || "未知";
+}
+
+function smsSendStatusClass(status) {
+  if (status === "sent") return "paid";
+  if (status === "failed") return "expired";
+  return "trial";
+}
+
+function smsModeText(mode) {
+  if (mode === "sms") return "真实短信";
+  if (mode === "dev") return "开发模式";
+  return mode || "—";
+}
+
+function renderSmsLogs() {
+  const tbody = document.getElementById("sms-tbody");
+  const items = state.smsLogs || [];
+  const summary = state.smsSummary || {
+    total_codes: 0,
+    sent_count: 0,
+    failed_count: 0,
+    pending_count: 0,
+    sms_count: 0,
+    dev_count: 0,
+    latest_created_at: null,
+  };
+  const currentPage = state.smsLogPagination?.page || 1;
+  const totalPages = state.smsLogPagination?.total_pages || 1;
+  const start = items.length ? (currentPage - 1) * (state.smsLogPagination?.limit || 20) + 1 : 0;
+  const end = items.length ? start + items.length - 1 : 0;
+
+  tbody.innerHTML = items.length
+    ? items
+        .map(
+          (item) => `
+            <tr>
+              <td class="cell-mono">${formatDateTime(item.created_at)}</td>
+              <td>
+                <div class="user-cell-meta">
+                  <b>${escapeHtml(item.app_name || appLabel(item.app_id))}</b>
+                  <span>${escapeHtml(verificationPurposeText(item.purpose))}</span>
+                </div>
+              </td>
+              <td class="cell-mono">${escapeHtml(item.phone || "—")}</td>
+              <td>
+                <div class="user-cell-meta">
+                  <b>${escapeHtml(smsModeText(item.mode))}</b>
+                  <span>${escapeHtml(item.provider || "—")}</span>
+                </div>
+              </td>
+              <td><span class="badge ${smsSendStatusClass(item.send_status)}"><span class="pip"></span>${escapeHtml(
+            smsSendStatusText(item.send_status)
+          )}</span></td>
+              <td class="cell-mono" style="font-size:11px;">${escapeHtml(item.provider_request_id || item.provider_serial_no || "—")}</td>
+              <td style="max-width:220px; color:var(--color-silver-text);">${escapeHtml(item.error_message || "—")}</td>
+              <td class="cell-mono" style="font-size:11px;">有效至 ${formatDateTime(item.expires_at)}<br/>${
+                item.consumed_at ? `已消费 · ${formatDateTime(item.consumed_at)}` : "未消费"
+              }</td>
+            </tr>
+          `
+        )
+        .join("")
+    : `<tr><td colspan="8"><div class="empty-state">当前筛选下没有短信发送记录，验证码发送后会出现在这里。</div></td></tr>`;
+
+  document.getElementById("sms-page-subtitle").textContent = `共 ${formatNumber(
+    state.smsLogPagination?.total || 0
+  )} 条短信记录 · 最近一条 ${summary.latest_created_at ? formatRelative(summary.latest_created_at) : "—"}`;
+  document.getElementById("sms-total-count").textContent = formatNumber(summary.total_codes || 0);
+  document.getElementById("sms-total-foot").innerHTML = `<span class="muted">${
+    state.smsFilters.createdFrom || state.smsFilters.createdTo ? "按时间筛选统计" : "当前筛选口径"
+  }</span>`;
+  document.getElementById("sms-sent-count").textContent = formatNumber(summary.sent_count || 0);
+  document.getElementById("sms-sent-foot").innerHTML = `<span class="muted">成功率 ${formatPercent(
+    summary.total_codes ? (((summary.sent_count || 0) / summary.total_codes) * 100).toFixed(1) : 0
+  )}</span>`;
+  document.getElementById("sms-failed-count").textContent = formatNumber(summary.failed_count || 0);
+  document.getElementById("sms-failed-foot").innerHTML = `<span class="muted">待发送 ${formatNumber(
+    summary.pending_count || 0
+  )}</span>`;
+  document.getElementById("sms-mode-count").textContent = `${formatNumber(summary.sms_count || 0)} / ${formatNumber(
+    summary.dev_count || 0
+  )}`;
+  document.getElementById("sms-mode-foot").innerHTML = `<span class="muted">${
+    summary.failed_count ? "存在失败记录，请检查短信供应商" : "当前未发现短信失败异常"
+  }</span>`;
+  document.getElementById("sms-pagination").textContent = `显示 ${start} – ${end}，共 ${formatNumber(
+    state.smsLogPagination?.total || 0
+  )} 条`;
+
+  document.getElementById("sms-search").value = state.smsFilters.search || "";
+  document.getElementById("sms-purpose-filter").value = state.smsFilters.purpose || "";
+  document.getElementById("sms-send-status-filter").value = state.smsFilters.sendStatus || "";
+  document.getElementById("sms-mode-filter").value = state.smsFilters.mode || "";
+  document.getElementById("sms-created-from").value = state.smsFilters.createdFrom || "";
+  document.getElementById("sms-created-to").value = state.smsFilters.createdTo || "";
+  document.getElementById("sms-app-filter").value = state.smsFilters.appId || "";
+
+  renderSmsPager(currentPage, totalPages);
+}
+
+function renderSmsPager(currentPage, totalPages) {
+  const container = document.getElementById("sms-pager-btns");
+  if (!container) {
+    return;
+  }
+  const pages = [];
+  const startPage = Math.max(1, currentPage - 1);
+  const endPage = Math.min(totalPages, currentPage + 1);
+
+  for (let page = startPage; page <= endPage; page += 1) {
+    pages.push(page);
+  }
+
+  container.innerHTML = `
+    <button id="sms-page-prev" ${currentPage <= 1 ? "disabled" : ""}>‹</button>
+    ${pages.map((page) => `<button class="${page === currentPage ? "active" : ""}" data-sms-page="${page}">${page}</button>`).join("")}
+    <button id="sms-page-next" ${currentPage >= totalPages ? "disabled" : ""}>›</button>
+  `;
+
+  document.getElementById("sms-page-prev")?.addEventListener("click", () => {
+    if (currentPage <= 1) return;
+    state.smsFilters.page = currentPage - 1;
+    loadSmsLogs().catch((error) => showToast(error.message));
+  });
+
+  document.getElementById("sms-page-next")?.addEventListener("click", () => {
+    if (currentPage >= totalPages) return;
+    state.smsFilters.page = currentPage + 1;
+    loadSmsLogs().catch((error) => showToast(error.message));
+  });
+
+  container.querySelectorAll("[data-sms-page]").forEach((button) => {
+    button.addEventListener("click", () => {
+      state.smsFilters.page = Number(button.dataset.smsPage);
+      loadSmsLogs().catch((error) => showToast(error.message));
+    });
+  });
+}
+
+async function loadSmsLogs() {
+  const params = new URLSearchParams({
+    limit: "20",
+    page: String(state.smsFilters.page || 1),
+    search: state.smsFilters.search || "",
+  });
+  if (state.smsFilters.appId) params.set("app_id", state.smsFilters.appId);
+  if (state.smsFilters.purpose) params.set("purpose", state.smsFilters.purpose);
+  if (state.smsFilters.mode) params.set("mode", state.smsFilters.mode);
+  if (state.smsFilters.sendStatus) params.set("send_status", state.smsFilters.sendStatus);
+  if (state.smsFilters.createdFrom) params.set("created_from", state.smsFilters.createdFrom);
+  if (state.smsFilters.createdTo) params.set("created_to", state.smsFilters.createdTo);
+
+  const data = await requestJson(`/api/admin/verification-codes?${params.toString()}`);
+  state.smsLogs = data.items || [];
+  state.smsSummary = data.summary || null;
+  state.smsLogPagination = data.pagination;
+  renderSmsLogs();
+}
+
 function renderUserMemberships(memberships, purchases) {
   const container = document.getElementById("drawer-memberships");
   const items = memberships || [];
@@ -7760,6 +8466,9 @@ document.getElementById("users-filter-all").addEventListener("click", () => {
   state.userFilters.status = "";
   state.userFilters.appId = "";
   state.userFilters.registeredRange = "";
+  state.userFilters.activeRange = "";
+  state.userFilters.createdFrom = "";
+  state.userFilters.createdTo = "";
   state.userFilters.page = 1;
   syncUserFilterButtons();
   loadUsers().catch((error) => showToast(error.message));
@@ -7805,6 +8514,8 @@ document.addEventListener("click", (event) => {
 
 document.getElementById("users-date-all").addEventListener("click", () => {
   state.userFilters.registeredRange = "";
+  state.userFilters.createdFrom = "";
+  state.userFilters.createdTo = "";
   state.userFilters.page = 1;
   syncUserFilterButtons();
   loadUsers().catch((error) => showToast(error.message));
@@ -7813,10 +8524,38 @@ document.getElementById("users-date-all").addEventListener("click", () => {
 document.querySelectorAll("[data-user-range]").forEach((button) => {
   button.addEventListener("click", () => {
     state.userFilters.registeredRange = button.dataset.userRange;
+    state.userFilters.createdFrom = "";
+    state.userFilters.createdTo = "";
     state.userFilters.page = 1;
     syncUserFilterButtons();
     loadUsers().catch((error) => showToast(error.message));
   });
+});
+
+document.getElementById("users-active-filter")?.addEventListener("change", (event) => {
+  state.userFilters.activeRange = event.target.value;
+  state.userFilters.page = 1;
+  loadUsers().catch((error) => showToast(error.message));
+});
+
+["users-created-from", "users-created-to"].forEach((id) => {
+  document.getElementById(id)?.addEventListener("change", (event) => {
+    if (id === "users-created-from") state.userFilters.createdFrom = event.target.value;
+    if (id === "users-created-to") state.userFilters.createdTo = event.target.value;
+    state.userFilters.registeredRange = "";
+    state.userFilters.page = 1;
+    syncUserFilterButtons();
+    loadUsers().catch((error) => showToast(error.message));
+  });
+});
+
+document.getElementById("users-clear-date")?.addEventListener("click", () => {
+  state.userFilters.createdFrom = "";
+  state.userFilters.createdTo = "";
+  state.userFilters.registeredRange = "";
+  state.userFilters.page = 1;
+  syncUserFilterButtons();
+  loadUsers().catch((error) => showToast(error.message));
 });
 
 document.getElementById("user-submit").addEventListener("click", async () => {
@@ -7931,12 +8670,107 @@ document.getElementById("drawer-toggle-account-btn").addEventListener("click", a
 
 document.getElementById("orders-search").addEventListener("keydown", (event) => {
   if (event.key === "Enter") {
+    state.orderFilters.page = 1;
     loadOrders(event.target.value.trim()).catch((error) => showToast(error.message));
   }
 });
 
 document.getElementById("orders-export-btn").addEventListener("click", () => {
   window.open(buildPurchaseExportUrl(), "_blank", "noopener,noreferrer");
+});
+
+document.getElementById("orders-app-filter")?.addEventListener("change", (event) => {
+  state.orderFilters.appId = event.target.value;
+  state.orderFilters.page = 1;
+  loadOrders(state.orderFilters.search).catch((error) => showToast(error.message));
+});
+
+document.getElementById("orders-status-filter")?.addEventListener("change", (event) => {
+  state.orderFilters.status = event.target.value;
+  state.orderFilters.page = 1;
+  loadOrders(state.orderFilters.search).catch((error) => showToast(error.message));
+});
+
+["orders-date-from", "orders-date-to"].forEach((id) => {
+  document.getElementById(id)?.addEventListener("change", (event) => {
+    if (id === "orders-date-from") state.orderFilters.dateFrom = event.target.value;
+    if (id === "orders-date-to") state.orderFilters.dateTo = event.target.value;
+    state.orderFilters.page = 1;
+    loadOrders(state.orderFilters.search).catch((error) => showToast(error.message));
+  });
+});
+
+document.getElementById("orders-clear-filters")?.addEventListener("click", () => {
+  state.orderFilters = {
+    search: "",
+    appId: "",
+    status: "",
+    dateFrom: "",
+    dateTo: "",
+    page: 1,
+  };
+  document.getElementById("orders-search").value = "";
+  loadOrders().catch((error) => showToast(error.message));
+});
+
+document.getElementById("sms-search")?.addEventListener("keydown", (event) => {
+  if (event.key === "Enter") {
+    state.smsFilters.search = event.target.value.trim();
+    state.smsFilters.page = 1;
+    loadSmsLogs().catch((error) => showToast(error.message));
+  }
+});
+
+document.getElementById("sms-app-filter")?.addEventListener("change", (event) => {
+  state.smsFilters.appId = event.target.value;
+  state.smsFilters.page = 1;
+  loadSmsLogs().catch((error) => showToast(error.message));
+});
+
+document.getElementById("sms-purpose-filter")?.addEventListener("change", (event) => {
+  state.smsFilters.purpose = event.target.value;
+  state.smsFilters.page = 1;
+  loadSmsLogs().catch((error) => showToast(error.message));
+});
+
+document.getElementById("sms-send-status-filter")?.addEventListener("change", (event) => {
+  state.smsFilters.sendStatus = event.target.value;
+  state.smsFilters.page = 1;
+  loadSmsLogs().catch((error) => showToast(error.message));
+});
+
+document.getElementById("sms-mode-filter")?.addEventListener("change", (event) => {
+  state.smsFilters.mode = event.target.value;
+  state.smsFilters.page = 1;
+  loadSmsLogs().catch((error) => showToast(error.message));
+});
+
+["sms-created-from", "sms-created-to"].forEach((id) => {
+  document.getElementById(id)?.addEventListener("change", (event) => {
+    if (id === "sms-created-from") state.smsFilters.createdFrom = event.target.value;
+    if (id === "sms-created-to") state.smsFilters.createdTo = event.target.value;
+    state.smsFilters.page = 1;
+    loadSmsLogs().catch((error) => showToast(error.message));
+  });
+});
+
+document.getElementById("sms-clear-filters")?.addEventListener("click", () => {
+  state.smsFilters = {
+    search: "",
+    appId: "",
+    purpose: "",
+    mode: "",
+    sendStatus: "",
+    createdFrom: "",
+    createdTo: "",
+    page: 1,
+  };
+  document.getElementById("sms-search").value = "";
+  loadSmsLogs().catch((error) => showToast(error.message));
+});
+
+document.getElementById("sms-refresh-btn")?.addEventListener("click", () => {
+  loadSmsLogs().catch((error) => showToast(error.message));
 });
 
 document.getElementById("plans-app-filter")?.addEventListener("change", (event) => {
@@ -8149,6 +8983,124 @@ document.querySelectorAll("[data-log-target]").forEach((button) => {
   });
 });
 
+document.querySelectorAll("[data-dashboard-range]").forEach((button) => {
+  button.addEventListener("click", () => {
+    state.dashboardFilters.range = button.dataset.dashboardRange;
+    if (state.dashboardFilters.range !== "custom") {
+      state.dashboardFilters.focusedGrowthAppId = "";
+      loadDashboard().catch((error) => showToast(error.message));
+    } else {
+      syncDashboardRangeControls();
+    }
+  });
+});
+
+document.querySelectorAll("[data-dashboard-trend-range]").forEach((button) => {
+  button.addEventListener("click", () => {
+    state.dashboardFilters.range = button.dataset.dashboardTrendRange;
+    state.dashboardFilters.focusedGrowthAppId = "";
+    loadDashboard().catch((error) => showToast(error.message));
+  });
+});
+
+document.getElementById("dashboard-apply-custom")?.addEventListener("click", () => {
+  state.dashboardFilters.range = "custom";
+  state.dashboardFilters.dateFrom = document.getElementById("dashboard-date-from").value;
+  state.dashboardFilters.dateTo = document.getElementById("dashboard-date-to").value;
+  state.dashboardFilters.focusedGrowthAppId = "";
+  loadDashboard().catch((error) => showToast(error.message));
+});
+
+document.getElementById("dashboard-refresh")?.addEventListener("click", () => {
+  loadDashboard().catch((error) => showToast(error.message));
+});
+
+document.getElementById("dashboard-export")?.addEventListener("click", () => {
+  const dashboard = state.dashboard || {};
+  const lines = [
+    ["section", "metric", "value"].join(","),
+    ["summary", "total_users", Number(dashboard.summary?.total_users || 0)].join(","),
+    ["summary", "new_users", Number(dashboard.summary?.new_users || 0)].join(","),
+    ["summary", "total_revenue", Number(dashboard.summary?.total_revenue || 0)].join(","),
+    ["summary", "active_devices", Number(dashboard.summary?.active_devices || 0)].join(","),
+    ...(dashboard.revenue?.by_app || []).map((item) => ["revenue_by_app", item.app_id, Number(item.revenue || 0)].join(",")),
+  ];
+  const blob = new Blob([`\uFEFF${lines.join("\n")}`], { type: "text/csv;charset=utf-8" });
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = `dashboard-${state.dashboard?.filters?.date_from || "range"}-${state.dashboard?.filters?.date_to || ""}.csv`;
+  link.click();
+  URL.revokeObjectURL(link.href);
+});
+
+document.addEventListener("click", (event) => {
+  const dashboardActionNode = event.target.closest("[data-dashboard-action]");
+  if (dashboardActionNode) {
+    const payload = dashboardActionNode.dataset.dashboardAction ? JSON.parse(dashboardActionNode.dataset.dashboardAction) : null;
+    triggerDashboardAction(payload).catch((error) => showToast(error.message));
+    return;
+  }
+
+  const dashboardCard = event.target.closest("[data-dashboard-card]");
+  if (dashboardCard) {
+    const scopedDates = buildDashboardScopedDateFilters();
+    if (dashboardCard.dataset.dashboardCard === "users") {
+      triggerDashboardAction({
+        route: "users",
+        filters: {
+          createdFrom: scopedDates.dateFrom,
+          createdTo: scopedDates.dateTo,
+        },
+      }).catch((error) => showToast(error.message));
+      return;
+    }
+    if (dashboardCard.dataset.dashboardCard === "new-users") {
+      triggerDashboardAction({
+        route: "users",
+        filters: {
+          createdFrom: scopedDates.dateFrom,
+          createdTo: scopedDates.dateTo,
+        },
+      }).catch((error) => showToast(error.message));
+      return;
+    }
+    if (dashboardCard.dataset.dashboardCard === "revenue") {
+      triggerDashboardAction({
+        route: "orders",
+        filters: {
+          status: "paid",
+          dateFrom: scopedDates.dateFrom,
+          dateTo: scopedDates.dateTo,
+        },
+      }).catch((error) => showToast(error.message));
+      return;
+    }
+    if (dashboardCard.dataset.dashboardCard === "devices") {
+      triggerDashboardAction({
+        route: "users",
+        filters: {
+          activeRange: state.dashboardFilters.range === "today" ? "24h" : state.dashboardFilters.range === "30d" ? "30d" : "7d",
+        },
+      }).catch((error) => showToast(error.message));
+    }
+    return;
+  }
+
+  const revenueApp = event.target.closest("[data-dashboard-revenue-app]");
+  if (revenueApp) {
+    const scopedDates = buildDashboardScopedDateFilters();
+    triggerDashboardAction({
+      route: "orders",
+      filters: {
+        appId: revenueApp.dataset.dashboardRevenueApp,
+        status: "paid",
+        dateFrom: scopedDates.dateFrom,
+        dateTo: scopedDates.dateTo,
+      },
+    }).catch((error) => showToast(error.message));
+  }
+});
+
 authLogoutBtn.addEventListener("click", async () => {
   try {
     await requestJson("/api/auth/logout", { method: "POST" });
@@ -8175,6 +9127,7 @@ async function init() {
       loadLandings(),
       loadReleases(),
       loadOperationLogs(),
+      loadSmsLogs(),
     ]);
     await loadRedeemWorkspace();
   } catch (error) {
