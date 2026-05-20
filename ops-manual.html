@@ -1,0 +1,928 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CoreID 服务器运维手册</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --surface-hover: #22263a;
+    --border: #2a2e3e;
+    --text: #e2e4ea;
+    --text-dim: #8b8fa3;
+    --accent: #f0a848;
+    --accent-dim: rgba(240, 168, 72, 0.12);
+    --green: #4ade80;
+    --green-dim: rgba(74, 222, 128, 0.12);
+    --red: #f87171;
+    --red-dim: rgba(248, 113, 113, 0.12);
+    --blue: #60a5fa;
+    --blue-dim: rgba(96, 165, 250, 0.12);
+    --code-bg: #141620;
+    --sidebar-w: 280px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; scroll-padding-top: 24px; }
+
+  body {
+    font-family: 'Noto Sans SC', -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.75;
+    font-size: 15px;
+  }
+
+  /* ── 侧边栏 ── */
+  .sidebar {
+    position: fixed;
+    top: 0; left: 0;
+    width: var(--sidebar-w);
+    height: 100vh;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    overflow-y: auto;
+    padding: 24px 0;
+    z-index: 100;
+  }
+
+  .sidebar-title {
+    padding: 0 20px 16px;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--accent);
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 12px;
+  }
+
+  .sidebar-title span { font-weight: 300; font-size: 13px; color: var(--text-dim); display: block; margin-top: 4px; }
+
+  .nav-group { margin-bottom: 8px; }
+  .nav-group-label {
+    padding: 8px 20px 4px;
+    font-size: 11px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-dim);
+  }
+
+  .nav-link {
+    display: block;
+    padding: 6px 20px 6px 28px;
+    color: var(--text-dim);
+    text-decoration: none;
+    font-size: 13.5px;
+    border-left: 3px solid transparent;
+    transition: all 0.15s;
+  }
+
+  .nav-link:hover { color: var(--text); background: var(--surface-hover); }
+  .nav-link.active { color: var(--accent); border-left-color: var(--accent); background: var(--accent-dim); }
+
+  /* ── 主内容 ── */
+  .main { margin-left: var(--sidebar-w); padding: 40px 48px 80px; max-width: 900px; }
+
+  h1 { font-size: 32px; font-weight: 700; margin-bottom: 8px; color: var(--accent); }
+  .subtitle { color: var(--text-dim); font-size: 14px; margin-bottom: 40px; }
+
+  h2 {
+    font-size: 22px;
+    font-weight: 700;
+    margin: 48px 0 20px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border);
+    scroll-margin-top: 20px;
+  }
+
+  h3 {
+    font-size: 17px;
+    font-weight: 600;
+    margin: 28px 0 12px;
+    color: var(--blue);
+    scroll-margin-top: 20px;
+  }
+
+  h4 { font-size: 15px; font-weight: 600; margin: 20px 0 8px; }
+
+  p { margin-bottom: 12px; }
+
+  /* ── 代码 ── */
+  code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    background: var(--code-bg);
+    padding: 2px 6px;
+    border-radius: 4px;
+    color: var(--accent);
+  }
+
+  pre {
+    position: relative;
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px 20px;
+    margin: 12px 0 20px;
+    overflow-x: auto;
+    line-height: 1.6;
+  }
+
+  pre code { background: none; padding: 0; color: var(--text); font-size: 13px; }
+
+  .copy-btn {
+    position: absolute;
+    top: 8px; right: 8px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    font-size: 12px;
+    padding: 4px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-family: 'Noto Sans SC', sans-serif;
+    transition: all 0.15s;
+  }
+
+  .copy-btn:hover { background: var(--surface-hover); color: var(--text); }
+
+  /* ── 提示框 ── */
+  .tip, .warn, .danger {
+    padding: 14px 18px;
+    border-radius: 8px;
+    margin: 16px 0;
+    font-size: 14px;
+    border-left: 4px solid;
+  }
+
+  .tip { background: var(--green-dim); border-color: var(--green); }
+  .tip::before { content: '✅ '; }
+  .warn { background: var(--accent-dim); border-color: var(--accent); }
+  .warn::before { content: '⚠️ '; }
+  .danger { background: var(--red-dim); border-color: var(--red); }
+  .danger::before { content: '🚨 '; }
+
+  /* ── 表格 ── */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 12px 0 20px;
+    font-size: 14px;
+  }
+
+  th, td {
+    padding: 10px 14px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+
+  th { font-weight: 600; color: var(--text-dim); font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+  tr:hover { background: var(--surface-hover); }
+
+  /* ── 列表 ── */
+  ul, ol { margin: 8px 0 16px 20px; }
+  li { margin-bottom: 6px; }
+
+  /* ── 信息卡片 ── */
+  .info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 12px;
+    margin: 16px 0 24px;
+  }
+
+  .info-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 16px;
+  }
+
+  .info-card .label { font-size: 11px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+  .info-card .value { font-size: 15px; font-weight: 500; word-break: break-all; }
+  .info-card .value code { font-size: 14px; }
+
+  /* ── 步骤 ── */
+  .step {
+    counter-increment: step;
+    position: relative;
+    padding-left: 40px;
+    margin-bottom: 24px;
+  }
+
+  .step::before {
+    content: counter(step);
+    position: absolute;
+    left: 0; top: 2px;
+    width: 26px; height: 26px;
+    background: var(--accent);
+    color: var(--bg);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 13px;
+  }
+
+  .steps { counter-reset: step; }
+
+  a { color: var(--blue); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  hr { border: none; border-top: 1px solid var(--border); margin: 32px 0; }
+
+  /* ── 响应式 ── */
+  @media (max-width: 860px) {
+    .sidebar { display: none; }
+    .main { margin-left: 0; padding: 24px 20px 60px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ============ 侧边栏 ============ -->
+<nav class="sidebar">
+  <div class="sidebar-title">
+    CoreID 运维手册
+    <span>最后更新：2026-05-20</span>
+  </div>
+
+  <div class="nav-group">
+    <div class="nav-group-label">概览</div>
+    <a class="nav-link" href="#overview">系统架构</a>
+    <a class="nav-link" href="#server-info">服务器信息</a>
+    <a class="nav-link" href="#directory">目录结构</a>
+  </div>
+
+  <div class="nav-group">
+    <div class="nav-group-label">日常运维</div>
+    <a class="nav-link" href="#status">查看服务状态</a>
+    <a class="nav-link" href="#logs">查看日志</a>
+    <a class="nav-link" href="#restart">重启服务</a>
+  </div>
+
+  <div class="nav-group">
+    <div class="nav-group-label">代码更新</div>
+    <a class="nav-link" href="#update-git">通过 Git 更新</a>
+    <a class="nav-link" href="#update-scp">通过 SCP 更新</a>
+    <a class="nav-link" href="#update-env">更新环境变量</a>
+    <a class="nav-link" href="#update-casdoor">更新 Casdoor</a>
+  </div>
+
+  <div class="nav-group">
+    <div class="nav-group-label">数据库</div>
+    <a class="nav-link" href="#db-connect">连接数据库</a>
+    <a class="nav-link" href="#db-backup">备份数据库</a>
+    <a class="nav-link" href="#db-restore">恢复数据库</a>
+    <a class="nav-link" href="#db-migrate">数据库迁移</a>
+  </div>
+
+  <div class="nav-group">
+    <div class="nav-group-label">SSL 证书</div>
+    <a class="nav-link" href="#ssl-check">查看证书状态</a>
+    <a class="nav-link" href="#ssl-renew">手动续期</a>
+    <a class="nav-link" href="#ssl-auto">自动续期</a>
+  </div>
+
+  <div class="nav-group">
+    <div class="nav-group-label">故障排查</div>
+    <a class="nav-link" href="#debug-502">502 网关错误</a>
+    <a class="nav-link" href="#debug-casdoor">Casdoor 相关</a>
+    <a class="nav-link" href="#debug-db">数据库连接失败</a>
+    <a class="nav-link" href="#debug-env">环境变量不生效</a>
+    <a class="nav-link" href="#debug-user">清理测试用户</a>
+  </div>
+
+  <div class="nav-group">
+    <div class="nav-group-label">参考</div>
+    <a class="nav-link" href="#env-ref">环境变量参考</a>
+    <a class="nav-link" href="#ports">端口映射</a>
+    <a class="nav-link" href="#useful-commands">常用命令速查</a>
+  </div>
+</nav>
+
+<!-- ============ 主内容 ============ -->
+<div class="main">
+
+<h1>CoreID 服务器运维手册</h1>
+<p class="subtitle">涵盖 CoreID、Casdoor、PostgreSQL 的部署、更新、备份、SSL 续期和故障排查。</p>
+
+<!-- ─── 概览 ─── -->
+<h2 id="overview">系统架构</h2>
+
+<p>CoreID 由三个 Docker 容器组成，通过 <code>coreid-net</code> 网络通信。外部流量通过助教云的 <code>zjy_nginx</code> 容器反向代理进来。</p>
+
+<pre><code>用户浏览器
+    │
+    ▼
+zjy_nginx (443/80)
+    ├── id.haoai.ink   → coreid-app:3000    (CoreID 应用)
+    └── auth.haoai.ink → coreid-casdoor:8000 (Casdoor 认证)
+                              │
+                       coreid-postgres:5432  (PostgreSQL 数据库)
+</code></pre>
+
+<div class="info-grid">
+  <div class="info-card">
+    <div class="label">CoreID 应用</div>
+    <div class="value">Node.js 20 + Express</div>
+  </div>
+  <div class="info-card">
+    <div class="label">认证服务</div>
+    <div class="value">Casdoor (casbin/casdoor:latest)</div>
+  </div>
+  <div class="info-card">
+    <div class="label">数据库</div>
+    <div class="value">PostgreSQL 16 Alpine</div>
+  </div>
+  <div class="info-card">
+    <div class="label">反向代理</div>
+    <div class="value">zjy_nginx (共享)</div>
+  </div>
+</div>
+
+<h2 id="server-info">服务器信息</h2>
+
+<table>
+  <tr><th>项目</th><th>值</th></tr>
+  <tr><td>服务器 IP</td><td><code>38.76.166.42</code></td></tr>
+  <tr><td>操作系统</td><td>Ubuntu 22.04</td></tr>
+  <tr><td>配置</td><td>8 核 / 7.4 GB RAM</td></tr>
+  <tr><td>CoreID 域名</td><td><code>id.haoai.ink</code></td></tr>
+  <tr><td>Casdoor 域名</td><td><code>auth.haoai.ink</code></td></tr>
+  <tr><td>DNS 管理</td><td>Cloudflare（DNS Only 模式）</td></tr>
+  <tr><td>SSL 证书</td><td>Let's Encrypt（路径：<code>/etc/letsencrypt/live/id.haoai.ink/</code>）</td></tr>
+  <tr><td>项目路径</td><td><code>/opt/coreid</code></td></tr>
+  <tr><td>Nginx 配置</td><td><code>/root/zhujiaoyun/nginx/nginx.conf</code>（由 zjy_nginx 挂载）</td></tr>
+</table>
+
+<h2 id="directory">目录结构</h2>
+
+<pre><code>/opt/coreid/
+├── docker-compose.prod.yml     # Docker 编排文件
+├── .env.production             # 生产环境变量（敏感，不在 git 里）
+├── Dockerfile                  # CoreID 应用镜像构建
+├── package.json
+├── src/                        # 应用源代码
+│   ├── routes/
+│   ├── services/
+│   ├── middleware/
+│   └── uploads/                # 文件上传目录（Docker volume 挂载）
+├── db/
+│   └── init/
+│       └── 001_schema.sql      # 数据库初始化 schema
+├── deploy/
+│   ├── casdoor/
+│   │   └── app.conf            # Casdoor 配置文件
+│   ├── db/
+│   │   ├── 000_create_casdoor_db.sh   # 创建 casdoor 数据库的脚本
+│   │   └── 002_seed_prod.sql          # 生产环境种子数据
+│   └── nginx/
+│       ├── nginx.conf           # HTTPS 版 nginx 配置
+│       └── nginx-init.conf      # HTTP 版（用于首次证书申请）
+</code></pre>
+
+<!-- ─── 日常运维 ─── -->
+<h2 id="status">查看服务状态</h2>
+
+<h3>查看所有容器状态</h3>
+<pre><code>cd /opt/coreid
+docker compose -f docker-compose.prod.yml ps</code></pre>
+
+<p>正常状态下三个容器都应该是 <code>Up</code>，且 postgres 显示 <code>(healthy)</code>：</p>
+
+<pre><code>NAME              STATUS
+coreid-postgres   Up (healthy)
+coreid-casdoor    Up
+coreid-app        Up</code></pre>
+
+<h3>快速健康检查</h3>
+<pre><code># CoreID 健康检查
+curl -s https://id.haoai.ink/health
+
+# Casdoor 健康检查
+curl -s https://auth.haoai.ink/api/health
+
+# 数据库连通性
+docker exec coreid-postgres pg_isready -U coreid -d coreid</code></pre>
+
+<h3>查看资源占用</h3>
+<pre><code>docker stats --no-stream coreid-app coreid-casdoor coreid-postgres</code></pre>
+
+<h2 id="logs">查看日志</h2>
+
+<h3>查看各服务日志</h3>
+<pre><code># CoreID 应用日志（最近 100 行）
+docker logs coreid-app --tail 100
+
+# Casdoor 日志
+docker logs coreid-casdoor --tail 100
+
+# PostgreSQL 日志
+docker logs coreid-postgres --tail 100
+
+# 实时跟踪日志
+docker logs coreid-app -f</code></pre>
+
+<h3>筛选错误日志</h3>
+<pre><code># 只看错误
+docker logs coreid-app --tail 200 2>&amp;1 | grep -i "error\|fail"
+
+# 看完整错误堆栈
+docker logs coreid-app --tail 200 2>&amp;1 | grep -A 15 "Error:"</code></pre>
+
+<h2 id="restart">重启服务</h2>
+
+<h3>重启单个服务</h3>
+<pre><code>cd /opt/coreid
+
+# 重启 CoreID 应用（不重新读取 env 文件）
+docker compose -f docker-compose.prod.yml restart app
+
+# 重启 Casdoor
+docker compose -f docker-compose.prod.yml restart casdoor
+
+# 重启数据库（谨慎操作，会断开所有连接）
+docker compose -f docker-compose.prod.yml restart postgres</code></pre>
+
+<div class="warn"><strong>restart vs up -d 的区别</strong>：<code>restart</code> 只是重启容器进程，<strong>不会</strong>重新读取 <code>.env.production</code> 文件。如果修改了环境变量，必须用 <code>up -d</code>。</div>
+
+<h3>重启所有服务</h3>
+<pre><code>cd /opt/coreid
+docker compose -f docker-compose.prod.yml restart</code></pre>
+
+<h3>停止所有服务</h3>
+<pre><code>cd /opt/coreid
+docker compose -f docker-compose.prod.yml down</code></pre>
+
+<div class="danger"><code>docker compose down</code> 会停止并删除容器，但不会删除 volume 数据。<br>绝对不要加 <code>-v</code> 参数，否则<strong>数据库数据会被永久删除</strong>。</div>
+
+<!-- ─── 代码更新 ─── -->
+<h2 id="update-git">通过 Git 更新代码</h2>
+
+<p>推荐方式。前提：服务器上的 <code>/opt/coreid</code> 已经初始化为 git 仓库。</p>
+
+<h4>首次设置 Git（如果还没做）</h4>
+<div class="steps">
+  <div class="step">
+    <p>在服务器上初始化并关联远程仓库：</p>
+    <pre><code>cd /opt/coreid
+git init
+git remote add origin 你的仓库地址
+git fetch origin
+git reset --hard origin/main</code></pre>
+  </div>
+</div>
+
+<h4>日常更新流程</h4>
+<div class="steps">
+  <div class="step">
+    <p>本地完成开发并推送到远程仓库：</p>
+    <pre><code># 本地操作
+git add .
+git commit -m "更新说明"
+git push origin main</code></pre>
+  </div>
+  <div class="step">
+    <p>SSH 登录服务器，拉取最新代码：</p>
+    <pre><code>ssh root@38.76.166.42
+cd /opt/coreid
+git pull origin main</code></pre>
+  </div>
+  <div class="step">
+    <p>重新构建并启动 CoreID 应用：</p>
+    <pre><code>docker compose -f docker-compose.prod.yml up -d --build app</code></pre>
+    <p><code>--build</code> 参数会重新构建 Docker 镜像（安装新依赖、拷贝新代码）。</p>
+  </div>
+  <div class="step">
+    <p>验证更新成功：</p>
+    <pre><code># 检查容器状态
+docker compose -f docker-compose.prod.yml ps
+
+# 检查日志没有报错
+docker logs coreid-app --tail 20
+
+# 健康检查
+curl -s https://id.haoai.ink/health</code></pre>
+  </div>
+</div>
+
+<div class="tip">如果只改了 <code>.env.production</code> 而没改代码，不需要 <code>--build</code>，直接 <code>up -d app</code> 即可。</div>
+
+<h2 id="update-scp">通过 SCP 更新代码</h2>
+
+<p>适用于没有 Git 的场景，或者临时紧急修复。</p>
+
+<div class="steps">
+  <div class="step">
+    <p>在<strong>本地终端</strong>上传代码（注意是本地终端，不是 SSH 会话）：</p>
+    <pre><code>scp -r /本地项目路径/* root@38.76.166.42:/opt/coreid/</code></pre>
+    <div class="warn">注意排除 <code>node_modules</code>、<code>.env.production</code> 等文件，避免覆盖服务器配置。建议上传前先备份。</div>
+  </div>
+  <div class="step">
+    <p>SSH 登录服务器，重新构建：</p>
+    <pre><code>ssh root@38.76.166.42
+cd /opt/coreid
+docker compose -f docker-compose.prod.yml up -d --build app</code></pre>
+  </div>
+</div>
+
+<h2 id="update-env">更新环境变量</h2>
+
+<div class="steps">
+  <div class="step">
+    <p>编辑环境变量文件：</p>
+    <pre><code>vi /opt/coreid/.env.production</code></pre>
+    <p>vi 基本操作：<code>i</code> 进入编辑 → 修改内容 → <code>Esc</code> 退出编辑 → <code>:wq</code> 保存退出 → <code>:q!</code> 不保存退出</p>
+  </div>
+  <div class="step">
+    <p>重建容器使变量生效（<strong>必须用 up -d，不能用 restart</strong>）：</p>
+    <pre><code>cd /opt/coreid
+docker compose -f docker-compose.prod.yml up -d app</code></pre>
+    <p>如果容器没有重建（显示 Running 而非 Started），加上 <code>--force-recreate</code>：</p>
+    <pre><code>docker compose -f docker-compose.prod.yml up -d --force-recreate app</code></pre>
+  </div>
+  <div class="step">
+    <p>验证环境变量已生效：</p>
+    <pre><code>docker exec coreid-app env | grep 你要检查的变量名</code></pre>
+  </div>
+</div>
+
+<h2 id="update-casdoor">更新 Casdoor</h2>
+
+<p>Casdoor 使用官方 Docker 镜像，更新时拉取最新版本：</p>
+
+<div class="steps">
+  <div class="step">
+    <p>拉取最新镜像：</p>
+    <pre><code>docker pull casbin/casdoor:latest</code></pre>
+  </div>
+  <div class="step">
+    <p>重建 Casdoor 容器：</p>
+    <pre><code>cd /opt/coreid
+docker compose -f docker-compose.prod.yml up -d casdoor</code></pre>
+  </div>
+  <div class="step">
+    <p>验证 Casdoor 正常：</p>
+    <pre><code>curl -s https://auth.haoai.ink/api/health</code></pre>
+  </div>
+</div>
+
+<div class="warn">Casdoor 大版本更新可能包含数据库 schema 变更，更新前建议先备份数据库。</div>
+
+<!-- ─── 数据库 ─── -->
+<h2 id="db-connect">连接数据库</h2>
+
+<h3>通过 Docker 进入 psql</h3>
+<pre><code># 连接 CoreID 数据库
+docker exec -it coreid-postgres psql -U coreid -d coreid
+
+# 连接 Casdoor 数据库
+docker exec -it coreid-postgres psql -U coreid -d casdoor</code></pre>
+
+<h3>常用查询</h3>
+<pre><code># 查看所有用户
+SELECT id, username, phone, account_status FROM users;
+
+# 查看应用列表
+SELECT id, name, type, status FROM applications;
+
+# 查看某用户的应用注册情况
+SELECT u.phone, m.app_id, m.status, m.created_at
+FROM user_app_memberships m
+JOIN users u ON u.id = m.user_id
+WHERE u.phone = '手机号';
+
+# 查看设备绑定
+SELECT * FROM devices WHERE user_id = '用户ID';
+
+# 查看表结构
+\dt           -- 列出所有表
+\d 表名       -- 查看表结构</code></pre>
+
+<h2 id="db-backup">备份数据库</h2>
+
+<h3>手动备份</h3>
+<pre><code># 备份 CoreID 数据库
+docker exec coreid-postgres pg_dump -U coreid coreid > ~/backups/coreid_$(date +%Y%m%d_%H%M%S).sql
+
+# 备份 Casdoor 数据库
+docker exec coreid-postgres pg_dump -U coreid casdoor > ~/backups/casdoor_$(date +%Y%m%d_%H%M%S).sql
+
+# 备份所有数据库
+docker exec coreid-postgres pg_dumpall -U coreid > ~/backups/all_$(date +%Y%m%d_%H%M%S).sql</code></pre>
+
+<div class="tip">备份前确保目录存在：<code>mkdir -p ~/backups</code></div>
+
+<h3>设置定时自动备份</h3>
+<pre><code># 创建备份脚本
+cat > ~/backup-coreid.sh &lt;&lt;'EOF'
+#!/bin/bash
+BACKUP_DIR=~/backups
+KEEP_DAYS=30
+
+mkdir -p $BACKUP_DIR
+
+# 备份
+docker exec coreid-postgres pg_dump -U coreid coreid > $BACKUP_DIR/coreid_$(date +%Y%m%d_%H%M%S).sql
+docker exec coreid-postgres pg_dump -U coreid casdoor > $BACKUP_DIR/casdoor_$(date +%Y%m%d_%H%M%S).sql
+
+# 清理旧备份
+find $BACKUP_DIR -name "*.sql" -mtime +$KEEP_DAYS -delete
+
+echo "[$(date)] Backup completed" >> $BACKUP_DIR/backup.log
+EOF
+
+chmod +x ~/backup-coreid.sh
+
+# 添加 crontab，每天凌晨 3 点自动备份
+(crontab -l 2>/dev/null; echo "0 3 * * * ~/backup-coreid.sh") | crontab -</code></pre>
+
+<h3>验证备份</h3>
+<pre><code># 查看最新备份
+ls -lht ~/backups/ | head -5
+
+# 检查备份文件大小（不应该是 0）
+du -h ~/backups/*.sql | tail -5</code></pre>
+
+<h2 id="db-restore">恢复数据库</h2>
+
+<div class="danger">恢复操作会覆盖现有数据，操作前请确认备份文件正确。</div>
+
+<div class="steps">
+  <div class="step">
+    <p>停止 CoreID 和 Casdoor（避免写入冲突）：</p>
+    <pre><code>cd /opt/coreid
+docker compose -f docker-compose.prod.yml stop app casdoor</code></pre>
+  </div>
+  <div class="step">
+    <p>恢复数据库：</p>
+    <pre><code># 恢复 CoreID 数据库
+cat ~/backups/coreid_备份时间.sql | docker exec -i coreid-postgres psql -U coreid -d coreid
+
+# 恢复 Casdoor 数据库
+cat ~/backups/casdoor_备份时间.sql | docker exec -i coreid-postgres psql -U coreid -d casdoor</code></pre>
+  </div>
+  <div class="step">
+    <p>重新启动所有服务：</p>
+    <pre><code>docker compose -f docker-compose.prod.yml up -d</code></pre>
+  </div>
+</div>
+
+<h2 id="db-migrate">数据库迁移</h2>
+
+<p>CoreID 没有使用自动迁移工具，schema 变更需要手动执行 SQL。</p>
+
+<pre><code># 执行迁移 SQL
+docker exec -i coreid-postgres psql -U coreid -d coreid &lt;&lt;'EOF'
+-- 你的迁移 SQL
+ALTER TABLE users ADD COLUMN new_field VARCHAR(100);
+EOF</code></pre>
+
+<div class="warn">生产环境执行 SQL 前，务必先在测试环境验证，并备份数据库。</div>
+
+<!-- ─── SSL ─── -->
+<h2 id="ssl-check">查看证书状态</h2>
+
+<pre><code># 查看证书到期时间
+docker exec zjy_nginx openssl x509 -in /etc/letsencrypt/live/id.haoai.ink/fullchain.pem -noout -dates
+
+# 或者在线检查
+echo | openssl s_client -servername id.haoai.ink -connect id.haoai.ink:443 2>/dev/null | openssl x509 -noout -dates</code></pre>
+
+<p>Let's Encrypt 证书有效期 90 天，建议在到期前 30 天续期。</p>
+
+<h2 id="ssl-renew">手动续期</h2>
+
+<div class="steps">
+  <div class="step">
+    <p>执行续期命令（certbot 在助教云的 Docker 环境中运行）：</p>
+    <pre><code>docker run --rm \
+  -v /etc/letsencrypt:/etc/letsencrypt \
+  -v /var/lib/letsencrypt:/var/lib/letsencrypt \
+  -v /var/www/certbot:/var/www/certbot \
+  certbot/certbot renew</code></pre>
+  </div>
+  <div class="step">
+    <p>重新加载 nginx 使新证书生效：</p>
+    <pre><code>docker exec zjy_nginx nginx -s reload</code></pre>
+  </div>
+</div>
+
+<h2 id="ssl-auto">自动续期</h2>
+
+<pre><code># 添加 crontab，每月 1 号和 15 号凌晨 4 点自动续期
+(crontab -l 2>/dev/null; echo "0 4 1,15 * * docker run --rm -v /etc/letsencrypt:/etc/letsencrypt -v /var/lib/letsencrypt:/var/lib/letsencrypt -v /var/www/certbot:/var/www/certbot certbot/certbot renew --quiet && docker exec zjy_nginx nginx -s reload") | crontab -</code></pre>
+
+<div class="tip">可以用 <code>crontab -l</code> 查看已设置的定时任务。</div>
+
+<!-- ─── 故障排查 ─── -->
+<h2 id="debug-502">502 网关错误</h2>
+
+<p>浏览器显示 502 说明 nginx 无法连接到后端容器。</p>
+
+<h4>排查步骤</h4>
+<ol>
+  <li>
+    <p>检查容器是否在运行：</p>
+    <pre><code>docker compose -f docker-compose.prod.yml ps</code></pre>
+    <p>如果容器挂了，查看日志找原因：<code>docker logs coreid-app --tail 50</code></p>
+  </li>
+  <li>
+    <p>检查 zjy_nginx 是否连接了 coreid-net 网络：</p>
+    <pre><code>docker network inspect coreid-net | grep zjy_nginx</code></pre>
+    <p>如果没有，重新连接：</p>
+    <pre><code>docker network connect coreid-net zjy_nginx
+docker exec zjy_nginx nginx -s reload</code></pre>
+  </li>
+  <li>
+    <p>检查 nginx 配置是否正确：</p>
+    <pre><code>docker exec zjy_nginx nginx -t</code></pre>
+  </li>
+</ol>
+
+<h2 id="debug-casdoor">Casdoor 相关错误</h2>
+
+<h3>"password or code is incorrect"</h3>
+<p>CoreID 使用管理员账号调用 Casdoor API，如果管理员密码配置不匹配会报此错误。</p>
+
+<pre><code># 检查容器里实际使用的密码
+docker exec coreid-app env | grep CASDOOR_DEV_ADMIN_PASSWORD
+
+# 测试密码是否正确
+curl -s "https://auth.haoai.ink/api/get-account?username=built-in/admin&amp;password=密码" | head -c 200</code></pre>
+
+<p>如果返回不是 <code>"status":"ok"</code>，说明密码不匹配。修改 <code>.env.production</code> 中的 <code>CASDOOR_DEV_ADMIN_PASSWORD</code> 后重建容器。</p>
+
+<h3>"Casdoor is not configured yet"</h3>
+<pre><code># 检查 Casdoor 相关环境变量
+docker exec coreid-app env | grep CASDOOR</code></pre>
+
+<p>确认以下值正确：</p>
+<ul>
+  <li><code>CASDOOR_ENDPOINT=https://auth.haoai.ink</code>（给浏览器跳转用，公网地址）</li>
+  <li><code>CASDOOR_INTERNAL_ENDPOINT=http://coreid-casdoor:8000</code>（容器间通信）</li>
+  <li><code>CASDOOR_CLIENT_ID</code> 和 <code>CASDOOR_CLIENT_SECRET</code> 必须与 Casdoor 管理后台中的应用配置一致</li>
+  <li><code>CASDOOR_REDIRECT_URI=https://id.haoai.ink/api/auth/callback</code>（不能是 localhost）</li>
+</ul>
+
+<h3>"Invalid client_id"</h3>
+<p>检查 <code>.env.production</code> 中的 <code>CASDOOR_CLIENT_ID</code> 是否与 Casdoor 管理后台中应用的 Client ID 一致。打开 <code>https://auth.haoai.ink</code> → Applications → 对应应用查看。</p>
+
+<h2 id="debug-db">数据库连接失败</h2>
+
+<pre><code># 检查 PostgreSQL 是否健康
+docker exec coreid-postgres pg_isready -U coreid -d coreid
+
+# 检查 PostgreSQL 日志
+docker logs coreid-postgres --tail 50
+
+# 手动测试连接
+docker exec -it coreid-postgres psql -U coreid -d coreid -c "SELECT 1;"</code></pre>
+
+<h2 id="debug-env">环境变量不生效</h2>
+
+<p>这是最常见的坑。<strong>修改 <code>.env.production</code> 后必须用 <code>up -d</code> 重建容器</strong>，<code>restart</code> 不会重新读取环境变量。</p>
+
+<pre><code># 错误 ❌：restart 不会重新读取 env 文件
+docker compose -f docker-compose.prod.yml restart app
+
+# 正确 ✅：up -d 会检测变更并重建容器
+docker compose -f docker-compose.prod.yml up -d app
+
+# 如果 up -d 显示 Running（没有重建），强制重建
+docker compose -f docker-compose.prod.yml up -d --force-recreate app
+
+# 验证环境变量
+docker exec coreid-app env | grep 变量名</code></pre>
+
+<h2 id="debug-user">清理测试用户</h2>
+
+<p>测试阶段清除用户需要同时清 CoreID 数据库和 Casdoor 两侧。</p>
+
+<div class="steps">
+  <div class="step">
+    <p>清 CoreID 数据库：</p>
+    <pre><code>docker exec coreid-postgres psql -U coreid -d coreid -c "
+DELETE FROM devices WHERE user_id IN (SELECT id FROM users WHERE phone = '手机号');
+DELETE FROM user_app_memberships WHERE user_id IN (SELECT id FROM users WHERE phone = '手机号');
+DELETE FROM verification_codes WHERE phone = '手机号';
+DELETE FROM users WHERE phone = '手机号';
+"</code></pre>
+  </div>
+  <div class="step">
+    <p>清 Casdoor 用户：打开 <code>https://auth.haoai.ink</code> → 管理员登录 → Users → 找到对应用户 → 删除。</p>
+  </div>
+</div>
+
+<div class="warn">以上 SQL 是分号分隔的多条语句，如果中间某条报错（如表不存在），后面的语句不会执行。此时需要单独执行剩余语句。</div>
+
+<!-- ─── 参考 ─── -->
+<h2 id="env-ref">环境变量参考</h2>
+
+<table>
+  <tr><th>变量</th><th>说明</th><th>示例</th></tr>
+  <tr><td><code>NODE_ENV</code></td><td>运行环境</td><td><code>production</code></td></tr>
+  <tr><td><code>PORT</code></td><td>应用端口</td><td><code>3000</code></td></tr>
+  <tr><td><code>DATABASE_URL</code></td><td>PostgreSQL 连接串</td><td><code>postgresql://coreid:密码@coreid-postgres:5432/coreid</code></td></tr>
+  <tr><td><code>BASE_URL</code></td><td>CoreID 公网地址</td><td><code>https://id.haoai.ink</code></td></tr>
+  <tr><td><code>ADMIN_SECRET</code></td><td>管理员 API 密钥</td><td>随机字符串</td></tr>
+  <tr><td><code>ENFORCE_CASDOOR_AUTH</code></td><td>是否强制 Casdoor 认证</td><td><code>true</code></td></tr>
+  <tr><td><code>ENFORCE_ADMIN_SECRET</code></td><td>是否强制管理员密钥</td><td><code>true</code></td></tr>
+  <tr><td><code>ALLOW_DEV_TOKEN_BYPASS</code></td><td>是否允许开发 token 绕过</td><td><code>false</code>（生产必须为 false）</td></tr>
+  <tr><td><code>CASDOOR_ENDPOINT</code></td><td>Casdoor 公网地址（浏览器用）</td><td><code>https://auth.haoai.ink</code></td></tr>
+  <tr><td><code>CASDOOR_INTERNAL_ENDPOINT</code></td><td>Casdoor 内网地址（容器间用）</td><td><code>http://coreid-casdoor:8000</code></td></tr>
+  <tr><td><code>CASDOOR_CLIENT_ID</code></td><td>Casdoor 应用 Client ID</td><td>从 Casdoor 管理后台获取</td></tr>
+  <tr><td><code>CASDOOR_CLIENT_SECRET</code></td><td>Casdoor 应用 Client Secret</td><td>从 Casdoor 管理后台获取</td></tr>
+  <tr><td><code>CASDOOR_REDIRECT_URI</code></td><td>OIDC 回调地址</td><td><code>https://id.haoai.ink/api/auth/callback</code></td></tr>
+  <tr><td><code>CASDOOR_DEV_ADMIN_PASSWORD</code></td><td>Casdoor 管理员密码</td><td>与 Casdoor 后台一致</td></tr>
+  <tr><td><code>CASDOOR_MASTER_PASSWORD</code></td><td>Casdoor 万能密码</td><td>随机字符串</td></tr>
+  <tr><td><code>PHONE_VERIFICATION_MODE</code></td><td>短信模式</td><td><code>dev</code>（测试）/ <code>sms</code>（真实发送）</td></tr>
+  <tr><td><code>SMS_PROVIDER</code></td><td>短信供应商</td><td><code>aliyun</code> / <code>tencentcloud</code></td></tr>
+  <tr><td><code>SMS_ALIYUN_ACCESS_KEY_ID</code></td><td>阿里云 AccessKey ID</td><td>从阿里云控制台获取</td></tr>
+  <tr><td><code>SMS_ALIYUN_ACCESS_KEY_SECRET</code></td><td>阿里云 AccessKey Secret</td><td>从阿里云控制台获取</td></tr>
+  <tr><td><code>SMS_ALIYUN_SIGN_NAME</code></td><td>短信签名</td><td>需在阿里云审核通过</td></tr>
+  <tr><td><code>SMS_ALIYUN_TEMPLATE_REGISTER</code></td><td>注册短信模板 ID</td><td><code>SMS_506285587</code></td></tr>
+  <tr><td><code>SMS_ALIYUN_TEMPLATE_RESET_PASSWORD</code></td><td>重置密码短信模板 ID</td><td><code>SMS_506245561</code></td></tr>
+</table>
+
+<h2 id="ports">端口映射</h2>
+
+<table>
+  <tr><th>服务</th><th>容器名</th><th>容器端口</th><th>宿主机映射</th><th>外部访问</th></tr>
+  <tr><td>CoreID</td><td>coreid-app</td><td>3000</td><td>127.0.0.1:3000</td><td>https://id.haoai.ink</td></tr>
+  <tr><td>Casdoor</td><td>coreid-casdoor</td><td>8000</td><td>127.0.0.1:8000</td><td>https://auth.haoai.ink</td></tr>
+  <tr><td>PostgreSQL</td><td>coreid-postgres</td><td>5432</td><td>无外部映射</td><td>仅容器内访问</td></tr>
+</table>
+
+<p>所有端口都绑定到 <code>127.0.0.1</code>，不对外暴露。外部流量通过 zjy_nginx 反向代理。</p>
+
+<h2 id="useful-commands">常用命令速查</h2>
+
+<table>
+  <tr><th>操作</th><th>命令</th></tr>
+  <tr><td>查看容器状态</td><td><code>cd /opt/coreid && docker compose -f docker-compose.prod.yml ps</code></td></tr>
+  <tr><td>查看应用日志</td><td><code>docker logs coreid-app --tail 100</code></td></tr>
+  <tr><td>实时跟踪日志</td><td><code>docker logs coreid-app -f</code></td></tr>
+  <tr><td>重启应用</td><td><code>cd /opt/coreid && docker compose -f docker-compose.prod.yml restart app</code></td></tr>
+  <tr><td>更新代码并重建</td><td><code>cd /opt/coreid && git pull && docker compose -f docker-compose.prod.yml up -d --build app</code></td></tr>
+  <tr><td>更新环境变量</td><td><code>cd /opt/coreid && docker compose -f docker-compose.prod.yml up -d --force-recreate app</code></td></tr>
+  <tr><td>进入数据库</td><td><code>docker exec -it coreid-postgres psql -U coreid -d coreid</code></td></tr>
+  <tr><td>备份数据库</td><td><code>docker exec coreid-postgres pg_dump -U coreid coreid > ~/backups/coreid_$(date +%Y%m%d).sql</code></td></tr>
+  <tr><td>查看磁盘占用</td><td><code>docker system df</code></td></tr>
+  <tr><td>清理无用镜像</td><td><code>docker image prune -f</code></td></tr>
+  <tr><td>查看证书到期</td><td><code>echo | openssl s_client -servername id.haoai.ink -connect id.haoai.ink:443 2>/dev/null | openssl x509 -noout -dates</code></td></tr>
+  <tr><td>续期 SSL 证书</td><td><code>docker run --rm -v /etc/letsencrypt:/etc/letsencrypt -v /var/lib/letsencrypt:/var/lib/letsencrypt -v /var/www/certbot:/var/www/certbot certbot/certbot renew && docker exec zjy_nginx nginx -s reload</code></td></tr>
+  <tr><td>检查 nginx 配置</td><td><code>docker exec zjy_nginx nginx -t</code></td></tr>
+  <tr><td>重载 nginx</td><td><code>docker exec zjy_nginx nginx -s reload</code></td></tr>
+</table>
+
+</div>
+
+<!-- ============ 脚本 ============ -->
+<script>
+// 复制按钮
+document.querySelectorAll('pre').forEach(block => {
+  const btn = document.createElement('button');
+  btn.className = 'copy-btn';
+  btn.textContent = '复制';
+  btn.addEventListener('click', () => {
+    const code = block.querySelector('code')?.textContent || block.textContent;
+    navigator.clipboard.writeText(code).then(() => {
+      btn.textContent = '已复制';
+      setTimeout(() => btn.textContent = '复制', 1500);
+    });
+  });
+  block.appendChild(btn);
+});
+
+// 侧边栏高亮
+const navLinks = document.querySelectorAll('.nav-link');
+const sections = [];
+navLinks.forEach(link => {
+  const id = link.getAttribute('href')?.slice(1);
+  const el = id && document.getElementById(id);
+  if (el) sections.push({ link, el });
+});
+
+function updateActiveNav() {
+  let current = sections[0];
+  for (const s of sections) {
+    if (s.el.getBoundingClientRect().top <= 80) current = s;
+  }
+  navLinks.forEach(l => l.classList.remove('active'));
+  current?.link.classList.add('active');
+}
+
+window.addEventListener('scroll', updateActiveNav);
+updateActiveNav();
+</script>
+
+</body>
+</html>
