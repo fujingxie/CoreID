@@ -246,7 +246,8 @@ a { color: inherit; text-decoration: none; }
 }
 
 /* page header */
-.page-head { display: flex; align-items: flex-end; gap: 24px; margin-bottom: 28px; }
+.page-head { display: flex; align-items: flex-end; gap: 24px; margin-bottom: 28px; flex-wrap: wrap; }
+.page-head > div:first-child { min-width: min(100%, 360px); }
 .page-head h1 {
   font-family: var(--font-display);
   font-weight: 400;
@@ -268,7 +269,7 @@ a { color: inherit; text-decoration: none; }
   font-size: 13px;
   margin-bottom: 6px;
 }
-.page-head-actions { margin-left: auto; display: flex; gap: 8px; align-items: center; }
+.page-head-actions { margin-left: auto; display: flex; gap: 8px; align-items: center; justify-content: flex-end; flex-wrap: wrap; min-width: 0; }
 #view-plans .page-head-actions { flex-wrap: nowrap; }
 #view-plans .page-head-actions .text-input { min-width: 220px; flex: 0 1 240px; }
 
@@ -409,6 +410,7 @@ a { color: inherit; text-decoration: none; }
 }
 .table-toolbar {
   display: flex; align-items: center; gap: 10px;
+  flex-wrap: wrap;
   padding: 16px 20px;
   border-bottom: var(--hairline);
 }
@@ -421,6 +423,7 @@ a { color: inherit; text-decoration: none; }
   color: var(--color-silver-text);
   font-size: 13px;
   flex: 1;
+  min-width: 220px;
   max-width: 360px;
 }
 .search-pill input {
@@ -436,6 +439,8 @@ a { color: inherit; text-decoration: none; }
   background: transparent;
   color: var(--color-silver-text);
   font-size: 12.5px;
+  white-space: nowrap;
+  flex: 0 0 auto;
 }
 .filter-chip:hover { color: var(--color-pure-white); border-color: rgba(226,227,233,0.25); }
 .filter-chip.active { background: var(--color-pewter-accent); color: var(--color-pure-white); border-color: rgba(226,227,233,0.18); }
@@ -740,7 +745,7 @@ table.tbl tr.row-clickable:hover td { background: rgba(28,29,34,0.4); }
 /* === Apps page === */
 .apps-row {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 16px;
 }
 .app-card {
@@ -762,7 +767,7 @@ table.tbl tr.row-clickable:hover td { background: rgba(28,29,34,0.4); }
   background: linear-gradient(103deg, #5a6f95, #b6cce8 40%, #5a6f95 70%, transparent);
   opacity: .35;
 }
-.app-head { display: flex; align-items: flex-start; gap: 16px; margin-bottom: 22px; }
+.app-head { display: flex; align-items: flex-start; gap: 16px; margin-bottom: 22px; padding-right: 104px; min-width: 0; }
 .app-logo {
   width: 56px; height: 56px;
   border-radius: 14px;
@@ -785,7 +790,12 @@ table.tbl tr.row-clickable:hover td { background: rgba(28,29,34,0.4); }
   color: var(--color-pure-white);
   letter-spacing: -0.01em;
 }
-.app-meta p { margin: 0; font-size: 13px; color: var(--color-silver-text); line-height: 1.5; max-width: 360px; }
+.app-meta { min-width: 0; }
+.app-meta h3,
+.landing-title {
+  overflow-wrap: anywhere;
+}
+.app-meta p { margin: 0; font-size: 13px; color: var(--color-silver-text); line-height: 1.5; max-width: 360px; overflow-wrap: anywhere; }
 
 .app-status {
   position: absolute; top: 22px; right: 22px;
@@ -801,15 +811,15 @@ table.tbl tr.row-clickable:hover td { background: rgba(28,29,34,0.4); }
 .app-status .pip { width: 6px; height: 6px; border-radius: 50%; background: #84d1a8; box-shadow: 0 0 6px #84d1a8; }
 
 .app-stats {
-  display: grid; grid-template-columns: repeat(3, 1fr);
+  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
   border: var(--hairline);
   border-radius: 10px;
   margin-bottom: 22px;
 }
-.app-stat { padding: 16px 18px; border-right: var(--hairline); }
+.app-stat { padding: 16px 18px; border-right: var(--hairline); min-width: 0; }
 .app-stat:last-child { border-right: 0; }
 .app-stat .lbl { font-size: 11px; color: var(--color-stone-text); text-transform: uppercase; letter-spacing: 0.05em; }
-.app-stat .val { font-family: var(--font-display); font-size: 30px; color: var(--color-pure-white); margin-top: 6px; line-height: 1; letter-spacing: -0.01em; }
+.app-stat .val { font-family: var(--font-display); font-size: clamp(22px, 2vw, 30px); color: var(--color-pure-white); margin-top: 6px; line-height: 1; letter-spacing: -0.01em; overflow-wrap: anywhere; }
 .app-stat .val .unit { font-family: var(--font-inter); font-size: 12px; color: var(--color-silver-text); margin-left: 3px; }
 .app-stat .delta { font-size: 11px; margin-top: 4px; }
 
@@ -825,6 +835,12 @@ table.tbl tr.row-clickable:hover td { background: rgba(28,29,34,0.4); }
 
 .app-actions {
   display: flex; gap: 8px; margin-top: 18px; flex-wrap: wrap;
+}
+.app-actions .btn-pill {
+  padding-inline: 14px;
+}
+.app-actions .btn-pill[style*="margin-left:auto"] {
+  margin-left: 0 !important;
 }
 
 .doc-grid {
@@ -1040,7 +1056,7 @@ table.tbl tr.row-clickable:hover td { background: rgba(28,29,34,0.4); }
   background: linear-gradient(103deg, #5a6f95, #b6cce8 40%, #5a6f95 70%, transparent); opacity: .35;
 }
 .landing-head {
-  display: flex; align-items: center; gap: 14px; margin-bottom: 22px;
+  display: flex; align-items: center; gap: 14px; margin-bottom: 22px; padding-right: 104px; min-width: 0;
 }
 .landing-logo { width: 44px; height: 44px; border-radius: 10px; display: grid; place-items: center; font-family: var(--font-display); font-weight: 500; font-size: 20px; flex-shrink: 0; border: var(--hairline-strong); }
 .landing-logo.vidget { background: linear-gradient(135deg, #2a2317 0%, #1a140a 100%); color: var(--color-golden); }
@@ -1056,6 +1072,7 @@ table.tbl tr.row-clickable:hover td { background: rgba(28,29,34,0.4); }
   background: rgba(0,0,0,0.3);
   margin-bottom: 18px;
 }
+.url-row .copy-btn { flex: 0 0 auto; }
 .url-row .lbl { font-size: 11px; color: var(--color-ash-text); text-transform: uppercase; letter-spacing: 0.05em; padding-left: 4px; }
 .url-row .url { flex: 1; font-family: var(--font-mono); font-size: 12.5px; color: var(--color-white-frost); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .url-row .copy-btn {
@@ -1071,12 +1088,13 @@ table.tbl tr.row-clickable:hover td { background: rgba(28,29,34,0.4); }
 .url-row .copy-btn.copied { color: #84d1a8; border-color: rgba(132,209,168,0.4); }
 
 .landing-grid {
-  display: grid; grid-template-columns: 1.4fr 1fr; gap: 18px;
+  display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(360px, 1fr); gap: 18px;
 }
 .landing-stats {
-  display: grid; grid-template-columns: repeat(3, 1fr);
+  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
   border: var(--hairline);
   border-radius: 10px;
+  min-width: 0;
 }
 .landing-stats .app-stat:last-child { border-right: 0; }
 .landing-actions {
@@ -1086,9 +1104,9 @@ table.tbl tr.row-clickable:hover td { background: rgba(28,29,34,0.4); }
   border-radius: 10px;
   background: rgba(255,255,255,0.005);
 }
-.landing-actions .row { display: flex; gap: 8px; }
+.landing-actions .row { display: flex; gap: 8px; flex-wrap: wrap; }
 .action-btn {
-  flex: 1;
+  flex: 1 1 140px;
   display: inline-flex; align-items: center; justify-content: center; gap: 8px;
   padding: 9px 14px;
   border-radius: 9999px;
@@ -1233,6 +1251,7 @@ table.tbl tr.row-clickable:hover td { background: rgba(28,29,34,0.4); }
   text-align: center;
   background: rgba(255,255,255,0.01);
 }
+.hidden { display: none !important; }
 
 /* === Modal === */
 .modal-scrim {
@@ -1511,10 +1530,31 @@ table.tbl tr.row-clickable:hover td { background: rgba(28,29,34,0.4); }
     grid-template-columns: 1fr;
   }
   .page-head,
-  .table-toolbar,
-  .build-row,
-  .landing-actions .row {
+  .build-row {
     flex-direction: column;
+    align-items: stretch;
+  }
+  .page-head-actions {
+    margin-left: 0;
+    justify-content: flex-start;
+  }
+  .table-toolbar {
+    align-items: center;
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    scrollbar-width: thin;
+  }
+  .table-toolbar .toolbar-spacer {
+    display: none;
+  }
+  .search-pill {
+    flex: 0 0 240px;
+  }
+  .apps-row {
+    grid-template-columns: 1fr;
+  }
+  .landing-actions .row {
+    flex-direction: row;
     align-items: stretch;
   }
   .drawer {
@@ -1526,6 +1566,48 @@ table.tbl tr.row-clickable:hover td { background: rgba(28,29,34,0.4); }
   .modal.modal-medium,
   .modal.modal-wide {
     width: calc(100vw - 28px);
+  }
+}
+
+@media (max-width: 900px) {
+  .page {
+    padding: 24px 14px;
+  }
+  .page-head h1 {
+    font-size: 34px;
+  }
+  .kpi-row,
+  .app-stats,
+  .landing-stats {
+    grid-template-columns: 1fr;
+  }
+  .app-stat {
+    border-right: 0;
+    border-bottom: var(--hairline);
+  }
+  .app-stat:last-child {
+    border-bottom: 0;
+  }
+  .app-head,
+  .landing-head {
+    padding-right: 0;
+  }
+  .app-status,
+  .landing-card .status-pill {
+    position: static;
+    width: fit-content;
+    margin-left: 0;
+    margin-bottom: 12px;
+  }
+  .url-row {
+    border-radius: 12px;
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+  .url-row .url {
+    flex-basis: 100%;
+    white-space: normal;
+    overflow-wrap: anywhere;
   }
 }
 
@@ -1589,11 +1671,11 @@ table.tbl tr.row-clickable:hover td { background: rgba(28,29,34,0.4); }
 
     <div class="nav-group">
       <div class="nav-label">运营</div>
-      <div class="nav-item">
+      <div class="nav-item" data-route="growth">
         <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M2 13l3-3 3 2 6-6"/><path d="M11 4h3v3"/></svg>
         增长分析
       </div>
-      <div class="nav-item">
+      <div class="nav-item" data-route="messages">
         <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="8" cy="8" r="6"/><path d="M8 4v4l2.5 2.5"/></svg>
         消息推送
       </div>
@@ -1613,7 +1695,7 @@ table.tbl tr.row-clickable:hover td { background: rgba(28,29,34,0.4); }
 
     <div class="nav-group">
       <div class="nav-label">系统</div>
-      <div class="nav-item">
+      <div class="nav-item" data-route="permissions">
         <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="8" cy="8" r="2"/><path d="M13 8a5 5 0 0 0-.1-.9l1.3-1-1-1.7-1.5.5a5 5 0 0 0-1.6-.9L9.8 2H6.2L6 3.9a5 5 0 0 0-1.6.9l-1.5-.5-1 1.7 1.3 1A5 5 0 0 0 3 8c0 .3 0 .6.1.9l-1.3 1 1 1.7 1.5-.5c.5.4 1 .7 1.6.9L6 14h3.6l.2-1.9a5 5 0 0 0 1.6-.9l1.5.5 1-1.7-1.3-1c.1-.3.1-.6.1-.9z"/></svg>
         权限管理
       </div>
@@ -1817,6 +1899,303 @@ table.tbl tr.row-clickable:hover td { background: rgba(28,29,34,0.4); }
           </div>
         </div>
         <div id="dashboard-activity-list" class="activity-list"></div>
+      </div>
+    </section>
+
+    <!-- ===== Growth ===== -->
+    <section class="view page" id="view-growth">
+      <div class="page-head">
+        <div>
+          <h1>增长 <em>分析</em></h1>
+          <div class="sub" id="growth-page-subtitle" style="margin-top:8px;">正在加载增长数据…</div>
+        </div>
+        <div class="page-head-actions">
+          <button class="btn-pill primary" data-growth-range="7d">近 7 天</button>
+          <button class="btn-pill" data-growth-range="30d">近 30 天</button>
+          <button class="btn-pill" data-growth-range="90d">近 90 天</button>
+          <button class="btn-pill" data-growth-range="custom">自定义</button>
+          <input type="date" class="text-input hidden" id="growth-date-from" style="min-width:146px;" />
+          <input type="date" class="text-input hidden" id="growth-date-to" style="min-width:146px;" />
+          <select id="growth-app-filter" class="text-input" style="min-width:150px;">
+            <option value="">全部应用</option>
+          </select>
+          <button class="btn-pill hidden" id="growth-apply-custom">应用</button>
+          <button class="btn-pill" id="growth-refresh">刷新</button>
+          <button class="btn-pill primary" id="growth-export">导出 CSV</button>
+        </div>
+      </div>
+
+      <div class="empty-state hidden" id="growth-error-state" style="margin-bottom:18px; text-align:left;">
+        <div style="display:flex; align-items:center; justify-content:space-between; gap:16px;">
+          <div>
+            <div style="color:var(--color-pure-white); font-size:14px; margin-bottom:4px;">增长分析加载失败</div>
+            <div id="growth-error-message" style="font-size:12px; color:var(--color-stone-text);">请求失败</div>
+          </div>
+          <button class="btn-pill" id="growth-error-retry">重试</button>
+        </div>
+      </div>
+
+      <div class="kpi-row">
+        <div class="kpi row-clickable" data-growth-jump="users">
+          <div class="kpi-label"><span class="dot"></span>周期新增</div>
+          <div class="kpi-value" id="growth-kpi-new-users">0</div>
+          <div class="kpi-foot" id="growth-kpi-new-users-foot"><span class="muted">较上周期</span></div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-label"><span class="dot"></span>激活会员</div>
+          <div class="kpi-value" id="growth-kpi-active-memberships">0</div>
+          <div class="kpi-foot" id="growth-kpi-active-memberships-foot"><span class="muted">较上周期</span></div>
+        </div>
+        <div class="kpi row-clickable" data-growth-jump="orders">
+          <div class="kpi-label"><span class="dot"></span>付费用户</div>
+          <div class="kpi-value" id="growth-kpi-paid-users">0</div>
+          <div class="kpi-foot" id="growth-kpi-paid-users-foot"><span class="muted">较上周期</span></div>
+        </div>
+        <div class="kpi row-clickable" data-growth-jump="revenue">
+          <div class="kpi-label"><span class="dot"></span>支付收入</div>
+          <div class="kpi-value" id="growth-kpi-revenue"><span class="unit">¥</span>0</div>
+          <div class="kpi-foot" id="growth-kpi-revenue-foot"><span class="muted">较上周期</span></div>
+        </div>
+      </div>
+
+      <div class="charts">
+        <div class="card" style="position:relative;">
+          <div class="card-head">
+            <div>
+              <h3 class="card-title">新增用户趋势</h3>
+              <div class="card-sub" id="growth-user-chart-subtitle">正在加载趋势数据…</div>
+            </div>
+          </div>
+          <svg id="growth-user-chart" viewBox="0 0 760 280" width="100%" preserveAspectRatio="none" style="display:block;"></svg>
+          <div class="chart-tip" id="growth-user-tip"></div>
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <div>
+              <h3 class="card-title">注册到付费转化</h3>
+              <div class="card-sub" id="growth-conversion-subtitle">正在加载转化漏斗…</div>
+            </div>
+          </div>
+          <div id="growth-conversion-funnel" style="display:flex; flex-direction:column; gap:14px; padding-top:6px;"></div>
+        </div>
+      </div>
+
+      <div class="split" style="margin-top:18px;">
+        <div class="card" style="position:relative;">
+          <div class="card-head">
+            <div>
+              <h3 class="card-title">收入趋势</h3>
+              <div class="card-sub" id="growth-revenue-chart-subtitle">正在加载收入趋势…</div>
+            </div>
+          </div>
+          <svg id="growth-revenue-chart" viewBox="0 0 760 260" width="100%" preserveAspectRatio="none" style="display:block;"></svg>
+          <div class="chart-tip" id="growth-revenue-tip"></div>
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <div>
+              <h3 class="card-title">应用增长排行</h3>
+              <div class="card-sub" id="growth-ranking-subtitle">按新增注册排序</div>
+            </div>
+          </div>
+          <div id="growth-app-ranking" class="activity-list"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== Messages ===== -->
+    <section class="view page" id="view-messages">
+      <div class="page-head">
+        <div>
+          <h1>消息 <em>推送</em></h1>
+          <div class="sub" style="margin-top:8px;">按应用、人群和场景配置通知内容</div>
+        </div>
+        <div class="page-head-actions">
+          <button class="btn-pill primary" data-messages-placeholder>+ 新建推送</button>
+          <button class="btn-pill" data-messages-placeholder>模板管理</button>
+          <button class="btn-pill" data-messages-placeholder>发送设置</button>
+        </div>
+      </div>
+
+      <div class="kpi-row">
+        <div class="kpi">
+          <div class="kpi-label"><span class="dot"></span>今日计划</div>
+          <div class="kpi-value">0</div>
+          <div class="kpi-foot"><span class="muted">等待接入发送任务</span></div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-label"><span class="dot"></span>待审核</div>
+          <div class="kpi-value">0</div>
+          <div class="kpi-foot"><span class="muted">暂无待处理内容</span></div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-label"><span class="dot"></span>本周已发送</div>
+          <div class="kpi-value">0</div>
+          <div class="kpi-foot"><span class="muted">发送功能未启用</span></div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-label"><span class="dot"></span>失败率</div>
+          <div class="kpi-value">—</div>
+          <div class="kpi-foot"><span class="muted">暂无通道数据</span></div>
+        </div>
+      </div>
+
+      <div class="split">
+        <div class="card">
+          <div class="card-head">
+            <div>
+              <h3 class="card-title">推送计划</h3>
+              <div class="card-sub">后续用于管理运营公告、到期提醒和交易通知</div>
+            </div>
+            <button class="btn-pill" data-messages-placeholder>创建第一条推送</button>
+          </div>
+          <div class="empty-state" style="padding:38px 20px;">
+            <div style="color:var(--color-pure-white); font-size:15px; margin-bottom:6px;">暂无推送计划</div>
+            <div>发送链路接入后，这里会显示草稿、待审核、已计划和已发送的推送任务。</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <div>
+              <h3 class="card-title">受众与通道</h3>
+              <div class="card-sub">结构预览，不展示真实发送数据</div>
+            </div>
+          </div>
+          <div class="activity-list">
+            <div class="activity">
+              <div class="activity-icon">全</div>
+              <div class="activity-text">全部用户<span> · 站内信、短信、邮件</span></div>
+              <div class="activity-time">未启用</div>
+            </div>
+            <div class="activity">
+              <div class="activity-icon">付</div>
+              <div class="activity-text">已付费用户<span> · 续费提醒、产品更新</span></div>
+              <div class="activity-time">未启用</div>
+            </div>
+            <div class="activity">
+              <div class="activity-icon">期</div>
+              <div class="activity-text">即将到期<span> · 到期前提醒</span></div>
+              <div class="activity-time">未启用</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="split" style="margin-top:18px;">
+        <div class="card">
+          <div class="card-head">
+            <div>
+              <h3 class="card-title">新建推送草稿</h3>
+              <div class="card-sub">当前为页面结构预览，暂不保存内容</div>
+            </div>
+          </div>
+          <div class="field-row">
+            <div class="field">
+              <label>应用</label>
+              <select class="text-input" disabled>
+                <option>全部应用</option>
+                <option>VidGet</option>
+                <option>助教云</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>场景</label>
+              <select class="text-input" disabled>
+                <option>运营公告</option>
+                <option>到期提醒</option>
+                <option>支付成功</option>
+                <option>新设备登录</option>
+              </select>
+            </div>
+          </div>
+          <div class="field-row">
+            <div class="field">
+              <label>通道</label>
+              <select class="text-input" disabled>
+                <option>站内信 + 短信</option>
+                <option>站内信</option>
+                <option>邮件</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>目标人群</label>
+              <select class="text-input" disabled>
+                <option>全部用户</option>
+                <option>已付费</option>
+                <option>免费用户</option>
+                <option>即将到期</option>
+              </select>
+            </div>
+          </div>
+          <div class="field">
+            <label>标题</label>
+            <input class="text-input" value="产品更新通知" readonly />
+          </div>
+          <div class="field" style="margin-top:12px;">
+            <label>正文</label>
+            <textarea class="text-input" rows="5" readonly>你好，新的功能已经准备好。发送能力接入后，可在这里编辑正式推送内容。</textarea>
+          </div>
+          <div style="display:flex; gap:8px; margin-top:16px; flex-wrap:wrap;">
+            <button class="btn-pill primary" data-messages-placeholder>保存草稿</button>
+            <button class="btn-pill" data-messages-placeholder>发送测试</button>
+            <button class="btn-pill" data-messages-placeholder>提交审核</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <div>
+              <h3 class="card-title">消息预览</h3>
+              <div class="card-sub">模拟用户侧看到的通知样式</div>
+            </div>
+          </div>
+          <div style="max-width:320px; margin:0 auto; border:var(--hairline); border-radius:24px; padding:18px; background:rgba(0,0,0,0.22);">
+            <div style="height:18px; width:72px; border-radius:9999px; background:rgba(226,227,233,0.08); margin:0 auto 18px;"></div>
+            <div class="card" style="padding:16px; border-radius:14px;">
+              <div style="font-size:12px; color:var(--color-stone-text); margin-bottom:8px;">统一用户中心</div>
+              <div style="font-size:15px; color:var(--color-pure-white); margin-bottom:8px;">产品更新通知</div>
+              <div style="font-size:12px; line-height:1.6; color:var(--color-silver-text);">你好，新的功能已经准备好。发送能力接入后，可在这里编辑正式推送内容。</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:18px;">
+        <div class="card-head">
+          <div>
+            <h3 class="card-title">推荐模板</h3>
+            <div class="card-sub">先保留结构，后续接模板库和变量渲染</div>
+          </div>
+        </div>
+        <div class="doc-stat-row">
+          <div class="doc-stat">
+            <div class="lbl">到期提醒</div>
+            <div class="val" style="font-size:20px;">套餐到期</div>
+            <div class="muted" style="margin-top:8px;">短信 · 即将到期</div>
+            <button class="btn-pill" style="margin-top:14px;" data-messages-placeholder>使用模板</button>
+          </div>
+          <div class="doc-stat">
+            <div class="lbl">交易通知</div>
+            <div class="val" style="font-size:20px;">支付成功</div>
+            <div class="muted" style="margin-top:8px;">站内信 · 已付费</div>
+            <button class="btn-pill" style="margin-top:14px;" data-messages-placeholder>使用模板</button>
+          </div>
+          <div class="doc-stat">
+            <div class="lbl">安全提醒</div>
+            <div class="val" style="font-size:20px;">新设备登录</div>
+            <div class="muted" style="margin-top:8px;">短信 · 全部用户</div>
+            <button class="btn-pill" style="margin-top:14px;" data-messages-placeholder>使用模板</button>
+          </div>
+          <div class="doc-stat">
+            <div class="lbl">运营公告</div>
+            <div class="val" style="font-size:20px;">产品更新</div>
+            <div class="muted" style="margin-top:8px;">站内信 · 全部用户</div>
+            <button class="btn-pill" style="margin-top:14px;" data-messages-placeholder>使用模板</button>
+          </div>
+        </div>
       </div>
     </section>
 
@@ -2326,6 +2705,129 @@ table.tbl tr.row-clickable:hover td { background: rgba(28,29,34,0.4); }
       <div id="builds-context-banner" class="inline-note hidden" style="margin-bottom:18px;"></div>
 
       <div id="builds-list"></div>
+    </section>
+
+    <!-- ===== Permissions ===== -->
+    <section class="view page" id="view-permissions">
+      <div class="page-head">
+        <div>
+          <h1>权限 <em>管理</em></h1>
+          <div class="sub" style="margin-top:8px;">管理后台角色、成员访问范围和敏感操作策略</div>
+        </div>
+        <div class="page-head-actions">
+          <button class="btn-pill primary" data-permissions-placeholder>+ 邀请成员</button>
+          <button class="btn-pill" data-permissions-placeholder>新建角色</button>
+          <button class="btn-pill" data-permissions-placeholder>安全策略</button>
+        </div>
+      </div>
+
+      <div class="kpi-row">
+        <div class="kpi">
+          <div class="kpi-label"><span class="dot"></span>管理员</div>
+          <div class="kpi-value">—</div>
+          <div class="kpi-foot"><span class="muted">等待接入成员数据</span></div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-label"><span class="dot"></span>角色模板</div>
+          <div class="kpi-value">4</div>
+          <div class="kpi-foot"><span class="muted">结构预置</span></div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-label"><span class="dot"></span>待处理邀请</div>
+          <div class="kpi-value">0</div>
+          <div class="kpi-foot"><span class="muted">邀请功能未启用</span></div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-label"><span class="dot"></span>敏感操作</div>
+          <div class="kpi-value">—</div>
+          <div class="kpi-foot"><span class="muted">暂未接入审批</span></div>
+        </div>
+      </div>
+
+      <div class="split">
+        <div class="card">
+          <div class="card-head">
+            <div>
+              <h3 class="card-title">角色模板</h3>
+              <div class="card-sub">先定义后台常见职责，后续接入真实授权</div>
+            </div>
+            <button class="btn-pill" data-permissions-placeholder>编辑角色</button>
+          </div>
+          <div class="doc-stat-row" style="grid-template-columns:repeat(2,minmax(0,1fr));">
+            <div class="doc-stat"><div class="lbl">Owner</div><div class="val" style="font-size:20px;">超级管理员</div><div class="muted" style="margin-top:8px;">全部模块 · 敏感操作 · 系统设置</div></div>
+            <div class="doc-stat"><div class="lbl">Operator</div><div class="val" style="font-size:20px;">运营管理员</div><div class="muted" style="margin-top:8px;">用户、订单、增长、推送</div></div>
+            <div class="doc-stat"><div class="lbl">Product</div><div class="val" style="font-size:20px;">应用管理员</div><div class="muted" style="margin-top:8px;">应用、落地页、安装包</div></div>
+            <div class="doc-stat"><div class="lbl">Support</div><div class="val" style="font-size:20px;">客服只读</div><div class="muted" style="margin-top:8px;">用户查询、订单查询、日志只读</div></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <div>
+              <h3 class="card-title">成员访问</h3>
+              <div class="card-sub">结构预览，不展示真实管理员列表</div>
+            </div>
+          </div>
+          <div class="activity-list">
+            <div class="activity"><div class="activity-icon">陈</div><div class="activity-text">当前管理员<span> · 可访问后台工作台</span></div><div class="activity-time">当前会话</div></div>
+            <div class="activity"><div class="activity-icon">邀</div><div class="activity-text">成员邀请<span> · 邮箱邀请、角色分配</span></div><div class="activity-time">未启用</div></div>
+            <div class="activity"><div class="activity-icon">审</div><div class="activity-text">权限变更审批<span> · 敏感权限二次确认</span></div><div class="activity-time">未启用</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:18px;">
+        <div class="card-head">
+          <div>
+            <h3 class="card-title">权限矩阵</h3>
+            <div class="card-sub">展示模块级权限结构，后续可接入细粒度 RBAC</div>
+          </div>
+        </div>
+        <div class="doc-table-wrap">
+          <table class="doc-table">
+            <thead>
+              <tr><th>模块</th><th>超级管理员</th><th>运营管理员</th><th>应用管理员</th><th>客服只读</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>用户管理</td><td>管理</td><td>管理</td><td>只读</td><td>只读</td></tr>
+              <tr><td>购买记录</td><td>管理</td><td>管理</td><td>只读</td><td>只读</td></tr>
+              <tr><td>应用与落地页</td><td>管理</td><td>只读</td><td>管理</td><td>无权限</td></tr>
+              <tr><td>兑换码与套餐</td><td>管理</td><td>管理</td><td>只读</td><td>无权限</td></tr>
+              <tr><td>审计日志</td><td>查看</td><td>查看</td><td>查看</td><td>查看</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="split" style="margin-top:18px;">
+        <div class="card">
+          <div class="card-head">
+            <div>
+              <h3 class="card-title">敏感操作策略</h3>
+              <div class="card-sub">为删除、导出、停用等动作预留审批结构</div>
+            </div>
+          </div>
+          <div class="activity-list">
+            <div class="activity"><div class="activity-icon">导</div><div class="activity-text">批量导出<span> · 需要管理员确认</span></div><div class="activity-time">待接入</div></div>
+            <div class="activity"><div class="activity-icon">删</div><div class="activity-text">删除历史版本<span> · 记录审计日志</span></div><div class="activity-time">待接入</div></div>
+            <div class="activity"><div class="activity-icon">停</div><div class="activity-text">停用账号或批次<span> · 建议二次确认</span></div><div class="activity-time">待接入</div></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <div>
+              <h3 class="card-title">接入状态</h3>
+              <div class="card-sub">当前只完成页面结构，不改变后台鉴权逻辑</div>
+            </div>
+          </div>
+          <div class="empty-state" style="text-align:left;">
+            <div style="color:var(--color-pure-white); font-size:15px; margin-bottom:6px;">权限功能暂未接入</div>
+            <div>后续可接 Casdoor 管理员角色、内部 RBAC 表、邀请流程和审批记录。当前页面不会修改任何权限数据。</div>
+            <button class="btn-pill" style="margin-top:16px;" data-permissions-placeholder>查看接入计划</button>
+          </div>
+        </div>
+      </div>
     </section>
 
     <!-- ===== Audit logs ===== -->
@@ -3017,9 +3519,11 @@ table.tbl tr.row-clickable:hover td { background: rgba(28,29,34,0.4); }
 </aside>
 
 <script>
-const routes = ["dashboard", "users", "orders", "apps", "plans", "redeem", "sms", "landing", "builds", "logs"];
+const routes = ["dashboard", "growth", "messages", "users", "orders", "apps", "plans", "redeem", "sms", "landing", "builds", "permissions", "logs"];
 const labels = {
   dashboard: "概览",
+  growth: "增长分析",
+  messages: "消息推送",
   users: "用户管理",
   orders: "购买记录",
   apps: "应用管理",
@@ -3029,6 +3533,7 @@ const labels = {
   "app-sdk": "SDK 接入文档",
   landing: "落地页管理",
   builds: "安装包管理",
+  permissions: "权限管理",
   logs: "审计日志",
 };
 
@@ -3090,6 +3595,15 @@ const state = {
     lastLoadedAt: null,
     focusedGrowthAppId: "",
   },
+  growth: null,
+  growthFilters: {
+    range: "7d",
+    dateFrom: "",
+    dateTo: "",
+    appId: "",
+    lastLoadedAt: null,
+  },
+  growthError: "",
   userFilters: {
     search: "",
     status: "",
@@ -3372,6 +3886,73 @@ function appLabel(appId) {
   return getApplicationById(appId)?.name || appId;
 }
 
+function showComingSoonToast() {
+  showToast("消息推送功能暂未接入");
+}
+
+function showPermissionsComingSoonToast() {
+  showToast("权限管理功能暂未接入");
+}
+
+function parseRouteHash() {
+  const raw = window.location.hash ? window.location.hash.slice(1) : "";
+  if (!raw) {
+    return { route: "dashboard", params: new URLSearchParams() };
+  }
+  const [routePart, queryPart = ""] = raw.split("?");
+  const route = routes.includes(routePart) || routePart === "app-sdk" ? routePart : "dashboard";
+  return {
+    route,
+    params: new URLSearchParams(queryPart),
+  };
+}
+
+function applyGrowthFiltersFromParams(params) {
+  const range = params.get("range");
+  if (["today", "7d", "30d", "90d", "custom"].includes(range)) {
+    state.growthFilters.range = range;
+  }
+  state.growthFilters.appId = params.get("app_id") || "";
+  state.growthFilters.dateFrom = params.get("date_from") || "";
+  state.growthFilters.dateTo = params.get("date_to") || "";
+}
+
+function applyRouteStateFromHash() {
+  const parsed = parseRouteHash();
+  if (parsed.route === "growth") {
+    applyGrowthFiltersFromParams(parsed.params);
+  }
+  return parsed.route;
+}
+
+function buildRouteHash(route) {
+  if (route !== "growth") {
+    return `#${route}`;
+  }
+  const params = new URLSearchParams();
+  params.set("range", state.growthFilters.range || "7d");
+  if (state.growthFilters.range === "custom") {
+    if (state.growthFilters.dateFrom) params.set("date_from", state.growthFilters.dateFrom);
+    if (state.growthFilters.dateTo) params.set("date_to", state.growthFilters.dateTo);
+  }
+  if (state.growthFilters.appId) {
+    params.set("app_id", state.growthFilters.appId);
+  }
+  return `#growth?${params.toString()}`;
+}
+
+function syncRouteHash(route, { replace = false } = {}) {
+  const nextUrl = `${window.location.pathname}${window.location.search}${buildRouteHash(route)}`;
+  if (`${window.location.pathname}${window.location.search}${window.location.hash}` === nextUrl) {
+    return;
+  }
+  if (replace) {
+    window.history.replaceState(null, "", nextUrl);
+    return;
+  }
+  window.history.pushState(null, "", nextUrl);
+}
+
 function renderSegmentOptions(containerId, group, selectedValue, options) {
   const container = document.getElementById(containerId);
   if (!container) {
@@ -3427,6 +4008,22 @@ function renderAppSelectionControls() {
         `
       )
       .join("");
+  }
+
+  const growthAppFilter = document.getElementById("growth-app-filter");
+  if (growthAppFilter) {
+    growthAppFilter.innerHTML = `
+      <option value="">全部应用</option>
+      ${state.applications
+        .map(
+          (application) => `
+            <option value="${escapeHtml(application.id)}" ${state.growthFilters.appId === application.id ? "selected" : ""}>
+              ${escapeHtml(appLabel(application.id))}
+            </option>
+          `
+        )
+        .join("")}
+    `;
   }
 
   const plansAppFilter = document.getElementById("plans-app-filter");
@@ -3809,7 +4406,8 @@ async function loadSessionState() {
   return true;
 }
 
-function go(route) {
+function go(route, options = {}) {
+  const { syncUrl = true, replaceUrl = false } = options;
   const activeNavRoute = route === "app-sdk" ? "apps" : route;
   document.querySelectorAll(".nav-item").forEach((node) =>
     node.classList.toggle("active", node.dataset.route === activeNavRoute)
@@ -3818,6 +4416,12 @@ function go(route) {
     node.classList.toggle("active", node.id === `view-${route}`)
   );
   document.getElementById("crumb-leaf").textContent = labels[route];
+  if (syncUrl) {
+    syncRouteHash(route, { replace: replaceUrl });
+  }
+  if (route === "growth" && !state.growth) {
+    loadGrowth().catch((error) => showToast(error.message));
+  }
   window.scrollTo({ top: 0 });
 }
 
@@ -4391,6 +4995,346 @@ function renderLineChart(growth, appSeries) {
   svg.querySelector("#hoverArea").addEventListener("mouseleave", () => {
     tip.style.display = "none";
   });
+}
+
+async function loadGrowth() {
+  const params = new URLSearchParams();
+  params.set("range", state.growthFilters.range || "7d");
+  if (state.growthFilters.range === "custom") {
+    if (state.growthFilters.dateFrom) params.set("date_from", state.growthFilters.dateFrom);
+    if (state.growthFilters.dateTo) params.set("date_to", state.growthFilters.dateTo);
+  }
+  if (state.growthFilters.appId) {
+    params.set("app_id", state.growthFilters.appId);
+  }
+
+  state.growthError = "";
+  renderGrowthError("");
+
+  try {
+    const [growth, applications] = await Promise.all([
+      requestJson(`/api/admin/growth?${params.toString()}`),
+      state.applications?.length ? Promise.resolve({ items: state.applications }) : requestJson("/api/admin/applications"),
+    ]);
+
+    state.growth = growth;
+    state.applications = applications.items;
+    state.growthFilters.range = growth.filters?.range || state.growthFilters.range;
+    state.growthFilters.dateFrom = growth.filters?.date_from || state.growthFilters.dateFrom;
+    state.growthFilters.dateTo = growth.filters?.date_to || state.growthFilters.dateTo;
+    state.growthFilters.appId = growth.filters?.app_id || "";
+    state.growthFilters.lastLoadedAt = new Date().toISOString();
+    renderAppSelectionControls();
+    syncGrowthRangeControls();
+    renderGrowthPage();
+    syncRouteHash("growth", { replace: true });
+  } catch (error) {
+    state.growthError = error.message || "请求失败";
+    renderGrowthError(state.growthError);
+    if (!state.growth) {
+      renderGrowthPage();
+    }
+    showToast(state.growthError);
+  }
+}
+
+function renderGrowthError(message = state.growthError) {
+  const container = document.getElementById("growth-error-state");
+  const detail = document.getElementById("growth-error-message");
+  if (!container || !detail) {
+    return;
+  }
+  if (!message) {
+    container.classList.add("hidden");
+    detail.textContent = "";
+    return;
+  }
+  container.classList.remove("hidden");
+  detail.textContent = message;
+}
+
+function syncGrowthRangeControls() {
+  document.querySelectorAll("[data-growth-range]").forEach((button) => {
+    button.classList.toggle("primary", button.dataset.growthRange === state.growthFilters.range);
+    button.classList.toggle("active", button.dataset.growthRange === state.growthFilters.range);
+  });
+  const custom = state.growthFilters.range === "custom";
+  document.getElementById("growth-date-from")?.classList.toggle("hidden", !custom);
+  document.getElementById("growth-date-to")?.classList.toggle("hidden", !custom);
+  document.getElementById("growth-apply-custom")?.classList.toggle("hidden", !custom);
+  document.getElementById("growth-date-from").value = state.growthFilters.dateFrom || "";
+  document.getElementById("growth-date-to").value = state.growthFilters.dateTo || "";
+  const appFilter = document.getElementById("growth-app-filter");
+  if (appFilter) {
+    appFilter.value = state.growthFilters.appId || "";
+  }
+}
+
+function renderGrowthPage() {
+  const growth = state.growth || {};
+  const summary = growth.summary || {};
+  const conversion = growth.conversion || {};
+  const rangeLabel = formatDashboardRangeLabel(state.growthFilters);
+  const appName = state.growthFilters.appId ? appLabel(state.growthFilters.appId) : "全部应用";
+  const lastLoadedAt = state.growthFilters.lastLoadedAt ? formatDateTime(state.growthFilters.lastLoadedAt) : "—";
+
+  document.getElementById("growth-page-subtitle").textContent = `${appName} · ${rangeLabel} · 上次刷新 ${lastLoadedAt}`;
+  document.getElementById("growth-kpi-new-users").textContent = formatNumber(summary.new_users || 0);
+  document.getElementById("growth-kpi-active-memberships").textContent = formatNumber(summary.active_memberships || 0);
+  document.getElementById("growth-kpi-paid-users").textContent = formatNumber(summary.paid_users || 0);
+  document.getElementById("growth-kpi-revenue").innerHTML = `<span class="unit">¥</span>${formatCurrencyCompact(summary.revenue || 0)}`;
+  setKpiFoot("growth-kpi-new-users-foot", summary.deltas?.new_users);
+  setKpiFoot("growth-kpi-active-memberships-foot", summary.deltas?.active_memberships);
+  setKpiFoot("growth-kpi-paid-users-foot", summary.deltas?.paid_users);
+  setKpiFoot("growth-kpi-revenue-foot", summary.deltas?.revenue);
+
+  const userPoints = growth.user_growth?.points || [];
+  const revenuePoints = growth.revenue_growth?.points || [];
+  document.getElementById("growth-user-chart-subtitle").textContent = `${rangeLabel} · 累计 +${formatNumber(
+    userPoints.reduce((sum, item) => sum + Number(item.count || 0), 0)
+  )} 用户`;
+  document.getElementById("growth-revenue-chart-subtitle").textContent = `${rangeLabel} · ${formatCurrency(summary.revenue || 0)} · ${formatNumber(
+    summary.paid_orders || 0
+  )} 笔订单`;
+  document.getElementById("growth-conversion-subtitle").textContent = `${formatNumber(
+    conversion.registered_users || 0
+  )} 注册 · ${formatPercent(conversion.payment_rate || 0)} 付费转化`;
+  document.getElementById("growth-ranking-subtitle").textContent = state.growthFilters.appId ? "当前应用表现" : "按新增注册排序";
+
+  renderGrowthSimpleLineChart({
+    svgId: "growth-user-chart",
+    tipId: "growth-user-tip",
+    points: userPoints,
+    valueKey: "count",
+    unit: "用户",
+    color: "#cc9166",
+    formatter: (value) => formatNumber(value),
+  });
+  renderGrowthSimpleLineChart({
+    svgId: "growth-revenue-chart",
+    tipId: "growth-revenue-tip",
+    points: revenuePoints,
+    valueKey: "revenue",
+    unit: "收入",
+    color: "#88b9a4",
+    formatter: (value) => formatCurrency(value),
+    height: 260,
+  });
+  renderGrowthConversionFunnel(conversion);
+  renderGrowthAppRanking(growth.app_rankings || []);
+}
+
+function renderGrowthSimpleLineChart({ svgId, tipId, points, valueKey, unit, color, formatter, height = 280 }) {
+  const svg = document.getElementById(svgId);
+  const tip = document.getElementById(tipId);
+  const W = 760;
+  const H = height;
+  const PAD_L = 44;
+  const PAD_R = 16;
+  const PAD_T = 14;
+  const PAD_B = 30;
+  const values = (points || []).map((point) => Number(point[valueKey] || 0));
+  if (!values.length) {
+    svg.innerHTML = `<text x="380" y="${H / 2}" text-anchor="middle" font-size="12" fill="#777a88">当前时间范围没有趋势数据</text>`;
+    tip.style.display = "none";
+    return;
+  }
+
+  const max = Math.max(...values, 1) * 1.1;
+  const xAt = (index) => PAD_L + ((W - PAD_L - PAD_R) * index) / Math.max(1, values.length - 1);
+  const yAt = (value) => PAD_T + (H - PAD_T - PAD_B) * (1 - value / max);
+  const path = values
+    .map((value, index) => {
+      const x = xAt(index);
+      const y = yAt(value);
+      if (index === 0) return `M${x},${y}`;
+      const px = xAt(index - 1);
+      const py = yAt(values[index - 1]);
+      const cx = px + (x - px) / 2;
+      return `C${cx},${py} ${cx},${y} ${x},${y}`;
+    })
+    .join(" ");
+  const areaPath = `${path} L${xAt(values.length - 1)},${H - PAD_B} L${xAt(0)},${H - PAD_B} Z`;
+
+  let html = `
+    <defs>
+      <linearGradient id="${svgId}-fill" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="${color}" stop-opacity="0.22" />
+        <stop offset="100%" stop-color="${color}" stop-opacity="0" />
+      </linearGradient>
+    </defs>
+  `;
+  for (let tick = 0; tick <= 5; tick += 1) {
+    const value = (max * tick) / 5;
+    const y = yAt(value);
+    html += `<line x1="${PAD_L}" x2="${W - PAD_R}" y1="${y}" y2="${y}" stroke="rgba(226,227,233,0.05)" stroke-dasharray="2 4" />`;
+    html += `<text x="${PAD_L - 8}" y="${y + 3}" text-anchor="end" font-size="10" fill="#5e616e" font-family="JetBrains Mono">${formatter(
+      Math.round(value)
+    )}</text>`;
+  }
+  points.forEach((item, index) => {
+    if (index % 5 !== 0 && index !== points.length - 1) return;
+    const date = new Date(item.date);
+    html += `<text x="${xAt(index)}" y="${H - PAD_B + 18}" text-anchor="middle" font-size="10" fill="#5e616e" font-family="JetBrains Mono">${
+      date.getMonth() + 1
+    }/${date.getDate()}</text>`;
+  });
+  html += `<path d="${areaPath}" fill="url(#${svgId}-fill)" />`;
+  html += `<path d="${path}" fill="none" stroke="${color}" stroke-width="2.2" stroke-linecap="round" />`;
+  html += `<rect id="${svgId}-hover" x="${PAD_L}" y="${PAD_T}" width="${W - PAD_L - PAD_R}" height="${H - PAD_T - PAD_B}" fill="transparent" />`;
+  svg.innerHTML = html;
+
+  svg.querySelector(`#${svgId}-hover`).addEventListener("mousemove", (event) => {
+    const rect = svg.getBoundingClientRect();
+    const x = ((event.clientX - rect.left) / rect.width) * W;
+    const index = Math.max(
+      0,
+      Math.min(values.length - 1, Math.round((x - PAD_L) / ((W - PAD_L - PAD_R) / Math.max(1, values.length - 1))))
+    );
+    tip.style.display = "block";
+    tip.style.left = `${(xAt(index) / W) * rect.width + 16}px`;
+    tip.style.top = `${(yAt(values[index]) / H) * rect.height - 6}px`;
+    tip.innerHTML = `<b>${formatter(values[index])} ${escapeHtml(unit)}</b><div style="color:#5e616e; margin-top:2px;">${
+      points[index]?.date || "—"
+    }</div>`;
+  });
+  svg.querySelector(`#${svgId}-hover`).addEventListener("mouseleave", () => {
+    tip.style.display = "none";
+  });
+}
+
+function renderGrowthConversionFunnel(conversion) {
+  const container = document.getElementById("growth-conversion-funnel");
+  const steps = [
+    { label: "注册用户", value: Number(conversion.registered_users || 0), rate: 100, color: "#cc9166" },
+    { label: "激活会员", value: Number(conversion.active_memberships || 0), rate: Number(conversion.activation_rate || 0), color: "#7d94b8" },
+    { label: "付费用户", value: Number(conversion.paid_users || 0), rate: Number(conversion.payment_rate || 0), color: "#88b9a4" },
+  ];
+  container.innerHTML = steps
+    .map(
+      (step) => `
+        <div>
+          <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:6px;">
+            <span class="legend-item"><span class="legend-swatch" style="background:${step.color};"></span>${escapeHtml(step.label)}</span>
+            <span class="cell-mono" style="color:var(--color-pure-white);">${formatNumber(step.value)} · ${formatPercent(step.rate)}</span>
+          </div>
+          <div style="height:12px; border-radius:6px; overflow:hidden; background:var(--color-pewter-accent);">
+            <div style="width:${Math.max(4, Math.min(100, step.rate))}%; height:100%; background:${step.color};"></div>
+          </div>
+        </div>
+      `
+    )
+    .join("");
+}
+
+function renderGrowthAppRanking(items) {
+  const container = document.getElementById("growth-app-ranking");
+  if (!items.length) {
+    container.innerHTML = `<div class="empty-state">当前时间范围暂无应用增长数据</div>`;
+    return;
+  }
+  container.innerHTML = items
+    .map(
+      (item, index) => `
+        <div class="activity">
+          <div class="activity-icon" style="color:${index === 0 ? "var(--color-golden)" : "currentColor"};">${index + 1}</div>
+          <div class="activity-text">${escapeHtml(item.name || appLabel(item.app_id))}<span> · ${formatNumber(
+        item.registered_users
+      )} 新增注册 · ${formatNumber(item.paid_users)} 付费用户 · ${formatPercent(
+        item.payment_rate
+      )} 付费转化</span></div>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <div class="cell-mono" style="color:var(--color-pure-white);">${formatCurrency(item.revenue || 0)}</div>
+            <button class="copy-btn" data-growth-app-users="${escapeHtml(item.app_id)}">用户</button>
+            <button class="copy-btn" data-growth-app-orders="${escapeHtml(item.app_id)}">订单</button>
+          </div>
+        </div>
+      `
+    )
+    .join("");
+  container.querySelectorAll("[data-growth-app-users]").forEach((button) => {
+    button.addEventListener("click", () => {
+      setAppContext("users", button.dataset.growthAppUsers);
+      go("users");
+      loadUsers().catch((error) => showToast(error.message));
+    });
+  });
+  container.querySelectorAll("[data-growth-app-orders]").forEach((button) => {
+    button.addEventListener("click", () => {
+      state.orderFilters.appId = button.dataset.growthAppOrders;
+      state.orderFilters.page = 1;
+      go("orders");
+      loadPurchases().catch((error) => showToast(error.message));
+    });
+  });
+}
+
+function csvCell(value) {
+  return `"${String(value ?? "").replaceAll('"', '""')}"`;
+}
+
+function csvRow(values) {
+  return values.map(csvCell).join(",");
+}
+
+function buildGrowthCsvLines(growth = state.growth) {
+  const summary = growth?.summary || {};
+  const conversion = growth?.conversion || {};
+  const userPoints = growth?.user_growth?.points || [];
+  const revenuePoints = growth?.revenue_growth?.points || [];
+  const rankings = growth?.app_rankings || [];
+
+  return [
+    csvRow(["section", "metric", "value"]),
+    csvRow(["summary", "new_users", Number(summary.new_users || 0)]),
+    csvRow(["summary", "active_memberships", Number(summary.active_memberships || 0)]),
+    csvRow(["summary", "paid_users", Number(summary.paid_users || 0)]),
+    csvRow(["summary", "paid_orders", Number(summary.paid_orders || 0)]),
+    csvRow(["summary", "revenue", Number(summary.revenue || 0)]),
+    csvRow(["summary", "active_devices", Number(summary.active_devices || 0)]),
+    csvRow(["summary", "conversion_registered_users", Number(conversion.registered_users || 0)]),
+    csvRow(["summary", "conversion_activation_rate", Number(conversion.activation_rate || 0)]),
+    csvRow(["summary", "conversion_payment_rate", Number(conversion.payment_rate || 0)]),
+    "",
+    csvRow(["section", "date", "count"]),
+    ...userPoints.map((point) => csvRow(["user_growth", point.date, Number(point.count || 0)])),
+    "",
+    csvRow(["section", "date", "revenue", "paid_orders"]),
+    ...revenuePoints.map((point) => csvRow(["revenue_growth", point.date, Number(point.revenue || 0), Number(point.paid_orders || 0)])),
+    "",
+    csvRow(["section", "app_id", "app_name", "registered_users", "paid_users", "paid_orders", "revenue", "payment_rate"]),
+    ...rankings.map((item) =>
+      csvRow([
+        "app_rankings",
+        item.app_id,
+        item.name || appLabel(item.app_id),
+        Number(item.registered_users || 0),
+        Number(item.paid_users || 0),
+        Number(item.paid_orders || 0),
+        Number(item.revenue || 0),
+        Number(item.payment_rate || 0),
+      ])
+    ),
+  ];
+}
+
+function exportGrowthCsv() {
+  if (!state.growth) {
+    showToast("请先加载增长分析数据");
+    return;
+  }
+  const filters = state.growth.filters || {};
+  const appId = filters.app_id || state.growthFilters.appId || "all";
+  const dateFrom = filters.date_from || state.growthFilters.dateFrom || "range";
+  const dateTo = filters.date_to || state.growthFilters.dateTo || "";
+  const safeAppId = String(appId || "all").replace(/[^\w-]+/g, "-");
+  const lines = buildGrowthCsvLines(state.growth);
+  const blob = new Blob([`\uFEFF${lines.join("\n")}`], { type: "text/csv;charset=utf-8" });
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = `growth-${safeAppId}-${dateFrom}-${dateTo}.csv`;
+  link.click();
+  URL.revokeObjectURL(link.href);
 }
 
 function renderDonut(appStats, totalUsers, totalPaidUsers) {
@@ -5824,6 +6768,7 @@ function renderApplications() {
             <button class="btn-pill" data-app-edit="${escapeHtml(app.id)}">应用详情</button>
             <button class="btn-pill" data-app-doc="${escapeHtml(app.id)}">SDK 文档</button>
             <button class="btn-pill" data-app-route="users" data-app-id="${escapeHtml(app.id)}">查看用户</button>
+            <button class="btn-pill" data-app-route="growth" data-app-id="${escapeHtml(app.id)}">查看增长</button>
             <button class="btn-pill" data-app-route="landing" data-app-id="${escapeHtml(app.id)}">查看落地页</button>
             <button class="btn-pill" data-app-route="builds" data-app-id="${escapeHtml(app.id)}" style="margin-left:auto;">查看安装包</button>
           </div>
@@ -5836,6 +6781,16 @@ function renderApplications() {
     button.addEventListener("click", () => {
       const route = button.dataset.appRoute;
       const appId = button.dataset.appId;
+      if (route === "growth") {
+        state.growthFilters.appId = appId;
+        state.growthFilters.range = state.growthFilters.range || "7d";
+        state.growth = null;
+        state.growthError = "";
+        renderAppSelectionControls();
+        syncGrowthRangeControls();
+        go("growth");
+        return;
+      }
       setAppContext(route, appId);
       go(route);
       if (route === "users") {
@@ -5927,7 +6882,7 @@ function renderLandings() {
               <div class="app-stat">
                 <div class="lbl">Slug</div>
                 <div class="val">${escapeHtml(landing.slug || "—")}</div>
-                <div style="font-size:11px; color:var(--color-stone-text); margin-top:4px;">草稿文件 · ${escapeHtml(landing.draft_html_path || landing.html_path || "尚未生成模板")}</div>
+                <div style="font-size:11px; color:var(--color-stone-text); margin-top:4px;">${draftReady ? "草稿已上传" : "等待上传 HTML"}</div>
               </div>
               <div class="app-stat">
                 <div class="lbl">线上版本</div>
@@ -9015,6 +9970,78 @@ document.getElementById("dashboard-refresh")?.addEventListener("click", () => {
   loadDashboard().catch((error) => showToast(error.message));
 });
 
+document.querySelectorAll("[data-growth-range]").forEach((button) => {
+  button.addEventListener("click", () => {
+    state.growthFilters.range = button.dataset.growthRange;
+    if (state.growthFilters.range !== "custom") {
+      syncRouteHash("growth", { replace: true });
+      loadGrowth().catch((error) => showToast(error.message));
+    } else {
+      syncGrowthRangeControls();
+      syncRouteHash("growth", { replace: true });
+    }
+  });
+});
+
+document.getElementById("growth-apply-custom")?.addEventListener("click", () => {
+  state.growthFilters.range = "custom";
+  state.growthFilters.dateFrom = document.getElementById("growth-date-from").value;
+  state.growthFilters.dateTo = document.getElementById("growth-date-to").value;
+  syncRouteHash("growth", { replace: true });
+  loadGrowth().catch((error) => showToast(error.message));
+});
+
+document.getElementById("growth-app-filter")?.addEventListener("change", (event) => {
+  state.growthFilters.appId = event.target.value;
+  syncRouteHash("growth", { replace: true });
+  loadGrowth().catch((error) => showToast(error.message));
+});
+
+document.getElementById("growth-refresh")?.addEventListener("click", () => {
+  loadGrowth().catch((error) => showToast(error.message));
+});
+
+document.getElementById("growth-export")?.addEventListener("click", () => {
+  exportGrowthCsv();
+});
+
+document.getElementById("growth-error-retry")?.addEventListener("click", () => {
+  loadGrowth().catch((error) => showToast(error.message));
+});
+
+document.querySelectorAll("[data-messages-placeholder]").forEach((button) => {
+  button.addEventListener("click", showComingSoonToast);
+});
+
+document.querySelectorAll("[data-permissions-placeholder]").forEach((button) => {
+  button.addEventListener("click", showPermissionsComingSoonToast);
+});
+
+document.querySelectorAll("[data-growth-jump]").forEach((node) => {
+  node.addEventListener("click", () => {
+    const scopedDates = {
+      dateFrom: state.growth?.filters?.date_from || state.growthFilters.dateFrom,
+      dateTo: state.growth?.filters?.date_to || state.growthFilters.dateTo,
+    };
+    if (node.dataset.growthJump === "users") {
+      state.userFilters.createdFrom = scopedDates.dateFrom || "";
+      state.userFilters.createdTo = scopedDates.dateTo || "";
+      state.userFilters.appId = state.growthFilters.appId || "";
+      state.userFilters.page = 1;
+      go("users");
+      loadUsers().catch((error) => showToast(error.message));
+      return;
+    }
+    state.orderFilters.dateFrom = scopedDates.dateFrom || "";
+    state.orderFilters.dateTo = scopedDates.dateTo || "";
+    state.orderFilters.appId = state.growthFilters.appId || "";
+    state.orderFilters.status = "paid";
+    state.orderFilters.page = 1;
+    go("orders");
+    loadPurchases().catch((error) => showToast(error.message));
+  });
+});
+
 document.getElementById("dashboard-export")?.addEventListener("click", () => {
   const dashboard = state.dashboard || {};
   const lines = [
@@ -9112,9 +10139,21 @@ authLogoutBtn.addEventListener("click", async () => {
   }
 });
 
+window.addEventListener("hashchange", () => {
+  const route = applyRouteStateFromHash();
+  if (route === "growth") {
+    state.growth = null;
+    state.growthError = "";
+    renderAppSelectionControls();
+    syncGrowthRangeControls();
+  }
+  go(route, { syncUrl: false });
+});
+
 async function init() {
   try {
     bindCopyButtons();
+    const initialRoute = applyRouteStateFromHash();
     const hasSession = await loadSessionState();
     if (!hasSession) {
       return;
@@ -9130,6 +10169,7 @@ async function init() {
       loadSmsLogs(),
     ]);
     await loadRedeemWorkspace();
+    go(initialRoute, { replaceUrl: true });
   } catch (error) {
     console.error(error);
     showToast(error.message || "加载管理后台数据失败");

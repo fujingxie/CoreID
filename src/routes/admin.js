@@ -1170,6 +1170,349 @@ router.get("/dashboard", async (req, res, next) => {
   }
 });
 
+router.get("/growth", async (req, res, next) => {
+  try {
+    const window = parseDashboardWindow(req.query);
+    const appId = req.query.app_id ? ensureAppId(req.query.app_id, "app_id") : null;
+    if (appId) {
+      await ensureApplicationExists(appId);
+    }
+
+    const currentParams = [
+      window.start.toISOString(),
+      window.endExclusive.toISOString(),
+      appId,
+    ];
+    const previousParams = [
+      window.previousStart.toISOString(),
+      window.previousEndExclusive.toISOString(),
+      appId,
+    ];
+
+    const [
+      currentSummaryResult,
+      previousSummaryResult,
+      userGrowthResult,
+      membershipGrowthResult,
+      revenueGrowthResult,
+      conversionResult,
+      appRankingsResult,
+    ] = await Promise.all([
+      query(
+        `
+          SELECT
+            CASE
+              WHEN $3::varchar IS NULL THEN (SELECT COUNT(*) FROM users WHERE created_at >= $1::timestamp AND created_at < $2::timestamp)
+              ELSE (
+                SELECT COUNT(DISTINCT user_id)
+                FROM user_app_memberships
+                WHERE app_id = $3::varchar
+                  AND created_at >= $1::timestamp
+                  AND created_at < $2::timestamp
+              )
+            END AS new_users,
+            (
+              SELECT COUNT(DISTINCT user_id)
+              FROM user_app_memberships
+              WHERE status = 'active'
+                AND created_at >= $1::timestamp
+                AND created_at < $2::timestamp
+                AND ($3::varchar IS NULL OR app_id = $3::varchar)
+            ) AS active_memberships,
+            (
+              SELECT COUNT(DISTINCT user_id)
+              FROM purchases
+              WHERE status = 'paid'
+                AND created_at >= $1::timestamp
+                AND created_at < $2::timestamp
+                AND ($3::varchar IS NULL OR app_id = $3::varchar)
+            ) AS paid_users,
+            (
+              SELECT COUNT(*)
+              FROM purchases
+              WHERE status = 'paid'
+                AND created_at >= $1::timestamp
+                AND created_at < $2::timestamp
+                AND ($3::varchar IS NULL OR app_id = $3::varchar)
+            ) AS paid_orders,
+            (
+              SELECT COALESCE(SUM(amount), 0)
+              FROM purchases
+              WHERE status = 'paid'
+                AND created_at >= $1::timestamp
+                AND created_at < $2::timestamp
+                AND ($3::varchar IS NULL OR app_id = $3::varchar)
+            ) AS revenue,
+            (
+              SELECT COUNT(DISTINCT user_id)
+              FROM devices
+              WHERE COALESCE(is_active, true) = true
+                AND last_login >= $1::timestamp
+                AND last_login < $2::timestamp
+                AND ($3::varchar IS NULL OR app_id = $3::varchar)
+            ) AS active_devices
+        `,
+        currentParams
+      ),
+      query(
+        `
+          SELECT
+            CASE
+              WHEN $3::varchar IS NULL THEN (SELECT COUNT(*) FROM users WHERE created_at >= $1::timestamp AND created_at < $2::timestamp)
+              ELSE (
+                SELECT COUNT(DISTINCT user_id)
+                FROM user_app_memberships
+                WHERE app_id = $3::varchar
+                  AND created_at >= $1::timestamp
+                  AND created_at < $2::timestamp
+              )
+            END AS new_users,
+            (
+              SELECT COUNT(DISTINCT user_id)
+              FROM user_app_memberships
+              WHERE status = 'active'
+                AND created_at >= $1::timestamp
+                AND created_at < $2::timestamp
+                AND ($3::varchar IS NULL OR app_id = $3::varchar)
+            ) AS active_memberships,
+            (
+              SELECT COUNT(DISTINCT user_id)
+              FROM purchases
+              WHERE status = 'paid'
+                AND created_at >= $1::timestamp
+                AND created_at < $2::timestamp
+                AND ($3::varchar IS NULL OR app_id = $3::varchar)
+            ) AS paid_users,
+            (
+              SELECT COALESCE(SUM(amount), 0)
+              FROM purchases
+              WHERE status = 'paid'
+                AND created_at >= $1::timestamp
+                AND created_at < $2::timestamp
+                AND ($3::varchar IS NULL OR app_id = $3::varchar)
+            ) AS revenue,
+            (
+              SELECT COUNT(DISTINCT user_id)
+              FROM devices
+              WHERE COALESCE(is_active, true) = true
+                AND last_login >= $1::timestamp
+                AND last_login < $2::timestamp
+                AND ($3::varchar IS NULL OR app_id = $3::varchar)
+            ) AS active_devices
+        `,
+        previousParams
+      ),
+      query(
+        `
+          WITH date_series AS (
+            SELECT generate_series($1::date, ($2::timestamp - INTERVAL '1 day')::date, INTERVAL '1 day')::date AS day
+          )
+          SELECT
+            ds.day::text AS date,
+            CASE
+              WHEN $3::varchar IS NULL THEN COUNT(u.id)
+              ELSE COUNT(DISTINCT m.user_id)
+            END AS count
+          FROM date_series ds
+          LEFT JOIN users u
+            ON $3::varchar IS NULL
+           AND u.created_at::date = ds.day
+          LEFT JOIN user_app_memberships m
+            ON $3::varchar IS NOT NULL
+           AND m.app_id = $3::varchar
+           AND m.created_at::date = ds.day
+          GROUP BY ds.day
+          ORDER BY ds.day ASC
+        `,
+        currentParams
+      ),
+      query(
+        `
+          WITH date_series AS (
+            SELECT generate_series($1::date, ($2::timestamp - INTERVAL '1 day')::date, INTERVAL '1 day')::date AS day
+          )
+          SELECT
+            ds.day::text AS date,
+            a.id AS app_id,
+            a.name AS app_name,
+            COALESCE(COUNT(m.id), 0) AS count
+          FROM date_series ds
+          JOIN applications a ON ($3::varchar IS NULL OR a.id = $3::varchar)
+          LEFT JOIN user_app_memberships m
+            ON m.app_id = a.id
+           AND m.status = 'active'
+           AND m.created_at::date = ds.day
+          GROUP BY ds.day, a.id, a.name, a.created_at
+          ORDER BY ds.day ASC, a.created_at ASC
+        `,
+        currentParams
+      ),
+      query(
+        `
+          WITH date_series AS (
+            SELECT generate_series($1::date, ($2::timestamp - INTERVAL '1 day')::date, INTERVAL '1 day')::date AS day
+          )
+          SELECT
+            ds.day::text AS date,
+            COALESCE(SUM(p.amount) FILTER (WHERE p.status = 'paid'), 0) AS revenue,
+            COUNT(*) FILTER (WHERE p.status = 'paid') AS paid_orders
+          FROM date_series ds
+          LEFT JOIN purchases p
+            ON p.created_at::date = ds.day
+           AND ($3::varchar IS NULL OR p.app_id = $3::varchar)
+          GROUP BY ds.day
+          ORDER BY ds.day ASC
+        `,
+        currentParams
+      ),
+      query(
+        `
+          SELECT
+            (
+              SELECT COUNT(DISTINCT user_id)
+              FROM user_app_memberships
+              WHERE created_at >= $1::timestamp
+                AND created_at < $2::timestamp
+                AND ($3::varchar IS NULL OR app_id = $3::varchar)
+            ) AS registered_users,
+            (
+              SELECT COUNT(DISTINCT user_id)
+              FROM user_app_memberships
+              WHERE status = 'active'
+                AND created_at >= $1::timestamp
+                AND created_at < $2::timestamp
+                AND ($3::varchar IS NULL OR app_id = $3::varchar)
+            ) AS active_memberships,
+            (
+              SELECT COUNT(DISTINCT user_id)
+              FROM purchases
+              WHERE status = 'paid'
+                AND created_at >= $1::timestamp
+                AND created_at < $2::timestamp
+                AND ($3::varchar IS NULL OR app_id = $3::varchar)
+            ) AS paid_users
+        `,
+        currentParams
+      ),
+      query(
+        `
+          SELECT
+            a.id AS app_id,
+            a.name,
+            COALESCE(registration_summary.registered_users, 0) AS registered_users,
+            COALESCE(purchase_summary.paid_users, 0) AS paid_users,
+            COALESCE(purchase_summary.paid_orders, 0) AS paid_orders,
+            COALESCE(purchase_summary.revenue, 0) AS revenue
+          FROM applications a
+          LEFT JOIN LATERAL (
+            SELECT COUNT(DISTINCT user_id) AS registered_users
+            FROM user_app_memberships
+            WHERE app_id = a.id
+              AND status = 'active'
+              AND created_at >= $1::timestamp
+              AND created_at < $2::timestamp
+          ) registration_summary ON true
+          LEFT JOIN LATERAL (
+            SELECT
+              COUNT(DISTINCT user_id) AS paid_users,
+              COUNT(*) AS paid_orders,
+              COALESCE(SUM(amount), 0) AS revenue
+            FROM purchases
+            WHERE app_id = a.id
+              AND status = 'paid'
+              AND created_at >= $1::timestamp
+              AND created_at < $2::timestamp
+          ) purchase_summary ON true
+          WHERE ($3::varchar IS NULL OR a.id = $3::varchar)
+          ORDER BY registered_users DESC, revenue DESC, a.created_at ASC
+        `,
+        currentParams
+      ),
+    ]);
+
+    const currentSummary = currentSummaryResult.rows[0] || {};
+    const previousSummary = previousSummaryResult.rows[0] || {};
+    const conversionRow = conversionResult.rows[0] || {};
+    const registeredUsers = Number(conversionRow.registered_users || 0);
+    const activeMemberships = Number(conversionRow.active_memberships || 0);
+    const paidUsers = Number(conversionRow.paid_users || 0);
+    const membershipByAppMap = new Map();
+    for (const row of membershipGrowthResult.rows) {
+      if (!membershipByAppMap.has(row.app_id)) {
+        membershipByAppMap.set(row.app_id, {
+          app_id: row.app_id,
+          name: row.app_name,
+          points: [],
+        });
+      }
+      membershipByAppMap.get(row.app_id).points.push({
+        date: row.date,
+        count: Number(row.count || 0),
+      });
+    }
+
+    return res.json({
+      filters: {
+        range: window.range,
+        date_from: formatLocalDateInput(window.start),
+        date_to: formatLocalDateInput(addDays(window.endExclusive, -1)),
+        previous_date_from: formatLocalDateInput(window.previousStart),
+        previous_date_to: formatLocalDateInput(addDays(window.previousEndExclusive, -1)),
+        app_id: appId || "",
+      },
+      summary: {
+        new_users: Number(currentSummary.new_users || 0),
+        active_memberships: Number(currentSummary.active_memberships || 0),
+        paid_users: Number(currentSummary.paid_users || 0),
+        paid_orders: Number(currentSummary.paid_orders || 0),
+        revenue: Number(currentSummary.revenue || 0),
+        active_devices: Number(currentSummary.active_devices || 0),
+        deltas: {
+          new_users: buildDeltaPayload(currentSummary.new_users, previousSummary.new_users),
+          active_memberships: buildDeltaPayload(currentSummary.active_memberships, previousSummary.active_memberships),
+          paid_users: buildDeltaPayload(currentSummary.paid_users, previousSummary.paid_users),
+          revenue: buildDeltaPayload(currentSummary.revenue, previousSummary.revenue),
+          active_devices: buildDeltaPayload(currentSummary.active_devices, previousSummary.active_devices),
+        },
+      },
+      user_growth: {
+        points: userGrowthResult.rows.map((row) => ({
+          date: row.date,
+          count: Number(row.count || 0),
+        })),
+      },
+      membership_growth: {
+        by_app: Array.from(membershipByAppMap.values()),
+      },
+      revenue_growth: {
+        points: revenueGrowthResult.rows.map((row) => ({
+          date: row.date,
+          revenue: Number(row.revenue || 0),
+          paid_orders: Number(row.paid_orders || 0),
+        })),
+      },
+      conversion: {
+        registered_users: registeredUsers,
+        active_memberships: activeMemberships,
+        paid_users: paidUsers,
+        activation_rate: registeredUsers > 0 ? (activeMemberships * 100) / registeredUsers : 0,
+        payment_rate: registeredUsers > 0 ? (paidUsers * 100) / registeredUsers : 0,
+      },
+      app_rankings: appRankingsResult.rows.map((row) => ({
+        app_id: row.app_id,
+        name: row.name,
+        registered_users: Number(row.registered_users || 0),
+        paid_users: Number(row.paid_users || 0),
+        paid_orders: Number(row.paid_orders || 0),
+        revenue: Number(row.revenue || 0),
+        payment_rate: Number(row.registered_users || 0) > 0 ? (Number(row.paid_users || 0) * 100) / Number(row.registered_users || 0) : 0,
+      })),
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
 router.get("/users", async (req, res, next) => {
   try {
     const { page, limit, offset } = parsePagination(req.query, { defaultLimit: 10, maxLimit: 100 });
