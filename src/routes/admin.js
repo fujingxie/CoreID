@@ -378,6 +378,8 @@ function serializePlanRow(row) {
     sort_order: Number(row.sort_order || 0),
     is_trial: Boolean(row.is_trial),
     is_renewable: Boolean(row.is_renewable),
+    is_recommended: Boolean(row.is_recommended),
+    is_visible: row.is_visible !== false,
     features: Array.isArray(row.features) ? row.features : [],
     purchase_count: Number(row.purchase_count || 0),
   };
@@ -2849,6 +2851,8 @@ router.post("/plans", async (req, res, next) => {
     const sortOrder = ensureOptionalInteger(req.body?.sort_order, "sort_order", { min: 0, defaultValue: 0 });
     const isTrial = Boolean(req.body?.is_trial);
     const isRenewable = Boolean(req.body?.is_renewable);
+    const isRecommended = Boolean(req.body?.is_recommended);
+    const isVisible = req.body?.is_visible == null ? true : Boolean(req.body?.is_visible);
     const features = ensurePlanFeatures(req.body?.features);
 
     await ensureApplicationExists(appId);
@@ -2868,13 +2872,31 @@ router.post("/plans", async (req, res, next) => {
           sort_order,
           is_trial,
           is_renewable,
+          is_recommended,
+          is_visible,
           features,
           updated_at
         )
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, NOW())
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, NOW())
         RETURNING *
       `,
-      [appId, code, name, description, durationDays, price, originalPrice, currency, status, sortOrder, isTrial, isRenewable, JSON.stringify(features)]
+      [
+        appId,
+        code,
+        name,
+        description,
+        durationDays,
+        price,
+        originalPrice,
+        currency,
+        status,
+        sortOrder,
+        isTrial,
+        isRenewable,
+        isRecommended,
+        isVisible,
+        JSON.stringify(features),
+      ]
     );
 
     await logAdminAction(req, {
@@ -2888,6 +2910,8 @@ router.post("/plans", async (req, res, next) => {
         price,
         duration_days: durationDays,
         status,
+        is_recommended: isRecommended,
+        is_visible: isVisible,
       },
     });
 
@@ -2933,6 +2957,8 @@ router.patch("/plans/:plan_id", async (req, res, next) => {
     const sortOrder = ensureOptionalInteger(req.body?.sort_order, "sort_order", { min: 0, defaultValue: 0 });
     const isTrial = Boolean(req.body?.is_trial);
     const isRenewable = Boolean(req.body?.is_renewable);
+    const isRecommended = Boolean(req.body?.is_recommended);
+    const isVisible = req.body?.is_visible == null ? true : Boolean(req.body?.is_visible);
     const features = ensurePlanFeatures(req.body?.features);
 
     const result = await query(
@@ -2948,12 +2974,29 @@ router.patch("/plans/:plan_id", async (req, res, next) => {
             sort_order = $9,
             is_trial = $10,
             is_renewable = $11,
-            features = $12,
+            is_recommended = $12,
+            is_visible = $13,
+            features = $14,
             updated_at = NOW()
         WHERE id = $1
         RETURNING *
       `,
-      [planId, name, description, durationDays, price, originalPrice, currency, status, sortOrder, isTrial, isRenewable, JSON.stringify(features)]
+      [
+        planId,
+        name,
+        description,
+        durationDays,
+        price,
+        originalPrice,
+        currency,
+        status,
+        sortOrder,
+        isTrial,
+        isRenewable,
+        isRecommended,
+        isVisible,
+        JSON.stringify(features),
+      ]
     );
 
     await logAdminAction(req, {
@@ -2967,6 +3010,8 @@ router.patch("/plans/:plan_id", async (req, res, next) => {
         price,
         duration_days: durationDays,
         status,
+        is_recommended: isRecommended,
+        is_visible: isVisible,
       },
     });
 

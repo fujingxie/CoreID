@@ -249,12 +249,24 @@ async function ensureRuntimeSchema() {
       sort_order INTEGER NOT NULL DEFAULT 0,
       is_trial BOOLEAN NOT NULL DEFAULT false,
       is_renewable BOOLEAN NOT NULL DEFAULT false,
+      is_recommended BOOLEAN NOT NULL DEFAULT false,
+      is_visible BOOLEAN NOT NULL DEFAULT true,
       features JSONB NOT NULL DEFAULT '[]'::jsonb,
       created_at TIMESTAMP DEFAULT NOW(),
       updated_at TIMESTAMP DEFAULT NOW(),
       FOREIGN KEY (app_id) REFERENCES applications(id) ON DELETE CASCADE,
       UNIQUE(app_id, code)
     )
+  `);
+
+  await query(`
+    ALTER TABLE app_plans
+    ADD COLUMN IF NOT EXISTS is_recommended BOOLEAN NOT NULL DEFAULT false
+  `);
+
+  await query(`
+    ALTER TABLE app_plans
+    ADD COLUMN IF NOT EXISTS is_visible BOOLEAN NOT NULL DEFAULT true
   `);
 
   await query(`

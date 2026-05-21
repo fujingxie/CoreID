@@ -291,6 +291,13 @@
   </div>
 
   <div class="nav-group">
+    <div class="nav-group-label">短信配置</div>
+    <a class="nav-link" href="#sms-switch">切换短信模式</a>
+    <a class="nav-link" href="#sms-check">检查当前模式</a>
+    <a class="nav-link" href="#sms-aliyun">阿里云短信配置</a>
+  </div>
+
+  <div class="nav-group">
     <div class="nav-group-label">故障排查</div>
     <a class="nav-link" href="#debug-502">502 网关错误</a>
     <a class="nav-link" href="#debug-casdoor">Casdoor 相关</a>
@@ -822,6 +829,96 @@ DELETE FROM users WHERE phone = '手机号';
 </div>
 
 <div class="warn">以上 SQL 是分号分隔的多条语句，如果中间某条报错（如表不存在），后面的语句不会执行。此时需要单独执行剩余语句。</div>
+
+<!-- ─── 短信配置 ─── -->
+<h2 id="sms-switch">切换短信模式</h2>
+
+<p>CoreID 支持两种短信模式：</p>
+
+<table>
+  <tr><th>模式</th><th>说明</th><th>适用场景</th></tr>
+  <tr><td><code>dev</code></td><td>不发真实短信，验证码固定为 <code>123456</code></td><td>开发和测试阶段</td></tr>
+  <tr><td><code>sms</code></td><td>通过阿里云/腾讯云发送真实短信</td><td>生产环境</td></tr>
+</table>
+
+<h3>从测试模式切换到生产模式</h3>
+
+<div class="steps">
+  <div class="step">
+    <p>编辑环境变量文件：</p>
+    <pre><code>vi /opt/coreid/.env.production</code></pre>
+    <p>修改以下配置：</p>
+    <pre><code># 将 dev 改为 sms
+PHONE_VERIFICATION_MODE=sms
+
+# 设置短信供应商
+SMS_PROVIDER=aliyun
+
+# 阿里云短信凭据（必填）
+SMS_ALIYUN_ACCESS_KEY_ID=你的AccessKeyID
+SMS_ALIYUN_ACCESS_KEY_SECRET=你的AccessKeySecret
+SMS_ALIYUN_SIGN_NAME=你的短信签名
+SMS_ALIYUN_TEMPLATE_REGISTER=注册模板ID
+SMS_ALIYUN_TEMPLATE_RESET_PASSWORD=重置密码模板ID</code></pre>
+  </div>
+  <div class="step">
+    <p>重建容器使配置生效：</p>
+    <pre><code>cd /opt/coreid && docker compose -f docker-compose.prod.yml up -d --force-recreate app</code></pre>
+  </div>
+  <div class="step">
+    <p>验证模式已切换：</p>
+    <pre><code>docker exec coreid-app env | grep PHONE_VERIFICATION_MODE</code></pre>
+    <p>输出应为 <code>sms</code>。</p>
+  </div>
+</div>
+
+<h3>切回测试模式</h3>
+
+<p>将 <code>PHONE_VERIFICATION_MODE</code> 改回 <code>dev</code>，然后重建容器即可。测试模式下验证码固定为 <code>123456</code>（可通过 <code>DEV_PHONE_VERIFICATION_CODE</code> 自定义）。</p>
+
+<pre><code># 编辑
+vi /opt/coreid/.env.production
+# 改为：PHONE_VERIFICATION_MODE=dev
+
+# 重建
+cd /opt/coreid && docker compose -f docker-compose.prod.yml up -d --force-recreate app</code></pre>
+
+<h2 id="sms-check">检查当前短信模式</h2>
+
+<pre><code># 查看当前模式
+docker exec coreid-app env | grep PHONE_VERIFICATION_MODE
+
+# 查看短信供应商
+docker exec coreid-app env | grep SMS_PROVIDER
+
+# 查看所有短信相关配置
+docker exec coreid-app env | grep -i SMS</code></pre>
+
+<h2 id="sms-aliyun">阿里云短信配置</h2>
+
+<p>使用阿里云短信前，需要在阿里云控制台完成以下准备工作：</p>
+
+<ol>
+  <li><strong>开通短信服务</strong>：登录 <a href="https://dysms.console.aliyun.com" target="_blank">阿里云短信控制台</a></li>
+  <li><strong>申请短信签名</strong>：需审核通过（一般 1-2 个工作日）</li>
+  <li><strong>申请短信模板</strong>：需要两个模板 — 注册验证码和重置密码验证码，模板变量使用 <code>${code}</code></li>
+  <li><strong>获取 AccessKey</strong>：在 <a href="https://ram.console.aliyun.com/manage/ak" target="_blank">RAM 控制台</a> 创建</li>
+</ol>
+
+<div class="warn">建议使用 RAM 子账号的 AccessKey，仅授予短信发送权限（<code>AliyunDysmsFullAccess</code>），不要使用主账号 AccessKey。</div>
+
+<h4>所需环境变量</h4>
+
+<table>
+  <tr><th>变量</th><th>说明</th><th>获取位置</th></tr>
+  <tr><td><code>SMS_ALIYUN_ACCESS_KEY_ID</code></td><td>阿里云 AccessKey ID</td><td>RAM 控制台</td></tr>
+  <tr><td><code>SMS_ALIYUN_ACCESS_KEY_SECRET</code></td><td>阿里云 AccessKey Secret</td><td>RAM 控制台（仅创建时可见）</td></tr>
+  <tr><td><code>SMS_ALIYUN_SIGN_NAME</code></td><td>短信签名名称</td><td>短信控制台 → 签名管理</td></tr>
+  <tr><td><code>SMS_ALIYUN_TEMPLATE_REGISTER</code></td><td>注册验证码模板 ID</td><td>短信控制台 → 模板管理</td></tr>
+  <tr><td><code>SMS_ALIYUN_TEMPLATE_RESET_PASSWORD</code></td><td>重置密码模板 ID</td><td>短信控制台 → 模板管理</td></tr>
+</table>
+
+<div class="tip">从香港服务器调用阿里云短信 API 没有问题，走的是 HTTPS 请求，不受地域限制。</div>
 
 <!-- ─── 参考 ─── -->
 <h2 id="env-ref">环境变量参考</h2>

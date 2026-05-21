@@ -200,6 +200,8 @@ CREATE TABLE IF NOT EXISTS app_plans (
     sort_order INTEGER NOT NULL DEFAULT 0,
     is_trial BOOLEAN NOT NULL DEFAULT false,
     is_renewable BOOLEAN NOT NULL DEFAULT false,
+    is_recommended BOOLEAN NOT NULL DEFAULT false,
+    is_visible BOOLEAN NOT NULL DEFAULT true,
     features JSONB NOT NULL DEFAULT '[]'::jsonb,
     created_at TIMESTAMP DEFAULT NOW(),
     updated_at TIMESTAMP DEFAULT NOW(),

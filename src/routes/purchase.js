@@ -32,6 +32,8 @@ function serializePlanRow(row) {
     sort_order: Number(row.sort_order || 0),
     is_trial: Boolean(row.is_trial),
     is_renewable: Boolean(row.is_renewable),
+    is_recommended: Boolean(row.is_recommended),
+    is_visible: row.is_visible !== false,
     features: Array.isArray(row.features) ? row.features : [],
   };
 }
@@ -616,6 +618,7 @@ router.get("/plans", async (req, res, next) => {
         FROM app_plans
         WHERE app_id = $1
           AND status = 'active'
+          AND COALESCE(is_visible, true) = true
         ORDER BY sort_order ASC, created_at ASC
       `,
       [appId]
