@@ -19,3 +19,6 @@ build/
 coverage/
 .cache/
 .next/
+
+# Uploaded installer packages are runtime artifacts.
+src/uploads/releases/

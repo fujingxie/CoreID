@@ -1160,10 +1160,22 @@ table.tbl tr.row-clickable:hover td { background: rgba(28,29,34,0.4); }
 .build-meta-inline { font-size: 12px; color: var(--color-stone-text); margin-left: auto; display: flex; gap: 22px; }
 .build-meta-inline span b { color: var(--color-pure-white); font-family: var(--font-display); font-weight: 500; font-size: 16px; margin-right: 4px; }
 
+.build-filter-bar {
+  display: grid;
+  grid-template-columns: 1.3fr repeat(4, minmax(130px, 0.7fr)) auto;
+  gap: 10px;
+  align-items: center;
+  margin: 0 0 16px;
+  padding: 12px;
+  border: var(--hairline);
+  border-radius: 10px;
+  background: rgba(255,255,255,0.015);
+}
+
 .build-row {
   display: grid;
-  grid-template-columns: 44px 2fr 0.8fr 0.7fr 0.9fr auto;
-  gap: 18px;
+  grid-template-columns: 44px minmax(180px, 2fr) .72fr .72fr .95fr .8fr .82fr auto;
+  gap: 14px;
   padding: 18px 26px;
   border-bottom: var(--hairline);
   align-items: center;
@@ -1186,6 +1198,29 @@ table.tbl tr.row-clickable:hover td { background: rgba(28,29,34,0.4); }
 .build-cell { font-size: 12.5px; color: var(--color-white-frost); font-variant-numeric: tabular-nums; }
 .build-cell .lbl { font-size: 10px; color: var(--color-ash-text); text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 3px; }
 .build-cell.mono { font-family: var(--font-mono); }
+.health-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+  padding: 5px 8px;
+  border-radius: 9999px;
+  border: 1px solid rgba(226,227,233,0.12);
+  color: var(--color-white-frost);
+  background: rgba(255,255,255,0.025);
+  font-size: 11.5px;
+  line-height: 1;
+}
+.health-pill::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 9999px;
+  background: var(--color-stone-text);
+}
+.health-pill.ok::before { background: #84d1a8; box-shadow: 0 0 6px rgba(132,209,168,.55); }
+.health-pill.warning::before { background: #d6a87a; box-shadow: 0 0 6px rgba(214,168,122,.5); }
+.health-pill.error::before { background: #d68a85; box-shadow: 0 0 6px rgba(214,138,133,.5); }
 .build-actions { display: flex; gap: 6px; }
 .build-action {
   width: 32px; height: 32px;
@@ -1385,6 +1420,33 @@ table.tbl tr.row-clickable:hover td { background: rgba(28,29,34,0.4); }
 .dropzone .title { font-size: 13.5px; color: var(--color-pure-white); font-weight: 500; }
 .dropzone .hint { font-size: 11.5px; color: var(--color-stone-text); margin-top: 5px; }
 .dropzone .types { font-family: var(--font-mono); font-size: 11px; color: var(--color-ash-text); margin-top: 8px; }
+.upload-progress {
+  margin-top: 8px;
+  padding: 12px;
+  border: var(--hairline);
+  border-radius: 10px;
+  background: rgba(0,0,0,0.18);
+}
+.upload-progress-track {
+  height: 8px;
+  border-radius: 9999px;
+  background: rgba(226,227,233,0.08);
+  overflow: hidden;
+}
+.upload-progress-fill {
+  display: block;
+  width: 0%;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--gradient-golden);
+  transition: width .18s ease;
+}
+.upload-progress-meta {
+  margin-top: 8px;
+  color: var(--color-stone-text);
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+}
 
 .modal-foot {
   display: flex; gap: 10px; justify-content: flex-end;
@@ -1526,13 +1588,20 @@ table.tbl tr.row-clickable:hover td { background: rgba(28,29,34,0.4); }
   .topbar-search {
     width: 100%;
   }
-  .charts, .split, .landing-grid, .field-row {
+  .charts, .split, .landing-grid, .field-row, .build-filter-bar {
     grid-template-columns: 1fr;
   }
   .page-head,
-  .build-row {
+  .build-head {
     flex-direction: column;
     align-items: stretch;
+  }
+  .build-row {
+    grid-template-columns: 44px minmax(0, 1fr);
+  }
+  .build-row .build-cell,
+  .build-row .build-actions {
+    grid-column: 2;
   }
   .page-head-actions {
     margin-left: 0;
@@ -2704,6 +2773,31 @@ table.tbl tr.row-clickable:hover td { background: rgba(28,29,34,0.4); }
         </div>
       </div>
       <div id="builds-context-banner" class="inline-note hidden" style="margin-bottom:18px;"></div>
+      <div class="build-filter-bar">
+        <input class="text-input" id="builds-search" placeholder="搜索文件名、版本、应用或链接" />
+        <select class="text-input" id="builds-app-filter"></select>
+        <select class="text-input" id="builds-platform-filter">
+          <option value="">全部平台</option>
+          <option value="apk">Android · APK</option>
+          <option value="exe">Windows · EXE</option>
+          <option value="dmg">macOS · DMG</option>
+          <option value="web">Web · URL</option>
+          <option value="appstore">App Store · URL</option>
+        </select>
+        <select class="text-input" id="builds-updated-filter">
+          <option value="">最近更新 · 全部</option>
+          <option value="24h">最近 24 小时</option>
+          <option value="7d">最近 7 天</option>
+          <option value="30d">最近 30 天</option>
+          <option value="90d">最近 90 天</option>
+        </select>
+        <select class="text-input" id="builds-source-filter">
+          <option value="">文件类型 · 全部</option>
+          <option value="binary">上传文件</option>
+          <option value="external">外部链接</option>
+        </select>
+        <button class="btn-pill" id="builds-clear-filters">清除</button>
+      </div>
 
       <div id="builds-list"></div>
     </section>
@@ -2810,7 +2904,7 @@ table.tbl tr.row-clickable:hover td { background: rgba(28,29,34,0.4); }
           </div>
           <div class="activity-list">
             <div class="activity"><div class="activity-icon">导</div><div class="activity-text">批量导出<span> · 需要管理员确认</span></div><div class="activity-time">待接入</div></div>
-            <div class="activity"><div class="activity-icon">删</div><div class="activity-text">删除历史版本<span> · 记录审计日志</span></div><div class="activity-time">待接入</div></div>
+            <div class="activity"><div class="activity-icon">删</div><div class="activity-text">删除安装包<span> · 记录审计日志</span></div><div class="activity-time">待接入</div></div>
             <div class="activity"><div class="activity-icon">停</div><div class="activity-text">停用账号或批次<span> · 建议二次确认</span></div><div class="activity-time">待接入</div></div>
           </div>
         </div>
@@ -2885,7 +2979,7 @@ table.tbl tr.row-clickable:hover td { background: rgba(28,29,34,0.4); }
     <div class="modal-head">
       <div>
         <h3>上传安装包</h3>
-        <div class="sub">选择目标产品与平台后上传</div>
+        <div class="sub">选择目标产品与平台后上传，新版本会覆盖当前版本</div>
       </div>
       <button class="modal-close" id="modal-close">
         <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 3l10 10M13 3L3 13"/></svg>
@@ -2895,11 +2989,12 @@ table.tbl tr.row-clickable:hover td { background: rgba(28,29,34,0.4); }
       <div class="field-row">
         <div class="field">
           <label>产品</label>
-          <div class="seg" id="upload-app-seg"></div>
+          <select class="text-input" id="upload-app-select"></select>
         </div>
         <div class="field">
           <label>版本号</label>
-          <input class="text-input" id="upload-version" placeholder="例如 2.4.2" value="2.4.2"/>
+          <input class="text-input" id="upload-version" placeholder="例如 2.4.2"/>
+          <div class="field-hint" id="upload-version-hint">选择产品与平台后显示当前版本。</div>
         </div>
       </div>
 
@@ -2942,11 +3037,15 @@ table.tbl tr.row-clickable:hover td { background: rgba(28,29,34,0.4); }
             <svg width="22" height="22" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M8 11V2M5 5l3-3 3 3"/><path d="M2 12v1a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1v-1"/></svg>
           </div>
           <div class="title">将安装包拖拽到此处，或 <u>点击选择文件</u></div>
-          <div class="hint">单文件最大 500 MB · 上传后将自动校验文件哈希、版本重复与基础元信息</div>
+          <div class="hint">单文件最大 500 MB · 上传后将自动校验文件哈希与基础元信息</div>
           <div class="types">.apk · .exe · .dmg</div>
         </div>
         <input id="upload-file" type="file" hidden />
         <div class="muted" id="upload-file-name" style="margin-top:10px; font-size:12px;">尚未选择文件</div>
+      </div>
+      <div class="upload-progress hidden" id="upload-progress">
+        <div class="upload-progress-track"><span class="upload-progress-fill" id="upload-progress-fill"></span></div>
+        <div class="upload-progress-meta" id="upload-progress-meta">等待上传…</div>
       </div>
     </div>
     <div class="modal-foot">
@@ -2962,13 +3061,18 @@ table.tbl tr.row-clickable:hover td { background: rgba(28,29,34,0.4); }
     <div class="modal-head">
       <div>
         <h3>下载统计</h3>
-        <div class="sub">查看最近 30 天各安装包的下载趋势与明细。</div>
+        <div class="sub" id="download-stats-subtitle">查看最近 30 天各安装包的下载趋势与明细。</div>
       </div>
       <button class="modal-close" id="download-stats-close">
         <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 3l10 10M13 3L3 13"/></svg>
       </button>
     </div>
     <div class="modal-body">
+      <div class="seg" style="margin-bottom:14px; max-width:360px;">
+        <div class="seg-item" data-stats-days="7">7 天</div>
+        <div class="seg-item active" data-stats-days="30">30 天</div>
+        <div class="seg-item" data-stats-days="90">90 天</div>
+      </div>
       <div class="drawer-stat-row" id="download-stats-summary">
         <div class="drawer-stat"><div class="lbl">最近 30 天下载</div><div class="val">0</div></div>
         <div class="drawer-stat"><div class="lbl">最近 24 小时</div><div class="val">0</div></div>
@@ -3048,6 +3152,9 @@ table.tbl tr.row-clickable:hover td { background: rgba(28,29,34,0.4); }
       </div>
     </div>
     <div class="modal-foot">
+      <button class="btn-pill" id="release-qr-open">打开预览</button>
+      <button class="btn-pill" id="release-qr-download">下载二维码 PNG</button>
+      <button class="btn-pill" id="release-qr-copy-image">复制二维码图片</button>
       <button class="btn-pill" id="release-qr-copy">复制下载链接</button>
       <button class="btn-pill primary" id="release-qr-done">关闭</button>
     </div>
@@ -3574,8 +3681,19 @@ const state = {
   landings: [],
   landingVersions: {},
   releases: [],
-  releaseVersions: {},
   releaseStats: null,
+  releaseStatsFilters: {
+    appId: "",
+    type: "",
+    days: 30,
+  },
+  releaseFilters: {
+    search: "",
+    appId: "",
+    type: "",
+    updatedRange: "",
+    source: "",
+  },
   releaseQr: null,
   operationLogs: [],
   operationLogPagination: null,
@@ -3669,6 +3787,8 @@ const state = {
     page: 1,
   },
   selectedUploadFile: null,
+  currentUploadXhr: null,
+  uploadStartedAt: null,
   currentUser: null,
   currentDrawer: null,
   currentDrawerTab: "overview",
@@ -3694,6 +3814,14 @@ const uploadDropzone = document.getElementById("upload-dropzone");
 const uploadFileField = document.getElementById("upload-file-field");
 const uploadUrlField = document.getElementById("upload-url-field");
 const uploadWebUrlInput = document.getElementById("upload-web-url");
+const uploadAppSelect = document.getElementById("upload-app-select");
+const uploadVersionInput = document.getElementById("upload-version");
+const uploadVersionHint = document.getElementById("upload-version-hint");
+const uploadSubmitBtn = document.getElementById("upload-submit");
+const uploadCancelBtn = document.getElementById("modal-cancel");
+const uploadProgress = document.getElementById("upload-progress");
+const uploadProgressFill = document.getElementById("upload-progress-fill");
+const uploadProgressMeta = document.getElementById("upload-progress-meta");
 const authGuard = document.getElementById("auth-guard");
 const authGuardMessage = document.getElementById("auth-guard-message");
 const authLoginBtn = document.getElementById("auth-login-btn");
@@ -3983,7 +4111,31 @@ function renderAppSelectionControls() {
     active: index === 0,
   }));
   const defaultAppId = options[0]?.value || "";
-  renderSegmentOptions("upload-app-seg", "product", currentSegmentValue("product") || state.appContext.builds || defaultAppId, options);
+  if (uploadAppSelect) {
+    const selectedAppId = uploadAppSelect.value || state.appContext.builds || defaultAppId;
+    uploadAppSelect.innerHTML = options.length
+      ? options
+          .map(
+            (option) => `
+              <option value="${escapeHtml(option.value)}">${escapeHtml(option.label)}</option>
+            `
+          )
+          .join("")
+      : '<option value="">暂无可上传的应用</option>';
+    uploadAppSelect.value = options.some((option) => option.value === selectedAppId) ? selectedAppId : defaultAppId;
+  }
+  const buildsAppFilter = document.getElementById("builds-app-filter");
+  if (buildsAppFilter) {
+    buildsAppFilter.innerHTML = [`<option value="">全部应用</option>`]
+      .concat(
+        state.applications.map(
+          (application) => `<option value="${escapeHtml(application.id)}">${escapeHtml(appLabel(application.id))}</option>`
+        )
+      )
+      .join("");
+    buildsAppFilter.value = state.releaseFilters.appId;
+  }
+  syncBuildFilterControls();
   renderSegmentOptions("user-app-seg", "new-user-app", currentSegmentValue("new-user-app") || defaultAppId, options);
 
   const filterGroup = document.getElementById("users-app-filter-group");
@@ -4133,12 +4285,17 @@ function renderAppSelectionControls() {
   syncRedeemFilterInputs();
 }
 
-function releaseKey(appId, type) {
-  return `${appId}:${type}`;
-}
-
-function buildHistoryPanelId(appId, type) {
-  return `build-history-${appId}-${type}`;
+function syncBuildFilterControls() {
+  const search = document.getElementById("builds-search");
+  const app = document.getElementById("builds-app-filter");
+  const platform = document.getElementById("builds-platform-filter");
+  const updated = document.getElementById("builds-updated-filter");
+  const source = document.getElementById("builds-source-filter");
+  if (search && search.value !== state.releaseFilters.search) search.value = state.releaseFilters.search;
+  if (app) app.value = state.releaseFilters.appId;
+  if (platform) platform.value = state.releaseFilters.type;
+  if (updated) updated.value = state.releaseFilters.updatedRange;
+  if (source) source.value = state.releaseFilters.source;
 }
 
 function productTag(appId) {
@@ -4217,12 +4374,12 @@ function shortHash(value) {
 
 function logActionText(action) {
   const mapping = {
-    "release.upload": "上传安装包",
+    "release.upload": "上传/覆盖安装包",
     "release.delete": "删除当前安装包",
     "release.current.delete": "删除当前安装包",
     "release.history.delete": "删除整个平台历史",
-    "release.restore": "回滚安装包版本",
-    "release.version.delete": "删除安装包历史版本",
+    "release.restore": "恢复安装包版本",
+    "release.version.delete": "删除旧安装包记录",
     "landing.upload": "上传落地页",
     "landing.publish": "发布落地页",
     "landing.unpublish": "下线落地页",
@@ -6841,10 +6998,66 @@ function currentLandings() {
     : state.landings;
 }
 
+function matchesUpdatedRange(value, range) {
+  if (!range || !value) {
+    return true;
+  }
+  const hoursMap = {
+    "24h": 24,
+    "7d": 24 * 7,
+    "30d": 24 * 30,
+    "90d": 24 * 90,
+  };
+  const hours = hoursMap[range];
+  if (!hours) {
+    return true;
+  }
+  return Date.now() - new Date(value).getTime() <= hours * 60 * 60 * 1000;
+}
+
+function releaseSearchText(release) {
+  return [
+    release.app_id,
+    appLabel(release.app_id),
+    release.type,
+    releaseTypeLabel(release.type),
+    release.version,
+    release.file_name,
+    release.web_url,
+    release.download_url,
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase();
+}
+
+function isExternalRelease(release) {
+  return Boolean(release.web_url) || release.type === "web" || release.type === "appstore";
+}
+
 function currentReleases() {
-  return state.appContext.builds
-    ? state.releases.filter((release) => release.app_id === state.appContext.builds)
-    : state.releases;
+  const search = state.releaseFilters.search.trim().toLowerCase();
+  return state.releases.filter((release) => {
+    if (state.appContext.builds && release.app_id !== state.appContext.builds) {
+      return false;
+    }
+    if (state.releaseFilters.appId && release.app_id !== state.releaseFilters.appId) {
+      return false;
+    }
+    if (state.releaseFilters.type && release.type !== state.releaseFilters.type) {
+      return false;
+    }
+    if (state.releaseFilters.source === "external" && !isExternalRelease(release)) {
+      return false;
+    }
+    if (state.releaseFilters.source === "binary" && isExternalRelease(release)) {
+      return false;
+    }
+    if (!matchesUpdatedRange(release.updated_at, state.releaseFilters.updatedRange)) {
+      return false;
+    }
+    return !search || releaseSearchText(release).includes(search);
+  });
 }
 
 function renderLandings() {
@@ -7150,6 +7363,30 @@ document.getElementById("landing-create-submit")?.addEventListener("click", asyn
   }
 });
 
+const RELEASE_PLATFORM_TYPES = ["apk", "exe", "dmg", "web", "appstore"];
+
+function summarizeBuildGroup(releases) {
+  const configuredTypes = new Set(releases.map((release) => release.type));
+  const configured = RELEASE_PLATFORM_TYPES.filter((type) => configuredTypes.has(type));
+  const missing = RELEASE_PLATFORM_TYPES.filter((type) => !configuredTypes.has(type));
+  const latest = [...releases].sort((a, b) => new Date(b.updated_at || 0) - new Date(a.updated_at || 0))[0];
+  const downloads30d = releases.reduce((sum, release) => sum + Number(release.downloads_30d || 0), 0);
+  const downloads24h = releases.reduce((sum, release) => sum + Number(release.downloads_24h || 0), 0);
+  return { configured, missing, latest, downloads30d, downloads24h };
+}
+
+function formatReleaseTypeList(types) {
+  return types.length ? types.map(releaseTypeLabel).join(" / ") : "无";
+}
+
+function renderReleaseHealth(release) {
+  const health = release.health || { status: "warning", label: "未检查", checks: [] };
+  const title = (health.checks || []).map((check) => `${check.ok ? "✓" : "×"} ${check.label}`).join(" · ");
+  return `<span class="health-pill ${escapeHtml(health.status || "warning")}" title="${escapeHtml(title || health.label)}">${escapeHtml(
+    health.label || "未检查"
+  )}</span>`;
+}
+
 function renderBuilds() {
   const filteredReleases = currentReleases();
   renderAppContextBanner("builds");
@@ -7162,9 +7399,16 @@ function renderBuilds() {
 
   const container = document.getElementById("builds-list");
   if (!Object.keys(grouped).length) {
+    const hasFilters =
+      state.appContext.builds ||
+      state.releaseFilters.appId ||
+      state.releaseFilters.search ||
+      state.releaseFilters.type ||
+      state.releaseFilters.updatedRange ||
+      state.releaseFilters.source;
     container.innerHTML = `<div class="empty-state">${
-      state.appContext.builds
-        ? `${escapeHtml(appLabel(state.appContext.builds))} 还没有安装包版本，可先点击右上角“上传安装包”。`
+      hasFilters
+        ? "没有匹配当前筛选条件的安装包。"
         : "当前还没有可管理的安装包。"
     }</div>`;
     return;
@@ -7172,19 +7416,20 @@ function renderBuilds() {
   container.innerHTML = Object.entries(grouped)
     .map(([appId, releases]) => {
       const theme = appTheme(appId);
-      const latest = releases[0];
+      const summary = summarizeBuildGroup(releases);
+      const latest = summary.latest;
       return `
         <div class="build-card ${theme === "zhujiao" ? "zhujiao" : ""}">
           <div class="build-head">
             <div class="landing-logo ${theme}" style="width:40px;height:40px;font-size:18px;">${theme === "zhujiao" ? "助" : "V"}</div>
             <div>
               <h3 class="landing-title" style="font-size:20px;">${appLabel(appId)}</h3>
-              <div class="landing-desc">${formatNumber(releases.length)} 个平台 · 当前主版本 ${escapeHtml(
-                latest?.version ? `v${latest.version}` : "未标记"
-              )}</div>
+              <div class="landing-desc">已配置：${escapeHtml(formatReleaseTypeList(summary.configured))}</div>
+              <div class="landing-desc">缺失：${escapeHtml(formatReleaseTypeList(summary.missing))}</div>
             </div>
             <div class="build-meta-inline">
-              <span><b>${formatNumber(releases.length)}</b>活跃版本</span>
+              <span><b>${latest?.version ? `v${escapeHtml(latest.version)}` : "—"}</b>最近发布</span>
+              <span><b>${formatNumber(summary.downloads30d)}</b>30 天下载</span>
               <span><b>${latest?.updated_at ? formatRelative(latest.updated_at) : "暂无"}</b>最近更新</span>
             </div>
           </div>
@@ -7200,10 +7445,12 @@ function renderBuilds() {
                 <div class="build-cell mono"><span class="lbl">大小</span>${formatBytes(release.file_size)}</div>
                 <div class="build-cell mono"><span class="lbl">版本</span>${escapeHtml(release.version ? `v${release.version}` : "—")}</div>
                 <div class="build-cell mono"><span class="lbl">SHA256</span>${escapeHtml(shortHash(release.sha256))}</div>
+                <div class="build-cell"><span class="lbl">健康</span>${renderReleaseHealth(release)}</div>
+                <div class="build-cell mono"><span class="lbl">30 天下载</span>${formatNumber(release.downloads_30d || 0)}</div>
                 <div class="build-cell mono"><span class="lbl">上传时间</span>${formatDateTime(release.updated_at)}</div>
                 <div class="build-actions">
-                  <button class="build-action" data-version-toggle="${escapeHtml(appId)}:${escapeHtml(release.type)}" title="查看版本历史">
-                    <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M8 2v6l4 2"/><circle cx="8" cy="8" r="6"/></svg>
+                  <button class="build-action" data-release-stats="${escapeHtml(appId)}:${escapeHtml(release.type)}" title="查看该平台下载统计">
+                    <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M3 13V7M8 13V3M13 13V9"/></svg>
                   </button>
                   <button class="build-action" data-copy-url="${escapeHtml(release.web_url || release.download_url || "")}" title="复制下载链接">
                     <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M6 9a3 3 0 0 0 4.2 0l2.6-2.6a3 3 0 0 0-4.2-4.2L8 3.4"/><path d="M10 7a3 3 0 0 0-4.2 0L3.2 9.6a3 3 0 0 0 4.2 4.2L8 12.6"/></svg>
@@ -7216,7 +7463,6 @@ function renderBuilds() {
                   </button>
                 </div>
               </div>
-              <div class="build-version-panel hidden" id="${buildHistoryPanelId(appId, release.type)}"></div>
             `
             )
             .join("")}
@@ -7224,6 +7470,18 @@ function renderBuilds() {
       `;
     })
     .join("");
+
+  container.querySelectorAll("[data-release-stats]").forEach((button) => {
+    button.addEventListener("click", async () => {
+      const [appId, type] = button.dataset.releaseStats.split(":");
+      openDownloadStatsModal({ appId, type });
+      try {
+        await loadReleaseStats();
+      } catch (error) {
+        showToast(error.message);
+      }
+    });
+  });
 
   container.querySelectorAll("[data-copy-url]").forEach((button) => {
     button.addEventListener("click", async () => {
@@ -7251,7 +7509,7 @@ function renderBuilds() {
   container.querySelectorAll("[data-delete-release]").forEach((button) => {
     button.addEventListener("click", async () => {
       const [appId, type] = button.dataset.deleteRelease.split(":");
-      if (!window.confirm(`确认删除 ${appLabel(appId)} 的 ${type.toUpperCase()} 当前版本吗？历史版本将保留，并自动回退到上一个版本。`)) {
+      if (!window.confirm(`确认删除 ${appLabel(appId)} 的 ${type.toUpperCase()} 安装包吗？删除后该平台将没有可下载版本。`)) {
         return;
       }
       try {
@@ -7261,13 +7519,6 @@ function renderBuilds() {
       } catch (error) {
         showToast(error.message);
       }
-    });
-  });
-
-  container.querySelectorAll("[data-version-toggle]").forEach((button) => {
-    button.addEventListener("click", () => {
-      const [appId, type] = button.dataset.versionToggle.split(":");
-      toggleReleaseVersions(appId, type).catch((error) => showToast(error.message));
     });
   });
 }
@@ -8213,185 +8464,6 @@ function exportCurrentSdkDoc() {
   link.remove();
 }
 
-function renderReleaseVersions(appId, type) {
-  const key = releaseKey(appId, type);
-  const panel = document.getElementById(buildHistoryPanelId(appId, type));
-  if (!panel) {
-    return;
-  }
-
-  const currentRelease = state.releases.find((item) => item.app_id === appId && item.type === type);
-  const versions = state.releaseVersions[key]?.length
-    ? state.releaseVersions[key]
-    : currentRelease
-    ? [
-        {
-          id: null,
-          version: currentRelease.version,
-          file_name: currentRelease.file_name,
-          file_size: currentRelease.file_size,
-          download_url: currentRelease.web_url || currentRelease.download_url,
-          is_current: true,
-          created_at: currentRelease.updated_at,
-        },
-      ]
-    : [];
-
-  if (!versions.length) {
-    panel.innerHTML = `<div class="inline-note">当前平台还没有可用的历史版本记录。</div>`;
-    panel.classList.remove("hidden");
-    return;
-  }
-
-  panel.innerHTML = `
-    <div class="inline-note">历史版本共 ${formatNumber(versions.length)} 条，可直接复制链接、回滚当前版本、删除单个旧版本，或清空整个平台历史。</div>
-    <div class="membership-actions" style="margin:10px 0 14px;">
-      <button class="btn-pill danger" data-clear-release-history="${escapeHtml(appId)}:${escapeHtml(type)}">删除整个历史</button>
-    </div>
-    <div class="version-list">
-      ${versions
-        .map(
-          (version) => `
-            <div class="version-row">
-              <div class="version-meta">
-                <b>${escapeHtml(version.version ? `v${version.version}` : "未标记版本")}${version.is_current ? ' <span class="badge paid" style="margin-left:8px;"><span class="pip"></span>当前版本</span>' : ""}</b>
-                <span>${escapeHtml(version.file_name || "外部链接版本")} · ${formatBytes(version.file_size)} · ${formatDateTime(
-            version.created_at
-          )} · 哈希 ${escapeHtml(shortHash(version.sha256))}</span>
-              </div>
-              <div class="build-cell mono"><span class="lbl">平台</span>${escapeHtml(releaseTypeLabel(type))}</div>
-              <div class="build-cell mono"><span class="lbl">下载地址</span>${escapeHtml(version.download_url || "—")}</div>
-              <div class="version-actions">
-                <button class="build-action" data-copy-url="${escapeHtml(version.download_url || "")}" title="复制历史版本链接">
-                  <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M6 9a3 3 0 0 0 4.2 0l2.6-2.6a3 3 0 0 0-4.2-4.2L8 3.4"/><path d="M10 7a3 3 0 0 0-4.2 0L3.2 9.6a3 3 0 0 0 4.2 4.2L8 12.6"/></svg>
-                </button>
-                <button class="build-action" data-version-qr="${escapeHtml(version.id || "")}" data-version-qr-fallback="${escapeHtml(appId)}:${escapeHtml(type)}" title="查看二维码">
-                  <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="2" y="2" width="4" height="4"/><rect x="10" y="2" width="4" height="4"/><rect x="2" y="10" width="4" height="4"/><path d="M10 10h1v1h-1zM12 10h2v2h-1M10 13h2"/></svg>
-                </button>
-                ${
-                  version.id
-                    ? `<button class="build-action" data-restore-version="${version.id}" title="回滚到这个版本">
-                        <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M3 8a5 5 0 1 0 2-4"/><path d="M3 3v4h4"/></svg>
-                      </button>
-                      <button class="build-action danger" data-delete-version="${version.id}" title="删除历史版本">
-                        <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M3 4h10M5 4V3a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v1M6 7v5M10 7v5M4 4l1 9a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1l1-9"/></svg>
-                      </button>`
-                    : ""
-                }
-              </div>
-            </div>
-          `
-        )
-        .join("")}
-    </div>
-  `;
-  panel.classList.remove("hidden");
-
-  panel.querySelectorAll("[data-copy-url]").forEach((button) => {
-    button.addEventListener("click", async () => {
-      const url = button.dataset.copyUrl;
-      if (!url) {
-        showToast("当前版本没有可复制链接");
-        return;
-      }
-      await navigator.clipboard.writeText(url);
-      showToast("版本链接已复制");
-    });
-  });
-
-  panel.querySelectorAll("[data-version-qr]").forEach((button) => {
-    button.addEventListener("click", async () => {
-      try {
-        if (button.dataset.versionQr) {
-          await loadReleaseQr({ versionId: button.dataset.versionQr });
-          return;
-        }
-        const [releaseAppId, releaseType] = button.dataset.versionQrFallback.split(":");
-        await loadReleaseQr({ appId: releaseAppId, type: releaseType });
-      } catch (error) {
-        showToast(error.message);
-      }
-    });
-  });
-
-  panel.querySelectorAll("[data-restore-version]").forEach((button) => {
-    button.addEventListener("click", async () => {
-      try {
-        await requestJson(`/api/admin/release/restore/${button.dataset.restoreVersion}`, {
-          method: "POST",
-        });
-        showToast("已回滚到所选版本");
-        delete state.releaseVersions[key];
-        await loadReleases();
-        await toggleReleaseVersions(appId, type, true);
-      } catch (error) {
-        showToast(error.message);
-      }
-    });
-  });
-
-  panel.querySelectorAll("[data-delete-version]").forEach((button) => {
-    button.addEventListener("click", async () => {
-      if (!window.confirm("确认删除这个历史版本吗？删除后将无法恢复。")) {
-        return;
-      }
-      try {
-        await requestJson(`/api/admin/release/version/${button.dataset.deleteVersion}`, {
-          method: "DELETE",
-        });
-        showToast("历史版本已删除");
-        delete state.releaseVersions[key];
-        await loadReleases();
-        await toggleReleaseVersions(appId, type, true);
-      } catch (error) {
-        showToast(error.message);
-      }
-    });
-  });
-
-  panel.querySelectorAll("[data-clear-release-history]").forEach((button) => {
-    button.addEventListener("click", async () => {
-      const [releaseAppId, releaseType] = button.dataset.clearReleaseHistory.split(":");
-      if (!window.confirm(`确认删除 ${appLabel(releaseAppId)} 的 ${releaseType.toUpperCase()} 全部历史版本吗？这个操作会清空当前版本和历史记录。`)) {
-        return;
-      }
-      try {
-        await requestJson(`/api/admin/release/history/${releaseAppId}/${releaseType}`, {
-          method: "DELETE",
-        });
-        showToast("整个平台历史版本已删除");
-        delete state.releaseVersions[key];
-        await loadReleases();
-      } catch (error) {
-        showToast(error.message);
-      }
-    });
-  });
-}
-
-async function toggleReleaseVersions(appId, type, forceOpen = false) {
-  const key = releaseKey(appId, type);
-  const panel = document.getElementById(buildHistoryPanelId(appId, type));
-  if (!panel) {
-    return;
-  }
-
-  if (!forceOpen && !panel.classList.contains("hidden")) {
-    panel.classList.add("hidden");
-    panel.innerHTML = "";
-    return;
-  }
-
-  if (!state.releaseVersions[key]) {
-    const data = await requestJson(
-      `/api/admin/release/versions?app_id=${encodeURIComponent(appId)}&type=${encodeURIComponent(type)}`
-    );
-    state.releaseVersions[key] = data.items;
-  }
-
-  renderReleaseVersions(appId, type);
-}
-
 function renderReleaseStats() {
   const summary = state.releaseStats?.summary || {
     total_downloads: 0,
@@ -8405,6 +8477,12 @@ function renderReleaseStats() {
   const summaryContainer = document.getElementById("download-stats-summary");
   const groupedContainer = document.getElementById("download-stats-grouped");
   const recentContainer = document.getElementById("download-stats-recent");
+  const subtitle = document.getElementById("download-stats-subtitle");
+  const context = [
+    state.releaseStatsFilters.appId ? appLabel(state.releaseStatsFilters.appId) : "全部应用",
+    state.releaseStatsFilters.type ? releaseTypeLabel(state.releaseStatsFilters.type) : "全部平台",
+  ];
+  subtitle.textContent = `${context.join(" · ")} · 最近 ${summary.days} 天下载趋势与明细。`;
 
   summaryContainer.innerHTML = `
     <div class="drawer-stat"><div class="lbl">最近 ${summary.days} 天下载</div><div class="val">${formatNumber(summary.total_downloads)}</div></div>
@@ -8439,7 +8517,7 @@ function renderReleaseStats() {
                 <span>${escapeHtml(item.file_name || item.target_url || "外部链接")} · ${formatDateTime(item.created_at)}</span>
               </div>
               <div class="build-cell mono"><span class="lbl">来源</span>${escapeHtml(item.referer || "直接访问")}</div>
-              <div class="build-cell mono"><span class="lbl">方式</span>${escapeHtml(item.download_kind === "version" ? "历史版本" : "当前版本")}</div>
+              <div class="build-cell mono"><span class="lbl">方式</span>${escapeHtml(item.download_kind === "version" ? "旧下载链接" : "当前版本")}</div>
             </div>
           `
         )
@@ -8448,7 +8526,15 @@ function renderReleaseStats() {
 }
 
 async function loadReleaseStats() {
-  const data = await requestJson("/api/admin/release/stats");
+  const params = new URLSearchParams();
+  params.set("days", String(state.releaseStatsFilters.days || 30));
+  if (state.releaseStatsFilters.appId) {
+    params.set("app_id", state.releaseStatsFilters.appId);
+  }
+  if (state.releaseStatsFilters.type) {
+    params.set("type", state.releaseStatsFilters.type);
+  }
+  const data = await requestJson(`/api/admin/release/stats?${params.toString()}`);
   state.releaseStats = data;
   renderReleaseStats();
 }
@@ -8997,26 +9083,184 @@ function bindCopyButtons() {
   });
 }
 
+function uploadTypeFromPlatform(platform) {
+  const typeMap = {
+    android: "apk",
+    windows: "exe",
+    macos: "dmg",
+    web: "web",
+    appstore: "appstore",
+  };
+  return typeMap[platform] || "";
+}
+
+function expectedUploadExtension() {
+  const extensionMap = {
+    android: ".apk",
+    windows: ".exe",
+    macos: ".dmg",
+  };
+  return extensionMap[currentSegmentValue("platform")] || "";
+}
+
+function syncUploadVersionHint() {
+  const appId = uploadAppSelect?.value || "";
+  const type = uploadTypeFromPlatform(currentSegmentValue("platform"));
+  const current = state.releases.find((release) => release.app_id === appId && release.type === type);
+  if (!uploadVersionHint) {
+    return;
+  }
+  uploadVersionHint.textContent = current?.version
+    ? `当前 ${releaseTypeLabel(type)} 版本：v${current.version}，上传后会覆盖。`
+    : `当前 ${releaseTypeLabel(type)} 还没有版本。`;
+}
+
+function validateSelectedUploadFile(file, { silent = false } = {}) {
+  if (!file) {
+    return false;
+  }
+  const expectedExt = expectedUploadExtension();
+  if (!expectedExt) {
+    return true;
+  }
+  const fileName = file.name || "";
+  const isValid = fileName.toLowerCase().endsWith(expectedExt);
+  if (!isValid && !silent) {
+    showToast(`当前平台只能上传 ${expectedExt} 文件`);
+  }
+  return isValid;
+}
+
+function formatDuration(seconds) {
+  if (!Number.isFinite(seconds) || seconds < 0) {
+    return "—";
+  }
+  if (seconds < 60) {
+    return `${Math.ceil(seconds)}s`;
+  }
+  return `${Math.floor(seconds / 60)}m ${Math.ceil(seconds % 60)}s`;
+}
+
+function setUploadProgress(percent, metaText) {
+  uploadProgress.classList.remove("hidden");
+  uploadProgressFill.style.width = `${Math.max(0, Math.min(100, percent))}%`;
+  uploadProgressMeta.textContent = metaText;
+}
+
+function setUploadBusy(isBusy) {
+  uploadSubmitBtn.disabled = isBusy;
+  uploadAppSelect.disabled = isBusy;
+  uploadVersionInput.disabled = isBusy;
+  uploadWebUrlInput.disabled = isBusy;
+  uploadFileInput.disabled = isBusy;
+  uploadSubmitBtn.textContent = isBusy ? "上传中…" : "开始上传";
+  uploadCancelBtn.textContent = isBusy ? "取消上传" : "取消";
+}
+
+function resetUploadProgress() {
+  state.currentUploadXhr = null;
+  state.uploadStartedAt = null;
+  setUploadBusy(false);
+  uploadProgress.classList.add("hidden");
+  uploadProgressFill.style.width = "0%";
+  uploadProgressMeta.textContent = "等待上传…";
+}
+
+function abortCurrentUpload() {
+  if (state.currentUploadXhr) {
+    state.currentUploadXhr.abort();
+  }
+}
+
+function uploadReleaseWithProgress(formData) {
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    state.currentUploadXhr = xhr;
+    state.uploadStartedAt = Date.now();
+    xhr.open("POST", "/api/admin/release/upload");
+
+    xhr.upload.addEventListener("progress", (event) => {
+      if (!event.lengthComputable) {
+        setUploadProgress(8, "正在上传，等待服务器返回进度…");
+        return;
+      }
+      const elapsedSeconds = Math.max((Date.now() - state.uploadStartedAt) / 1000, 0.1);
+      const rate = event.loaded / elapsedSeconds;
+      const remainingSeconds = rate > 0 ? (event.total - event.loaded) / rate : Number.NaN;
+      const percent = (event.loaded / event.total) * 100;
+      setUploadProgress(
+        percent,
+        `${Math.floor(percent)}% · ${formatBytes(rate)}/s · 剩余 ${formatDuration(remainingSeconds)}`
+      );
+    });
+
+    xhr.addEventListener("load", () => {
+      const contentType = xhr.getResponseHeader("content-type") || "";
+      let payload = null;
+      try {
+        payload = contentType.includes("application/json") && xhr.responseText ? JSON.parse(xhr.responseText) : null;
+      } catch (error) {
+        reject(new Error("上传响应解析失败"));
+        return;
+      }
+      if (xhr.status >= 200 && xhr.status < 300) {
+        setUploadProgress(100, "100% · 服务器已完成发布");
+        resolve(payload || {});
+        return;
+      }
+      reject(new Error(payload?.error || xhr.responseText || "上传失败"));
+    });
+
+    xhr.addEventListener("error", () => reject(new Error("上传失败，请检查网络或服务状态")));
+    xhr.addEventListener("abort", () => reject(Object.assign(new Error("上传已取消"), { aborted: true })));
+    xhr.send(formData);
+  });
+}
+
 function resetUploadModal() {
   state.selectedUploadFile = null;
   uploadFileInput.value = "";
   uploadFileName.textContent = "尚未选择文件";
   uploadWebUrlInput.value = "";
-  document.getElementById("upload-version").value = "2.4.2";
+  uploadVersionInput.value = "";
+  resetUploadProgress();
+  syncUploadVersionHint();
 }
 
 function openUploadModal() {
   resetUploadModal();
-  setSegmentValue("product", state.appContext.builds || state.applications[0]?.id || "");
+  renderAppSelectionControls();
+  const desiredAppId = state.appContext.builds || uploadAppSelect.value || state.applications[0]?.id || "";
+  const hasDesiredApp = [...uploadAppSelect.options].some((option) => option.value === desiredAppId);
+  uploadAppSelect.value = hasDesiredApp ? desiredAppId : state.applications[0]?.id || "";
   syncUploadInputMode();
+  syncUploadVersionHint();
   uploadModal.classList.add("open");
 }
 
 function closeUploadModal() {
+  if (state.currentUploadXhr) {
+    showToast("上传中，请先取消上传");
+    return;
+  }
   uploadModal.classList.remove("open");
 }
 
+function handleUploadCancel() {
+  if (state.currentUploadXhr) {
+    abortCurrentUpload();
+    return;
+  }
+  closeUploadModal();
+}
+
 function selectUploadFile(file) {
+  if (file && !validateSelectedUploadFile(file)) {
+    state.selectedUploadFile = null;
+    uploadFileInput.value = "";
+    uploadFileName.textContent = "尚未选择文件";
+    return;
+  }
   state.selectedUploadFile = file;
   uploadFileName.textContent = file ? file.name : "尚未选择文件";
 }
@@ -9024,18 +9268,37 @@ function selectUploadFile(file) {
 function syncUploadInputMode() {
   const platform = currentSegmentValue("platform");
   const isUrlType = platform === "web" || platform === "appstore";
+  const acceptMap = {
+    android: ".apk",
+    windows: ".exe",
+    macos: ".dmg",
+  };
+  uploadFileInput.accept = acceptMap[platform] || "";
   uploadFileField.classList.toggle("hidden", isUrlType);
   uploadUrlField.classList.toggle("hidden", !isUrlType);
   if (isUrlType) {
     state.selectedUploadFile = null;
     uploadFileInput.value = "";
     uploadFileName.textContent = "当前平台通过 URL 发布，不需要上传文件";
+  } else if (state.selectedUploadFile && !validateSelectedUploadFile(state.selectedUploadFile, { silent: true })) {
+    state.selectedUploadFile = null;
+    uploadFileInput.value = "";
+    uploadFileName.textContent = "已清空不匹配当前平台的文件";
   } else if (!state.selectedUploadFile) {
     uploadFileName.textContent = "尚未选择文件";
   }
+  syncUploadVersionHint();
 }
 
-function openDownloadStatsModal() {
+function openDownloadStatsModal(filters = {}) {
+  state.releaseStatsFilters = {
+    appId: filters.appId || "",
+    type: filters.type || "",
+    days: filters.days || state.releaseStatsFilters.days || 30,
+  };
+  document.querySelectorAll("[data-stats-days]").forEach((item) => {
+    item.classList.toggle("active", Number(item.dataset.statsDays) === state.releaseStatsFilters.days);
+  });
   downloadStatsModal.classList.add("open");
 }
 
@@ -9191,7 +9454,7 @@ async function submitRedeemBatchEditor() {
 
 document.getElementById("open-upload")?.addEventListener("click", openUploadModal);
 document.getElementById("modal-close")?.addEventListener("click", closeUploadModal);
-document.getElementById("modal-cancel")?.addEventListener("click", closeUploadModal);
+document.getElementById("modal-cancel")?.addEventListener("click", handleUploadCancel);
 document.getElementById("open-app-create")?.addEventListener("click", () => openAppEditorModal("create"));
 document.getElementById("open-plan-create")?.addEventListener("click", () => openPlanEditorModal("create"));
 document.getElementById("open-redeem-create")?.addEventListener("click", openRedeemEditorModal);
@@ -9265,8 +9528,47 @@ document.getElementById("download-stats-done")?.addEventListener("click", closeD
 document.getElementById("download-stats-refresh")?.addEventListener("click", () => {
   loadReleaseStats().catch((error) => showToast(error.message));
 });
+document.querySelectorAll("[data-stats-days]").forEach((item) => {
+  item.addEventListener("click", () => {
+    state.releaseStatsFilters.days = Number(item.dataset.statsDays);
+    document.querySelectorAll("[data-stats-days]").forEach((button) => {
+      button.classList.toggle("active", button === item);
+    });
+    loadReleaseStats().catch((error) => showToast(error.message));
+  });
+});
 document.getElementById("release-qr-close")?.addEventListener("click", closeReleaseQrModal);
 document.getElementById("release-qr-done")?.addEventListener("click", closeReleaseQrModal);
+document.getElementById("release-qr-open")?.addEventListener("click", () => {
+  const url = document.getElementById("release-qr-url").value;
+  if (!url) {
+    showToast("当前二维码没有可打开地址");
+    return;
+  }
+  window.open(url, "_blank", "noopener,noreferrer");
+});
+document.getElementById("release-qr-download")?.addEventListener("click", () => {
+  if (!state.releaseQr?.qr_code_data_url) {
+    showToast("当前没有可下载二维码");
+    return;
+  }
+  const link = document.createElement("a");
+  link.href = state.releaseQr.qr_code_data_url;
+  link.download = `${state.releaseQr.app_id}-${state.releaseQr.type}-qr.png`;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+});
+document.getElementById("release-qr-copy-image")?.addEventListener("click", async () => {
+  if (!state.releaseQr?.qr_code_data_url || !navigator.clipboard || !window.ClipboardItem) {
+    showToast("当前浏览器不支持复制二维码图片");
+    return;
+  }
+  const response = await fetch(state.releaseQr.qr_code_data_url);
+  const blob = await response.blob();
+  await navigator.clipboard.write([new ClipboardItem({ [blob.type]: blob })]);
+  showToast("二维码图片已复制");
+});
 document.getElementById("release-qr-copy")?.addEventListener("click", async () => {
   const url = document.getElementById("release-qr-url").value;
   if (!url) {
@@ -9339,6 +9641,9 @@ document.addEventListener("click", (event) => {
     return;
   }
   const group = item.dataset.group;
+  if (!group) {
+    return;
+  }
   setSegmentValue(group, item.dataset.val);
 });
 
@@ -9351,6 +9656,40 @@ document.getElementById("landing-create-app")?.addEventListener("change", (event
   }
 });
 
+document.getElementById("builds-search")?.addEventListener("input", (event) => {
+  state.releaseFilters.search = event.target.value;
+  renderBuilds();
+});
+document.getElementById("builds-app-filter")?.addEventListener("change", (event) => {
+  state.appContext.builds = "";
+  state.releaseFilters.appId = event.target.value;
+  renderBuilds();
+});
+document.getElementById("builds-platform-filter")?.addEventListener("change", (event) => {
+  state.releaseFilters.type = event.target.value;
+  renderBuilds();
+});
+document.getElementById("builds-updated-filter")?.addEventListener("change", (event) => {
+  state.releaseFilters.updatedRange = event.target.value;
+  renderBuilds();
+});
+document.getElementById("builds-source-filter")?.addEventListener("change", (event) => {
+  state.releaseFilters.source = event.target.value;
+  renderBuilds();
+});
+document.getElementById("builds-clear-filters")?.addEventListener("click", () => {
+  state.appContext.builds = "";
+  state.releaseFilters = {
+    search: "",
+    appId: "",
+    type: "",
+    updatedRange: "",
+    source: "",
+  };
+  syncBuildFilterControls();
+  renderBuilds();
+});
+uploadAppSelect?.addEventListener("change", syncUploadVersionHint);
 uploadDropzone.addEventListener("click", () => uploadFileInput.click());
 uploadFileInput.addEventListener("change", () => selectUploadFile(uploadFileInput.files?.[0] || null));
 uploadDropzone.addEventListener("dragover", (event) => {
@@ -9362,19 +9701,21 @@ uploadDropzone.addEventListener("drop", (event) => {
 });
 
 document.getElementById("upload-submit").addEventListener("click", async () => {
-  const appId = currentSegmentValue("product");
+  const appId = uploadAppSelect.value;
   const platform = currentSegmentValue("platform");
-  const version = document.getElementById("upload-version").value.trim();
+  const version = uploadVersionInput.value.trim();
   const webUrl = uploadWebUrlInput.value.trim();
-  const typeMap = {
-    android: "apk",
-    windows: "exe",
-    macos: "dmg",
-    web: "web",
-    appstore: "appstore",
-  };
-  const type = typeMap[platform];
+  const type = uploadTypeFromPlatform(platform);
   const isUrlType = type === "web" || type === "appstore";
+
+  if (state.currentUploadXhr) {
+    return;
+  }
+
+  if (!appId) {
+    showToast("请先创建或选择应用");
+    return;
+  }
 
   if (!version) {
     showToast("请填写版本号");
@@ -9391,6 +9732,10 @@ document.getElementById("upload-submit").addEventListener("click", async () => {
     return;
   }
 
+  if (!isUrlType && !validateSelectedUploadFile(state.selectedUploadFile)) {
+    return;
+  }
+
   const formData = new FormData();
   formData.append("app_id", appId);
   formData.append("type", type);
@@ -9402,10 +9747,10 @@ document.getElementById("upload-submit").addEventListener("click", async () => {
   }
 
   try {
-    const result = await requestJson("/api/admin/release/upload", {
-      method: "POST",
-      body: formData,
-    });
+    setUploadBusy(true);
+    setUploadProgress(isUrlType ? 12 : 0, isUrlType ? "正在发布外部链接…" : "准备上传…");
+    const result = await uploadReleaseWithProgress(formData);
+    state.currentUploadXhr = null;
     closeUploadModal();
     resetUploadModal();
     if (result.validation?.hashComputed) {
@@ -9415,7 +9760,10 @@ document.getElementById("upload-submit").addEventListener("click", async () => {
     }
     await loadReleases();
   } catch (error) {
-    showToast(error.message);
+    const aborted = error.aborted;
+    state.currentUploadXhr = null;
+    resetUploadProgress();
+    showToast(aborted ? "上传已取消" : error.message);
   }
 });
 

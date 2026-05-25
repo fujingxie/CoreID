@@ -45,11 +45,7 @@ function makeReleaseFilename(appId, type, version, originalName) {
 }
 
 function getCurrentDownloadUrl(appId, type, webUrl) {
-  return webUrl || `${process.env.BASE_URL}/download/${appId}/${type}`;
-}
-
-function getVersionDownloadUrl(versionId, webUrl) {
-  return webUrl || `${process.env.BASE_URL}/download/version/${versionId}`;
+  return webUrl || `${process.env.BASE_URL || ""}/download/${appId}/${type}`;
 }
 
 function normalizeRequiredVersion(value) {
@@ -62,6 +58,88 @@ function normalizeRequiredVersion(value) {
 
 function isBinaryType(type) {
   return binaryTypes.includes(type);
+}
+
+function isValidPublicUrl(value) {
+  if (!value) {
+    return false;
+  }
+
+  try {
+    const url = new URL(value);
+    return ["http:", "https:"].includes(url.protocol);
+  } catch (error) {
+    return false;
+  }
+}
+
+function buildReleaseHealth(release) {
+  const isExternal = Boolean(release.web_url) || !isBinaryType(release.type);
+  const downloadUrl = release.web_url || release.download_url;
+  const hasDownloadUrl = Boolean(downloadUrl);
+  const checks = [
+    {
+      key: "download_url",
+      ok: hasDownloadUrl,
+      label: hasDownloadUrl ? "下载链接已配置" : "缺少下载链接",
+    },
+  ];
+
+  if (isExternal) {
+    const externalUrlValid = isValidPublicUrl(downloadUrl);
+    checks.push({
+      key: "external_url",
+      ok: externalUrlValid,
+      label: externalUrlValid ? "外链格式有效" : "外链格式异常",
+    });
+
+    return {
+      status: checks.every((check) => check.ok) ? "ok" : "error",
+      label: checks.every((check) => check.ok) ? "外链已配置" : "外链异常",
+      kind: "external",
+      checks,
+    };
+  }
+
+  const fileExists = Boolean(release.file_path && fs.existsSync(release.file_path));
+  const hashReady = Boolean(release.sha256);
+  checks.push(
+    {
+      key: "file",
+      ok: fileExists,
+      label: fileExists ? "文件存在" : "文件缺失",
+    },
+    {
+      key: "sha256",
+      ok: hashReady,
+      label: hashReady ? "SHA256 已校验" : "缺少 SHA256",
+    }
+  );
+
+  if (!fileExists || !hasDownloadUrl) {
+    return {
+      status: "error",
+      label: "文件异常",
+      kind: "binary",
+      checks,
+    };
+  }
+
+  return {
+    status: hashReady ? "ok" : "warning",
+    label: hashReady ? "文件正常" : "缺少哈希",
+    kind: "binary",
+    checks,
+  };
+}
+
+function serializeRelease(release) {
+  return {
+    ...release,
+    downloads_30d: Number(release.downloads_30d || 0),
+    downloads_24h: Number(release.downloads_24h || 0),
+    health: buildReleaseHealth(release),
+  };
 }
 
 async function withTransaction(run) {
@@ -85,6 +163,16 @@ function removeFileIfExists(filePath) {
   }
 }
 
+function removeStaleReleaseFiles(filePaths) {
+  (filePaths || []).forEach((filePath) => {
+    try {
+      removeFileIfExists(filePath);
+    } catch (error) {
+      console.error("[release] failed to remove stale release file", { filePath, error });
+    }
+  });
+}
+
 async function computeFileSha256(filePath) {
   return new Promise((resolve, reject) => {
     const hash = crypto.createHash("sha256");
@@ -93,22 +181,6 @@ async function computeFileSha256(filePath) {
     stream.on("data", (chunk) => hash.update(chunk));
     stream.on("end", () => resolve(hash.digest("hex")));
   });
-}
-
-async function ensureVersionUnique(client, { appId, type, version }) {
-  const existing = await client.query(
-    `
-      SELECT id
-      FROM app_release_versions
-      WHERE app_id = $1 AND type = $2 AND version = $3
-      LIMIT 1
-    `,
-    [appId, type, version]
-  );
-
-  if (existing.rows[0]) {
-    throw createStatusError(409, `Version ${version} already exists for ${appId} ${type}`);
-  }
 }
 
 async function validateReleasePayload({ type, version, webUrl, file }) {
@@ -123,7 +195,7 @@ async function validateReleasePayload({ type, version, webUrl, file }) {
     return {
       sha256: null,
       validation: {
-        duplicateVersionChecked: true,
+        previousReleaseOverwritten: true,
         metadataValidated: true,
         hashComputed: false,
       },
@@ -153,7 +225,7 @@ async function validateReleasePayload({ type, version, webUrl, file }) {
   return {
     sha256,
     validation: {
-      duplicateVersionChecked: true,
+      previousReleaseOverwritten: true,
       metadataValidated: true,
       hashComputed: true,
     },
@@ -393,58 +465,26 @@ router.post(
       const downloadUrl = getCurrentDownloadUrl(appId, type, webUrl);
 
       const result = await withTransaction(async (client) => {
-        await ensureVersionUnique(client, { appId, type, version });
-
-        await client.query(
+        const currentResult = await client.query(
           `
-            UPDATE app_release_versions
-            SET is_current = false
+            SELECT file_path
+            FROM app_releases
+            WHERE app_id = $1 AND type = $2
+            LIMIT 1
+          `,
+          [appId, type]
+        );
+
+        const historyResult = await client.query(
+          `
+            SELECT file_path
+            FROM app_release_versions
             WHERE app_id = $1 AND type = $2
           `,
           [appId, type]
         );
 
-        const versionInsert = await client.query(
-          `
-            INSERT INTO app_release_versions (
-              app_id,
-              type,
-              version,
-              file_path,
-              file_name,
-              file_size,
-              sha256,
-              download_url,
-              web_url,
-              is_current
-            )
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, true)
-            RETURNING *
-          `,
-          [
-            appId,
-            type,
-            version,
-            file?.path || null,
-            file?.originalname || null,
-            file?.size || null,
-            validated.sha256,
-            downloadUrl,
-            webUrl || null,
-          ]
-        );
-
-        const versionRow = versionInsert.rows[0];
-        const versionDownloadUrl = getVersionDownloadUrl(versionRow.id, webUrl);
-        const versionUpdate = await client.query(
-          `
-            UPDATE app_release_versions
-            SET download_url = $2
-            WHERE id = $1
-            RETURNING *
-          `,
-          [versionRow.id, versionDownloadUrl]
-        );
+        await client.query("DELETE FROM app_release_versions WHERE app_id = $1 AND type = $2", [appId, type]);
 
         const currentRelease = await upsertCurrentRelease(client, {
           app_id: appId,
@@ -458,11 +498,18 @@ router.post(
           version,
         });
 
+        const removablePaths = await findOrphanedFilePaths(client, [
+          currentResult.rows[0]?.file_path,
+          ...historyResult.rows.map((row) => row.file_path),
+        ]);
+
         return {
           release: currentRelease,
-          version: versionUpdate.rows[0],
+          removablePaths,
         };
       });
+
+      removeStaleReleaseFiles(result.removablePaths);
 
       await logAdminAction(req, {
         action: "release.upload",
@@ -481,7 +528,6 @@ router.post(
       return res.status(201).json({
         success: true,
         release: result.release,
-        version: result.version,
         validation: validated.validation,
       });
     } catch (error) {
@@ -501,20 +547,33 @@ router.get("/list", async (req, res, next) => {
 
     if (appId) {
       params.push(appId);
-      whereClause = "WHERE app_id = $1";
+      whereClause = "WHERE app_releases.app_id = $1";
     }
 
     const result = await query(
       `
-        SELECT *
+        SELECT
+          app_releases.*,
+          COALESCE(download_stats.downloads_30d, 0)::int AS downloads_30d,
+          COALESCE(download_stats.downloads_24h, 0)::int AS downloads_24h,
+          download_stats.last_download_at
         FROM app_releases
+        LEFT JOIN LATERAL (
+          SELECT
+            COUNT(*) FILTER (WHERE created_at >= NOW() - INTERVAL '30 days')::int AS downloads_30d,
+            COUNT(*) FILTER (WHERE created_at >= NOW() - INTERVAL '24 hours')::int AS downloads_24h,
+            MAX(created_at) AS last_download_at
+          FROM release_download_logs
+          WHERE release_download_logs.app_id = app_releases.app_id
+            AND release_download_logs.type = app_releases.type
+        ) download_stats ON true
         ${whereClause}
         ORDER BY app_id ASC, updated_at DESC
       `,
       params
     );
 
-    return res.json({ items: result.rows });
+    return res.json({ items: result.rows.map(serializeRelease) });
   } catch (error) {
     return next(error);
   }
@@ -777,7 +836,7 @@ router.delete("/version/:version_id", async (req, res, next) => {
       return { version, fallback: currentRelease, removablePaths };
     });
 
-    deleted.removablePaths.forEach((filePath) => removeFileIfExists(filePath));
+    removeStaleReleaseFiles(deleted.removablePaths);
 
     await logAdminAction(req, {
       action: "release.version.delete",
@@ -823,7 +882,7 @@ router.delete("/history/:app_id/:type", async (req, res, next) => {
       return { removablePaths };
     });
 
-    deleted.removablePaths.forEach((filePath) => removeFileIfExists(filePath));
+    removeStaleReleaseFiles(deleted.removablePaths);
 
     await logAdminAction(req, {
       action: "release.history.delete",
@@ -846,7 +905,6 @@ router.delete("/:app_id/:type", async (req, res, next) => {
     const appId = ensureAppId(req.params.app_id);
     const type = ensureEnum(req.params.type, "type", releaseTypes);
     const deleted = await withTransaction(async (client) => {
-      const currentVersion = await getCurrentVersion(client, appId, type);
       const currentReleaseResult = await client.query(
         `
           SELECT *
@@ -862,34 +920,29 @@ router.delete("/:app_id/:type", async (req, res, next) => {
         throw createStatusError(404, "Release not found");
       }
 
-      let removedVersion = null;
-      if (currentVersion) {
-        removedVersion = currentVersion;
-        await client.query("DELETE FROM app_release_versions WHERE id = $1", [currentVersion.id]);
-      }
+      const historyResult = await client.query(
+        `
+          SELECT file_path
+          FROM app_release_versions
+          WHERE app_id = $1 AND type = $2
+        `,
+        [appId, type]
+      );
 
-      const fallback = await getLatestVersion(client, appId, type);
-      await setCurrentVersion(client, appId, type, fallback?.id || 0);
-
-      if (fallback) {
-        await syncCurrentReleaseFromVersion(client, await getCurrentVersion(client, appId, type));
-      } else {
-        await client.query("DELETE FROM app_releases WHERE app_id = $1 AND type = $2", [appId, type]);
-      }
+      await client.query("DELETE FROM app_releases WHERE app_id = $1 AND type = $2", [appId, type]);
+      await client.query("DELETE FROM app_release_versions WHERE app_id = $1 AND type = $2", [appId, type]);
 
       const removablePaths = await findOrphanedFilePaths(client, [
-        removedVersion?.file_path,
         currentRelease.file_path,
+        ...historyResult.rows.map((row) => row.file_path),
       ]);
       return {
         currentRelease,
-        removedVersion,
-        fallback,
         removablePaths,
       };
     });
 
-    deleted.removablePaths.forEach((filePath) => removeFileIfExists(filePath));
+    removeStaleReleaseFiles(deleted.removablePaths);
 
     await logAdminAction(req, {
       action: "release.current.delete",
@@ -898,19 +951,12 @@ router.delete("/:app_id/:type", async (req, res, next) => {
       details: {
         app_id: appId,
         type,
-        removed_version: deleted.removedVersion?.version || deleted.currentRelease.version || null,
-        fallback_version: deleted.fallback?.version || null,
+        removed_version: deleted.currentRelease.version || null,
       },
     });
 
     return res.json({
       success: true,
-      fallback: deleted.fallback
-        ? {
-            version: deleted.fallback.version,
-            download_url: deleted.fallback.download_url,
-          }
-        : null,
     });
   } catch (error) {
     return next(error);
@@ -924,17 +970,12 @@ publicRouter.get("/download/:app_id/:type", async (req, res, next) => {
     const result = await query(
       `
         SELECT
-          r.file_path,
-          r.file_name,
-          r.web_url,
-          r.version,
-          v.id AS version_id
-        FROM app_releases r
-        LEFT JOIN app_release_versions v
-          ON v.app_id = r.app_id
-         AND v.type = r.type
-         AND v.is_current = true
-        WHERE r.app_id = $1 AND r.type = $2
+          file_path,
+          file_name,
+          web_url,
+          version
+        FROM app_releases
+        WHERE app_id = $1 AND type = $2
         LIMIT 1
       `,
       [appId, type]
@@ -949,7 +990,7 @@ publicRouter.get("/download/:app_id/:type", async (req, res, next) => {
     await recordDownload({
       appId,
       type,
-      versionId: release.version_id || null,
+      versionId: null,
       version: release.version || null,
       downloadKind: "current",
       fileName: release.file_name || null,
